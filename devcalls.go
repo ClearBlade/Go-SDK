@@ -152,3 +152,34 @@ func (c *CbCli) DeleteCollection(colId string) error {
 	}
 	return nil
 }
+
+func (c *CbCli) AddColumn(collection_id, column_name, column_type string) error {
+	resp, err := c.Put("/admin/collectionmanagement", map[string]interface{}{
+		"id": collection_id,
+		"addColumn": map[string]interface{}{
+			"name": column_name,
+			"type": column_type,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("Error adding column: %v\n", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error adding column: %v\n", string(resp.Body))
+	}
+	return nil
+}
+
+func (c *CbCli) DeleteColumn(collection_id, column_name string) error {
+	resp, err := c.Put("/admin/collectionmanagement", map[string]interface{}{
+		"id":           collection_id,
+		"deleteColumn": column_name,
+	})
+	if err != nil {
+		return fmt.Errorf("Error deleting column: %v\n", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error deleting column: %v\n", string(resp.Body))
+	}
+	return nil
+}
