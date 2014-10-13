@@ -165,7 +165,7 @@ func (c *CbCli) AddColumn(collection_id, column_name, column_type string) error 
 		return fmt.Errorf("Error adding column: %v\n", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error adding column: %v\n", string(resp.Body))
+		return fmt.Errorf("Error adding column: %v\n", resp.Body)
 	}
 	return nil
 }
@@ -179,7 +179,21 @@ func (c *CbCli) DeleteColumn(collection_id, column_name string) error {
 		return fmt.Errorf("Error deleting column: %v\n", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error deleting column: %v\n", string(resp.Body))
+		return fmt.Errorf("Error deleting column: %v\n", resp.Body)
+	}
+	return nil
+}
+
+func (c *CbCli) SetCollectionName(collection_id, collection_name string) error {
+	resp, err := c.Put("/admin/collectionmanagement", map[string]interface{}{
+		"id":   collection_id,
+		"name": collection_name,
+	})
+	if err != nil {
+		return fmt.Errorf("Error changing collection name: %v\n", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error changing collection name: %v\n", resp.Body)
 	}
 	return nil
 }
