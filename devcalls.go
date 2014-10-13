@@ -15,7 +15,7 @@ type System struct {
 	Users       bool
 }
 
-func (c *CbCli) DevReg(email, password, fname, lname, org string) error {
+func (c *Client) DevReg(email, password, fname, lname, org string) error {
 	resp, err := c.Post("/admin/reg", map[string]interface{}{
 		"email":    email,
 		"password": password,
@@ -33,7 +33,7 @@ func (c *CbCli) DevReg(email, password, fname, lname, org string) error {
 	return nil
 }
 
-func (c *CbCli) DevAuth(email, password string) error {
+func (c *Client) DevAuth(email, password string) error {
 	resp, err := c.Post("/admin/auth", map[string]interface{}{
 		"email":    email,
 		"password": password,
@@ -48,7 +48,7 @@ func (c *CbCli) DevAuth(email, password string) error {
 	return nil
 }
 
-func (c *CbCli) DevLogout() error {
+func (c *Client) DevLogout() error {
 	if _, ok := c.Headers["ClearBlade-DevToken"]; !ok {
 		return errors.New("No dev token stored. You need to auth first")
 	}
@@ -63,7 +63,7 @@ func (c *CbCli) DevLogout() error {
 	return nil
 }
 
-func (c *CbCli) NewSystem(name, description string, users bool) (string, error) {
+func (c *Client) NewSystem(name, description string, users bool) (string, error) {
 	resp, err := c.Post("/admin/systemmanagement", map[string]interface{}{
 		"name":          name,
 		"description":   description,
@@ -80,7 +80,7 @@ func (c *CbCli) NewSystem(name, description string, users bool) (string, error) 
 	return strings.TrimSpace(strings.Split(resp.Body.(string), ":")[1]), nil
 }
 
-func (c *CbCli) GetSystem(key string) (*System, error) {
+func (c *Client) GetSystem(key string) (*System, error) {
 	if _, ok := c.Headers["ClearBlade-DevToken"]; !ok {
 		return nil, fmt.Errorf("Error getting system: No DevToken Supplied")
 	}
@@ -106,7 +106,7 @@ func (c *CbCli) GetSystem(key string) (*System, error) {
 
 }
 
-func (c *CbCli) DeleteSystem(s string) error {
+func (c *Client) DeleteSystem(s string) error {
 	resp, err := c.Delete("/admin/systemmanagement", map[string]string{"id": s})
 	if err != nil {
 		return fmt.Errorf("Error deleting system: %v\n", err)
@@ -117,7 +117,7 @@ func (c *CbCli) DeleteSystem(s string) error {
 	return nil
 }
 
-func (c *CbCli) DevUserInfo() error {
+func (c *Client) DevUserInfo() error {
 	resp, err := c.Get("/admin/userinfo", nil)
 	if err != nil {
 		return fmt.Errorf("Error getting userdata: %v\n", err)
@@ -126,7 +126,7 @@ func (c *CbCli) DevUserInfo() error {
 	return nil
 }
 
-func (c *CbCli) NewCollection(systemKey, name string) (string, error) {
+func (c *Client) NewCollection(systemKey, name string) (string, error) {
 	resp, err := c.Post("/admin/collectionmanagement", map[string]interface{}{
 		"name":  name,
 		"appID": systemKey,
@@ -140,7 +140,7 @@ func (c *CbCli) NewCollection(systemKey, name string) (string, error) {
 	return resp.Body.(map[string]interface{})["collectionID"].(string), nil
 }
 
-func (c *CbCli) DeleteCollection(colId string) error {
+func (c *Client) DeleteCollection(colId string) error {
 	resp, err := c.Delete("/admin/collectionmanagement", map[string]string{
 		"id": colId,
 	})
@@ -153,7 +153,7 @@ func (c *CbCli) DeleteCollection(colId string) error {
 	return nil
 }
 
-func (c *CbCli) AddColumn(collection_id, column_name, column_type string) error {
+func (c *Client) AddColumn(collection_id, column_name, column_type string) error {
 	resp, err := c.Put("/admin/collectionmanagement", map[string]interface{}{
 		"id": collection_id,
 		"addColumn": map[string]interface{}{
@@ -170,7 +170,7 @@ func (c *CbCli) AddColumn(collection_id, column_name, column_type string) error 
 	return nil
 }
 
-func (c *CbCli) DeleteColumn(collection_id, column_name string) error {
+func (c *Client) DeleteColumn(collection_id, column_name string) error {
 	resp, err := c.Put("/admin/collectionmanagement", map[string]interface{}{
 		"id":           collection_id,
 		"deleteColumn": column_name,
@@ -184,7 +184,7 @@ func (c *CbCli) DeleteColumn(collection_id, column_name string) error {
 	return nil
 }
 
-func (c *CbCli) SetCollectionName(collection_id, collection_name string) error {
+func (c *Client) SetCollectionName(collection_id, collection_name string) error {
 	resp, err := c.Put("/admin/collectionmanagement", map[string]interface{}{
 		"id":   collection_id,
 		"name": collection_name,

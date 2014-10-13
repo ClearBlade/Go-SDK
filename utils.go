@@ -14,7 +14,7 @@ var (
 	addr string
 )
 
-type CbCli struct {
+type Client struct {
 	URL     string
 	Headers map[string]string
 }
@@ -31,41 +31,41 @@ type CbResp struct {
 	StatusCode int
 }
 
-func NewCbCli() *CbCli {
-	return &CbCli{
+func NewClient() *Client {
+	return &Client{
 		URL:     "https://platform.clearblade.com",
 		Headers: map[string]string{},
 	}
 }
 
-func (c *CbCli) AddHeader(key, value string) {
+func (c *Client) AddHeader(key, value string) {
 	c.Headers[key] = value
 }
 
-func (c *CbCli) RemoveHeader(key string) {
+func (c *Client) RemoveHeader(key string) {
 	delete(c.Headers, key)
 }
 
-func (c *CbCli) SetSystem(key, secret string) {
+func (c *Client) SetSystem(key, secret string) {
 	c.AddHeader("SystemKey", key)
 	c.AddHeader("SystemSecret", secret)
 }
 
-func (c *CbCli) SetDevToken(tok string) {
+func (c *Client) SetDevToken(tok string) {
 	c.RemoveHeader("SystemKey")
 	c.RemoveHeader("SystemSecret")
 	c.RemoveHeader("ClearBlade-UserToken") // just in case
 	c.AddHeader("ClearBlade-DevToken", tok)
 }
 
-func (c *CbCli) SetUserToken(tok string) {
+func (c *Client) SetUserToken(tok string) {
 	c.RemoveHeader("SystemKey")
 	c.RemoveHeader("SystemSecret")
 	c.RemoveHeader("ClearBlade-DevToken") // just in case
 	c.AddHeader("ClearBlade-UserToken", tok)
 }
 
-func (c *CbCli) Do(r *CbReq) (*CbResp, error) {
+func (c *Client) Do(r *CbReq) (*CbResp, error) {
 	var bodyToSend *bytes.Buffer
 	if r.Body != nil {
 		b, jsonErr := json.Marshal(r.Body)
@@ -135,7 +135,7 @@ func (c *CbCli) Do(r *CbReq) (*CbResp, error) {
 	}, nil
 }
 
-func (c *CbCli) Get(endpoint string, query map[string]string) (*CbResp, error) {
+func (c *Client) Get(endpoint string, query map[string]string) (*CbResp, error) {
 	req := &CbReq{
 		Body:        nil,
 		Method:      "GET",
@@ -145,7 +145,7 @@ func (c *CbCli) Get(endpoint string, query map[string]string) (*CbResp, error) {
 	return c.Do(req)
 }
 
-func (c *CbCli) Post(endpoint string, body interface{}) (*CbResp, error) {
+func (c *Client) Post(endpoint string, body interface{}) (*CbResp, error) {
 	req := &CbReq{
 		Body:        body,
 		Method:      "POST",
@@ -155,7 +155,7 @@ func (c *CbCli) Post(endpoint string, body interface{}) (*CbResp, error) {
 	return c.Do(req)
 }
 
-func (c *CbCli) Put(endpoint string, body interface{}) (*CbResp, error) {
+func (c *Client) Put(endpoint string, body interface{}) (*CbResp, error) {
 	req := &CbReq{
 		Body:        body,
 		Method:      "PUT",
@@ -165,7 +165,7 @@ func (c *CbCli) Put(endpoint string, body interface{}) (*CbResp, error) {
 	return c.Do(req)
 }
 
-func (c *CbCli) Delete(endpoint string, query map[string]string) (*CbResp, error) {
+func (c *Client) Delete(endpoint string, query map[string]string) (*CbResp, error) {
 	req := &CbReq{
 		Body:        nil,
 		Method:      "DELETE",
