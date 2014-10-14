@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -95,8 +94,6 @@ func (c *Client) Do(r *CbReq) (*CbResp, error) {
 	}
 
 	cli := &http.Client{}
-	log.Printf("CLI: %+v\n", cli)
-	log.Printf("REQ: %+v\n", req)
 	resp, err := cli.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Error Making Request: %v\n", err)

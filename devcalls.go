@@ -117,6 +117,62 @@ func (c *Client) DeleteSystem(s string) error {
 	return nil
 }
 
+func (c *Client) SetSystemName(system_key, system_name string) error {
+	resp, err := c.Put("/admin/systemmanagement", map[string]interface{}{
+		"id":   system_key,
+		"name": system_name,
+	})
+	if err != nil {
+		return fmt.Errorf("Error changing system name: %v\n", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error changing system name: %v\n", resp.Body)
+	}
+	return nil
+}
+
+func (c *Client) SetSystemDescription(system_key, system_description string) error {
+	resp, err := c.Put("/admin/systemmanagement", map[string]interface{}{
+		"id":          system_key,
+		"description": system_description,
+	})
+	if err != nil {
+		return fmt.Errorf("Error changing system description: %v\n", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error changing system description: %v\n", resp.Body)
+	}
+	return nil
+}
+
+func (c *Client) SetSystemAuthOn(system_key string) error {
+	resp, err := c.Put("/admin/systemmanagement", map[string]interface{}{
+		"id":            system_key,
+		"auth_required": true,
+	})
+	if err != nil {
+		return fmt.Errorf("Error changing system auth: %v\n", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error changing system auth: %v\n", resp.Body)
+	}
+	return nil
+}
+
+func (c *Client) SetSystemAuthOff(system_key string) error {
+	resp, err := c.Put("/admin/systemmanagement", map[string]interface{}{
+		"id":            system_key,
+		"auth_required": false,
+	})
+	if err != nil {
+		return fmt.Errorf("Error changing system auth: %v\n", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error changing system auth: %v\n", resp.Body)
+	}
+	return nil
+}
+
 func (c *Client) DevUserInfo() error {
 	resp, err := c.Get("/admin/userinfo", nil)
 	if err != nil {
