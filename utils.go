@@ -69,7 +69,7 @@ func (c *Client) Do(r *CbReq) (*CbResp, error) {
 	if r.Body != nil {
 		b, jsonErr := json.Marshal(r.Body)
 		if jsonErr != nil {
-			return nil, fmt.Errorf("JSON Encoding Error: %v\n", jsonErr)
+			return nil, fmt.Errorf("JSON Encoding Error: %v", jsonErr)
 		}
 		bodyToSend = bytes.NewBuffer(b)
 	} else {
@@ -87,7 +87,7 @@ func (c *Client) Do(r *CbReq) (*CbResp, error) {
 		req, reqErr = http.NewRequest(r.Method, url, nil)
 	}
 	if reqErr != nil {
-		return nil, fmt.Errorf("Request Creation Error: %v\n", reqErr)
+		return nil, fmt.Errorf("Request Creation Error: %v", reqErr)
 	}
 	for k, v := range c.Headers {
 		req.Header.Add(k, v)
@@ -96,12 +96,12 @@ func (c *Client) Do(r *CbReq) (*CbResp, error) {
 	cli := &http.Client{}
 	resp, err := cli.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Error Making Request: %v\n", err)
+		return nil, fmt.Errorf("Error Making Request: %v", err)
 	}
 	defer resp.Body.Close()
 	body, readErr := ioutil.ReadAll(resp.Body)
 	if readErr != nil {
-		return nil, fmt.Errorf("Error Reading Response Body: %v\n", readErr)
+		return nil, fmt.Errorf("Error Reading Response Body: %v", readErr)
 	}
 	var d interface{}
 	if len(body) == 0 {

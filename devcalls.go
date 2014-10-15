@@ -70,10 +70,10 @@ func (c *Client) NewSystem(name, description string, users bool) (string, error)
 		"auth_required": users,
 	})
 	if err != nil {
-		return "", fmt.Errorf("Error creating new system: %v\n", err)
+		return "", fmt.Errorf("Error creating new system: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("Error Creating new system: %v\n", resp.Body)
+		return "", fmt.Errorf("Error Creating new system: %v", resp.Body)
 	}
 
 	// TODO we need to make this json
@@ -86,10 +86,10 @@ func (c *Client) GetSystem(key string) (*System, error) {
 	}
 	sysResp, sysErr := c.Get("/admin/systemmanagement", map[string]string{"id": key})
 	if sysErr != nil {
-		return nil, fmt.Errorf("Error gathering system information: %v\n", sysErr)
+		return nil, fmt.Errorf("Error gathering system information: %v", sysErr)
 	}
 	if sysResp.StatusCode != 200 {
-		return nil, fmt.Errorf("Error gathering system information: %v\n", sysResp.Body)
+		return nil, fmt.Errorf("Error gathering system information: %v", sysResp.Body)
 	}
 	sysMap, isMap := sysResp.Body.(map[string]interface{})
 	if !isMap {
@@ -109,10 +109,10 @@ func (c *Client) GetSystem(key string) (*System, error) {
 func (c *Client) DeleteSystem(s string) error {
 	resp, err := c.Delete("/admin/systemmanagement", map[string]string{"id": s})
 	if err != nil {
-		return fmt.Errorf("Error deleting system: %v\n", err)
+		return fmt.Errorf("Error deleting system: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error deleting system: %v\n", resp.Body)
+		return fmt.Errorf("Error deleting system: %v", resp.Body)
 	}
 	return nil
 }
@@ -123,10 +123,10 @@ func (c *Client) SetSystemName(system_key, system_name string) error {
 		"name": system_name,
 	})
 	if err != nil {
-		return fmt.Errorf("Error changing system name: %v\n", err)
+		return fmt.Errorf("Error changing system name: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error changing system name: %v\n", resp.Body)
+		return fmt.Errorf("Error changing system name: %v", resp.Body)
 	}
 	return nil
 }
@@ -137,10 +137,10 @@ func (c *Client) SetSystemDescription(system_key, system_description string) err
 		"description": system_description,
 	})
 	if err != nil {
-		return fmt.Errorf("Error changing system description: %v\n", err)
+		return fmt.Errorf("Error changing system description: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error changing system description: %v\n", resp.Body)
+		return fmt.Errorf("Error changing system description: %v", resp.Body)
 	}
 	return nil
 }
@@ -151,10 +151,10 @@ func (c *Client) SetSystemAuthOn(system_key string) error {
 		"auth_required": true,
 	})
 	if err != nil {
-		return fmt.Errorf("Error changing system auth: %v\n", err)
+		return fmt.Errorf("Error changing system auth: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error changing system auth: %v\n", resp.Body)
+		return fmt.Errorf("Error changing system auth: %v", resp.Body)
 	}
 	return nil
 }
@@ -165,10 +165,10 @@ func (c *Client) SetSystemAuthOff(system_key string) error {
 		"auth_required": false,
 	})
 	if err != nil {
-		return fmt.Errorf("Error changing system auth: %v\n", err)
+		return fmt.Errorf("Error changing system auth: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error changing system auth: %v\n", resp.Body)
+		return fmt.Errorf("Error changing system auth: %v", resp.Body)
 	}
 	return nil
 }
@@ -176,7 +176,7 @@ func (c *Client) SetSystemAuthOff(system_key string) error {
 func (c *Client) DevUserInfo() error {
 	resp, err := c.Get("/admin/userinfo", nil)
 	if err != nil {
-		return fmt.Errorf("Error getting userdata: %v\n", err)
+		return fmt.Errorf("Error getting userdata: %v", err)
 	}
 	log.Printf("HERE IS THE BODY: %+v\n", resp)
 	return nil
@@ -188,10 +188,10 @@ func (c *Client) NewCollection(systemKey, name string) (string, error) {
 		"appID": systemKey,
 	})
 	if err != nil {
-		return "", fmt.Errorf("Error creating collection: %v\n", err)
+		return "", fmt.Errorf("Error creating collection: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("Error creating collection %v\n", resp.Body)
+		return "", fmt.Errorf("Error creating collection %v", resp.Body)
 	}
 	return resp.Body.(map[string]interface{})["collectionID"].(string), nil
 }
@@ -201,10 +201,10 @@ func (c *Client) DeleteCollection(colId string) error {
 		"id": colId,
 	})
 	if err != nil {
-		return fmt.Errorf("Error deleting collection %v\n", err)
+		return fmt.Errorf("Error deleting collection %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error deleting collection %v\n", resp.Body)
+		return fmt.Errorf("Error deleting collection %v", resp.Body)
 	}
 	return nil
 }
@@ -218,10 +218,10 @@ func (c *Client) AddColumn(collection_id, column_name, column_type string) error
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("Error adding column: %v\n", err)
+		return fmt.Errorf("Error adding column: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error adding column: %v\n", resp.Body)
+		return fmt.Errorf("Error adding column: %v", resp.Body)
 	}
 	return nil
 }
@@ -232,24 +232,23 @@ func (c *Client) DeleteColumn(collection_id, column_name string) error {
 		"deleteColumn": column_name,
 	})
 	if err != nil {
-		return fmt.Errorf("Error deleting column: %v\n", err)
+		return fmt.Errorf("Error deleting column: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error deleting column: %v\n", resp.Body)
+		return fmt.Errorf("Error deleting column: %v", resp.Body)
 	}
 	return nil
 }
 
-func (c *Client) SetCollectionName(collection_id, collection_name string) error {
-	resp, err := c.Put("/admin/collectionmanagement", map[string]interface{}{
-		"id":   collection_id,
-		"name": collection_name,
+func (c *Client) GetCollectionInfo(collection_id string) (map[string]interface{}, error) {
+	resp, err := c.Get("/admin/collectionmanagement", map[string]string{
+		"id": collection_id,
 	})
 	if err != nil {
-		return fmt.Errorf("Error changing collection name: %v\n", err)
+		return nil, fmt.Errorf("Error getting collection info: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error changing collection name: %v\n", resp.Body)
+		return nil, fmt.Errorf("Error getting collection info: %v", resp.Body)
 	}
-	return nil
+	return resp.Body.(map[string]interface{}), nil
 }
