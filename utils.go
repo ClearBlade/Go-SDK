@@ -46,20 +46,20 @@ func (c *Client) RemoveHeader(key string) {
 }
 
 func (c *Client) SetSystem(key, secret string) {
-	c.AddHeader("SystemKey", key)
-	c.AddHeader("SystemSecret", secret)
+	c.AddHeader("ClearBlade-SystemKey", key)
+	c.AddHeader("ClearBlade-SystemSecret", secret)
 }
 
 func (c *Client) SetDevToken(tok string) {
-	c.RemoveHeader("SystemKey")
-	c.RemoveHeader("SystemSecret")
+	c.RemoveHeader("ClearBlade-SystemKey")
+	c.RemoveHeader("ClearBlade-SystemSecret")
 	c.RemoveHeader("ClearBlade-UserToken") // just in case
 	c.AddHeader("ClearBlade-DevToken", tok)
 }
 
 func (c *Client) SetUserToken(tok string) {
-	c.RemoveHeader("SystemKey")
-	c.RemoveHeader("SystemSecret")
+	c.RemoveHeader("ClearBlade-SystemKey")
+	c.RemoveHeader("ClearBlade-SystemSecret")
 	c.RemoveHeader("ClearBlade-DevToken") // just in case
 	c.AddHeader("ClearBlade-UserToken", tok)
 }
