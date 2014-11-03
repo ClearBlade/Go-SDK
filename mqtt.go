@@ -45,6 +45,9 @@ func (c *Client) InitializeMqttClient(clientid string, timeout int) error {
 
 //ConnectToBroker connects to the broker and sends the connect packet
 func (c *Client) ConnectToBroker(address string, ssl *tls.Config) error {
+	if c.MQTTClient == nil {
+		return errors.New("MQTTClient is uninitialized")
+	}
 	err := c.MQTTClient.Start(address, ssl)
 	if err != nil {
 		return err
@@ -54,28 +57,41 @@ func (c *Client) ConnectToBroker(address string, ssl *tls.Config) error {
 
 //PublishString is a simple helper to create a publish with a string payload
 func (c *Client) PublishString(topic, data string, qos int) error {
-	///TODO: threadsafe random
+	if c.MQTTClient == nil {
+		return errors.New("MQTTClient is uninitialized")
+	}
 	pub := mqcli.MakeMeAPublish(topic, data, uint16(c.mrand.Int()))
 	return mqcli.PublishFlow(c.MQTTClient, pub)
 }
 
 func (c *Client) PublishBytes(topic string, data []byte, qos int) error {
-	//TODO:threadsafe random
+	if c.MQTTClient == nil {
+		return errors.New("MQTTClient is uninitialized")
+	}
 	pub := mqcli.MakeMeABytePublish(topic, data, uint16(c.mrand.Int()))
 	return mqcli.PublishFlow(c.MQTTClient, pub)
 }
 
 //Subscribe is a simple wrapper around the mqtt client library
 func (c *Client) Subscribe(topic string, qos int) (<-chan mqtt.Message, error) {
+	if c.MQTTClient == nil {
+		return errors.New("MQTTClient is uninitialized")
+	}
 	return mqcli.SubscribeFlow(c.MQTTClient, topic, qos)
 }
 
 //Unsubscribe is a simple wrapper around the mqtt client library
 func (c *Client) Unsubscribe(topic string) error {
+	if c.MQTTClient == nil {
+		return errors.New("MQTTClient is uninitialized")
+	}
 	return mqcli.UnsubscribeFlow(c.MQTTClient, topic)
 }
 
 //Disconnect is a simple wrapper for sending mqtt disconnects
 func (c *Client) Disconnect() error {
+	if c.MQTTClient == nil {
+		return errors.New("MQTTClient is uninitialized")
+	}
 	return mqcli.SendDisconnect(c.MQTTClient)
 }
