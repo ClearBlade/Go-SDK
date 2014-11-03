@@ -15,7 +15,7 @@ type System struct {
 	Users       bool
 }
 
-func (c *Client) DevReg(email, password, fname, lname, org string) error {
+func (d *DevClient) DevReg(email, password, fname, lname, org string) error {
 	resp, err := c.Post("/admin/reg", map[string]interface{}{
 		"email":    email,
 		"password": password,
@@ -33,7 +33,7 @@ func (c *Client) DevReg(email, password, fname, lname, org string) error {
 	return nil
 }
 
-func (c *Client) DevAuth(email, password string) error {
+func (d *DevClient) DevAuth(email, password string) error {
 	resp, err := c.Post("/admin/auth", map[string]interface{}{
 		"email":    email,
 		"password": password,
@@ -48,7 +48,7 @@ func (c *Client) DevAuth(email, password string) error {
 	return nil
 }
 
-func (c *Client) DevLogout() error {
+func (d *DevClient) DevLogout() error {
 	if _, ok := c.Headers["ClearBlade-DevToken"]; !ok {
 		return errors.New("No dev token stored. You need to auth first")
 	}
@@ -63,12 +63,12 @@ func (c *Client) DevLogout() error {
 	return nil
 }
 
-func (c *Client) NewSystem(name, description string, users bool) (string, error) {
-	resp, err := c.Post("/admin/systemmanagement", map[string]interface{}{
+func (d *DevClient) NewSystem(name, description string, users bool) (string, error) {
+	resp, err := post("/admin/systemmanagement", map[string]interface{}{
 		"name":          name,
 		"description":   description,
 		"auth_required": users,
-	})
+	}, d.creds())
 	if err != nil {
 		return "", fmt.Errorf("Error creating new system: %v", err)
 	}
@@ -80,11 +80,12 @@ func (c *Client) NewSystem(name, description string, users bool) (string, error)
 	return strings.TrimSpace(strings.Split(resp.Body.(string), ":")[1]), nil
 }
 
-func (c *Client) GetSystem(key string) (*System, error) {
-	if _, ok := c.Headers["ClearBlade-DevToken"]; !ok {
-		return nil, fmt.Errorf("Error getting system: No DevToken Supplied")
-	}
-	sysResp, sysErr := c.Get("/admin/systemmanagement", map[string]string{"id": key})
+func (d *DevClient) GetSystem(key string) (*System, error) {
+	//TODO:REPLACE
+	// if _, ok := c.Headers["ClearBlade-DevToken"]; !ok {
+	// 	return nil, fmt.Errorf("Error getting system: No DevToken Supplied")
+	// }
+	sysResp, sysErr := get("/admin/systemmanagement", map[string]string{"id": key}, d.creds())
 	if sysErr != nil {
 		return nil, fmt.Errorf("Error gathering system information: %v", sysErr)
 	}
@@ -106,8 +107,8 @@ func (c *Client) GetSystem(key string) (*System, error) {
 
 }
 
-func (c *Client) DeleteSystem(s string) error {
-	resp, err := c.Delete("/admin/systemmanagement", map[string]string{"id": s})
+func (d *DevClient) DeleteSystem(s string) error {
+	resp, err := delete("/admin/systemmanagement", map[string]string{"id": s}, d.creds())
 	if err != nil {
 		return fmt.Errorf("Error deleting system: %v", err)
 	}
@@ -117,11 +118,11 @@ func (c *Client) DeleteSystem(s string) error {
 	return nil
 }
 
-func (c *Client) SetSystemName(system_key, system_name string) error {
-	resp, err := c.Put("/admin/systemmanagement", map[string]interface{}{
+func (d *DevClient) SetSystemName(system_key, system_name string) error {
+	resp, err := put("/admin/systemmanagement", map[string]interface{}{
 		"id":   system_key,
 		"name": system_name,
-	})
+	}, d.creds())
 	if err != nil {
 		return fmt.Errorf("Error changing system name: %v", err)
 	}
@@ -131,11 +132,11 @@ func (c *Client) SetSystemName(system_key, system_name string) error {
 	return nil
 }
 
-func (c *Client) SetSystemDescription(system_key, system_description string) error {
+func (d *DevClient) SetSystemDescription(system_key, system_description string) error {
 	resp, err := c.Put("/admin/systemmanagement", map[string]interface{}{
 		"id":          system_key,
 		"description": system_description,
-	})
+	}, d.creds())
 	if err != nil {
 		return fmt.Errorf("Error changing system description: %v", err)
 	}
@@ -145,11 +146,11 @@ func (c *Client) SetSystemDescription(system_key, system_description string) err
 	return nil
 }
 
-func (c *Client) SetSystemAuthOn(system_key string) error {
-	resp, err := c.Put("/admin/systemmanagement", map[string]interface{}{
+func (d *DevClient) SetSystemAuthOn(system_key string) error {
+	resp, err := put("/admin/systemmanagement", map[string]interface{}{
 		"id":            system_key,
 		"auth_required": true,
-	})
+	}, d.creds())
 	if err != nil {
 		return fmt.Errorf("Error changing system auth: %v", err)
 	}
@@ -159,11 +160,11 @@ func (c *Client) SetSystemAuthOn(system_key string) error {
 	return nil
 }
 
-func (c *Client) SetSystemAuthOff(system_key string) error {
-	resp, err := c.Put("/admin/systemmanagement", map[string]interface{}{
+func (d *DevClient) SetSystemAuthOff(system_key string) error {
+	resp, err := put("/admin/systemmanagement", map[string]interface{}{
 		"id":            system_key,
 		"auth_required": false,
-	})
+	}, d.creds())
 	if err != nil {
 		return fmt.Errorf("Error changing system auth: %v", err)
 	}
@@ -173,8 +174,8 @@ func (c *Client) SetSystemAuthOff(system_key string) error {
 	return nil
 }
 
-func (c *Client) DevUserInfo() error {
-	resp, err := c.Get("/admin/userinfo", nil)
+func (d *DevClient) DevUserInfo() error {
+	resp, err := get("/admin/userinfo", nil, c.creds())
 	if err != nil {
 		return fmt.Errorf("Error getting userdata: %v", err)
 	}
@@ -182,11 +183,11 @@ func (c *Client) DevUserInfo() error {
 	return nil
 }
 
-func (c *Client) NewCollection(systemKey, name string) (string, error) {
-	resp, err := c.Post("/admin/collectionmanagement", map[string]interface{}{
+func (d *DevClient) NewCollection(systemKey, name string) (string, error) {
+	resp, err := post("/admin/collectionmanagement", map[string]interface{}{
 		"name":  name,
 		"appID": systemKey,
-	})
+	}, d.creds())
 	if err != nil {
 		return "", fmt.Errorf("Error creating collection: %v", err)
 	}
@@ -196,10 +197,10 @@ func (c *Client) NewCollection(systemKey, name string) (string, error) {
 	return resp.Body.(map[string]interface{})["collectionID"].(string), nil
 }
 
-func (c *Client) DeleteCollection(colId string) error {
+func (d *DevClient) DeleteCollection(colId string) error {
 	resp, err := c.Delete("/admin/collectionmanagement", map[string]string{
 		"id": colId,
-	})
+	}, d.creds())
 	if err != nil {
 		return fmt.Errorf("Error deleting collection %v", err)
 	}
@@ -209,14 +210,14 @@ func (c *Client) DeleteCollection(colId string) error {
 	return nil
 }
 
-func (c *Client) AddColumn(collection_id, column_name, column_type string) error {
-	resp, err := c.Put("/admin/collectionmanagement", map[string]interface{}{
+func (d *DevClient) AddColumn(collection_id, column_name, column_type string) error {
+	resp, err := put("/admin/collectionmanagement", map[string]interface{}{
 		"id": collection_id,
 		"addColumn": map[string]interface{}{
 			"name": column_name,
 			"type": column_type,
 		},
-	})
+	}, d.creds())
 	if err != nil {
 		return fmt.Errorf("Error adding column: %v", err)
 	}
@@ -226,11 +227,11 @@ func (c *Client) AddColumn(collection_id, column_name, column_type string) error
 	return nil
 }
 
-func (c *Client) DeleteColumn(collection_id, column_name string) error {
-	resp, err := c.Put("/admin/collectionmanagement", map[string]interface{}{
+func (d *DevClient) DeleteColumn(collection_id, column_name string) error {
+	resp, err := put("/admin/collectionmanagement", map[string]interface{}{
 		"id":           collection_id,
 		"deleteColumn": column_name,
-	})
+	}, d.creds())
 	if err != nil {
 		return fmt.Errorf("Error deleting column: %v", err)
 	}
@@ -240,10 +241,10 @@ func (c *Client) DeleteColumn(collection_id, column_name string) error {
 	return nil
 }
 
-func (c *Client) GetCollectionInfo(collection_id string) (map[string]interface{}, error) {
+func (d *DevClient) GetCollectionInfo(collection_id string) (map[string]interface{}, error) {
 	resp, err := c.Get("/admin/collectionmanagement", map[string]string{
 		"id": collection_id,
-	})
+	}, d.creds())
 	if err != nil {
 		return nil, fmt.Errorf("Error getting collection info: %v", err)
 	}
