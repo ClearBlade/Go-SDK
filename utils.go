@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/clearblade/mqttclient"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"strings"
+	"time"
 )
 
 var (
@@ -14,8 +17,15 @@ var (
 )
 
 type Client struct {
-	URL     string
-	Headers map[string]string
+	URL        string
+	Headers    map[string]string
+	MQTTClient *mqttclient.Client
+	//We are redundantly storing these so that they presist after the usertoken
+	//is added to the header, and the SystemKey and SystemSecret are removed
+	//as the MQTT Client requires them
+	SystemKey    string
+	SystemSecret string
+	mrand        *rand.Rand
 }
 
 type CbReq struct {
@@ -32,8 +42,10 @@ type CbResp struct {
 
 func NewClient() *Client {
 	return &Client{
-		URL:     "https://platform.clearblade.com",
-		Headers: map[string]string{},
+		URL:        "https://platform.clearblade.com",
+		Headers:    map[string]string{},
+		MQTTClient: nil,
+		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 
@@ -45,7 +57,14 @@ func (c *Client) RemoveHeader(key string) {
 	delete(c.Headers, key)
 }
 
+func (c *Client) GetHeader(key string) string {
+	s, _ := c.Headers[key]
+	return s
+}
+
 func (c *Client) SetSystem(key, secret string) {
+	c.SystemKey = key
+	c.SystemSecret = secret
 	c.AddHeader("ClearBlade-SystemKey", key)
 	c.AddHeader("ClearBlade-SystemSecret", secret)
 }
@@ -62,6 +81,22 @@ func (c *Client) SetUserToken(tok string) {
 	c.RemoveHeader("ClearBlade-SystemSecret")
 	c.RemoveHeader("ClearBlade-DevToken") // just in case
 	c.AddHeader("ClearBlade-UserToken", tok)
+}
+
+func (c *Client) GetSystemInfo() (string, string) {
+	k := c.GetHeader("ClearBlade-SystemKey")
+	s := c.GetHeader("ClearBlade-SystemSecret")
+	return k, s
+}
+
+func (c *Client) GetUserToken() string {
+	tok := c.GetHeader("ClearBlade-UserToken")
+	return tok
+}
+
+func (c *Client) GetDevToken() string {
+	tok := c.GetHeader("ClearBlade-DevToken")
+	return tok
 }
 
 func (c *Client) Do(r *CbReq) (*CbResp, error) {
