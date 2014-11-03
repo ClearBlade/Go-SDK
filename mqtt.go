@@ -1,8 +1,16 @@
 package GoSDK
 
 import (
+	"crypto/tls"
 	"errors"
+	mqtt "github.com/clearblade/mqtt_parsing"
 	mqcli "github.com/clearblade/mqttclient"
+)
+
+const (
+	QOS_AtMostOnce = iota
+	QOS_AtLeastOnce
+	QOS_PreciselyOnce
 )
 
 //InitializeMqttClient allocates a mqtt client.
@@ -30,4 +38,44 @@ func (c *Client) InitializeMqttClient(clientid string, timeout int) error {
 		clientid,
 		timeout)
 	return nil
+}
+
+//Below are a series of convience functions to allow the user to only need to import
+//the clearblade go-sdk
+
+//ConnectToBroker connects to the broker and sends the connect packet
+func (c *Client) ConnectToBroker(address string, ssl *tls.Config) error {
+	err := c.MQTTClient.Start(address, ssl)
+	if err != nil {
+		return err
+	}
+	return mqcli.SendConnect(c.MQTTClient)
+}
+
+//PublishString is a simple helper to create a publish with a string payload
+func (c *Client) PublishString(topic, data string, qos int) error {
+	///TODO: threadsafe random
+	pub := mqcli.MakeMeAPublish(topic, data, uint16(c.mrand.Int()))
+	return mqcli.PublishFlow(c.MQTTClient, pub)
+}
+
+func (c *Client) PublishBytes(topic string, data []byte, qos int) error {
+	//TODO:threadsafe random
+	pub := mqcli.MakeMeABytePublish(topic, data, uint16(c.mrand.Int()))
+	return mqcli.PublishFlow(c.MQTTClient, pub)
+}
+
+//Subscribe is a simple wrapper around the mqtt client library
+func (c *Client) Subscribe(topic string, qos int) (<-chan mqtt.Message, error) {
+	return mqcli.SubscribeFlow(c.MQTTClient, topic, qos)
+}
+
+//Unsubscribe is a simple wrapper around the mqtt client library
+func (c *Client) Unsubscribe(topic string) error {
+	return mqcli.UnsubscribeFlow(c.MQTTClient, topic)
+}
+
+//Disconnect is a simple wrapper for sending mqtt disconnects
+func (c *Client) Disconnect() error {
+	return mqcli.SendDisconnect(c.MQTTClient)
 }

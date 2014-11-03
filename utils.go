@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"github.com/clearblade/mqttclient"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"strings"
+	"time"
 )
 
 var (
@@ -23,6 +25,7 @@ type Client struct {
 	//as the MQTT Client requires them
 	SystemKey    string
 	SystemSecret string
+	mrand        *rand.Rand
 }
 
 type CbReq struct {
@@ -42,6 +45,7 @@ func NewClient() *Client {
 		URL:        "https://platform.clearblade.com",
 		Headers:    map[string]string{},
 		MQTTClient: nil,
+		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 
