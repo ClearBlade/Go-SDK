@@ -62,11 +62,11 @@ func (d *DevClient) Subscribe(topic string, qos int) (<-chan mqtt.Message, error
 	return subscribe(d.MQTTClient, topic, qos)
 }
 
-func (u *UserClient) Unubscribe(topic string) error {
+func (u *UserClient) Unsubscribe(topic string) error {
 	return unsubscribe(u.MQTTClient, topic)
 }
 
-func (d *DevClient) Unubscribe(topic string) error {
+func (d *DevClient) Unsubscribe(topic string) error {
 	return unsubscribe(d.MQTTClient, topic)
 }
 
@@ -77,6 +77,9 @@ func (u *UserClient) Disconnect() error {
 func (d *DevClient) Disconnect() error {
 	return disconnect(d.MQTTClient)
 }
+
+//Below are a series of convience functions to allow the user to only need to import
+//the clearblade go-sdk
 
 //InitializeMqttClient allocates a mqtt client.
 //the values for initialization are drawn from the client struct
@@ -89,9 +92,6 @@ func initializeMqttClient(token, username, password, clientid string, timeout in
 		timeout)
 	return cli, nil
 }
-
-//Below are a series of convience functions to allow the user to only need to import
-//the clearblade go-sdk
 
 //ConnectToBroker connects to the broker and sends the connect packet
 func connectToBroker(c *mqcli.Client, address string, ssl *tls.Config) error {

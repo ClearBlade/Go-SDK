@@ -9,7 +9,7 @@ import (
 
 const (
 	_DEV_HEADER_KEY = "ClearBlade-DevToken"
-	_DEV_PREAMBLE   = "admin"
+	_DEV_PREAMBLE   = "/admin"
 )
 
 type System struct {

@@ -6,7 +6,7 @@ import (
 
 const (
 	_USER_HEADER_KEY = "ClearBlade-UserToken"
-	_USER_PREAMBLE   = "api/v/1"
+	_USER_PREAMBLE   = "/api/v/1/user"
 )
 
 func (u *UserClient) credentials() ([][]string, error) {

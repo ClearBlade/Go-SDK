@@ -17,8 +17,8 @@ import (
 var (
 	CB_ADDR            = "https://platform.clearblade.com"
 	CB_MSG_ADDR        = "messaging.clearblade.com:1883"
-	_HEADER_SECRET_KEY = "ClearBlade-SystemKey"
-	_HEADER_KEY_KEY    = "ClearBlade-SystemSecret"
+	_HEADER_KEY_KEY    = "ClearBlade-SystemKey"
+	_HEADER_SECRET_KEY = "ClearBlade-SystemSecret"
 )
 
 //Client is a convience interface for API consumers, if they want to use the same functions for both
@@ -26,18 +26,18 @@ var (
 type Client interface {
 	//bookkeeping calls
 	Authenticate() error
-	Register(username, password string) error
+	//	Register(username, password string) error
 	Logout() error
 
 	//data calls
 	InsertData(string, interface{}) error
 	UpdateData(string, [][]map[string]interface{}, map[string]interface{}) error
 	GetData(string, [][]map[string]interface{}) (map[string]interface{}, error)
-	DeleteData(string, [][]map[string]interface{}) (map[string]interface{}, error)
+	DeleteData(string, [][]map[string]interface{}) error
 	//mqtt calls
 	InitializeMQTT(string, string, int) error
-	ConnectMQTT(string, string, *tls.Config) error
-	Publish(string, string, int) error
+	ConnectMQTT(*tls.Config) error
+	Publish(string, []byte, int) error
 	Subscribe(string, int) (<-chan mqtt.Message, error)
 	Unsubscribe(string) error
 	Disconnect() error
@@ -73,19 +73,25 @@ type DevClient struct {
 }
 
 func authenticate(c cbClient, username, password string) error {
-	creds, err := c.credentials()
-	if err != nil {
-		return err
+	var creds [][]string
+	switch c.(type) {
+	case *UserClient:
+		var err error
+		creds, err = c.credentials()
+		if err != nil {
+			return err
+		}
 	}
+
 	resp, err := post(c.preamble()+"/auth", map[string]interface{}{
-		"username": username,
+		"email":    username,
 		"password": password,
 	}, creds)
 	if err != nil {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error in authenticating %v\n", resp.Body)
+		return fmt.Errorf("Error in authenticating, Status Code: %d, %v\n", resp.StatusCode, resp.Body)
 	}
 
 	var token string = ""
@@ -102,31 +108,32 @@ func authenticate(c cbClient, username, password string) error {
 	return nil
 }
 
-func register(c cbClient, username, password string) error {
-	creds, err := c.credentials()
-	if err != nil {
-		return err
-	}
-	resp, err := post(c.preamble()+"/reg", map[string]interface{}{
-		"username": username,
+func register(c cbClient, username, password, fname, lname, org string) error {
+	payload := map[string]interface{}{
+		"email":    username,
 		"password": password,
-	}, creds)
+	}
+
+	creds := [][]string{}
+	switch c.(type) {
+	case *DevClient:
+		payload["fname"] = fname
+		payload["lname"] = lname
+		payload["org"] = org
+	case *UserClient:
+		var err error
+		creds, err = c.credentials()
+		if err != nil {
+			return err
+		}
+	}
+
+	resp, err := post(c.preamble()+"/reg", payload, creds)
 	if err != nil {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error in authenticating %v\n", resp.Body)
-	}
-
-	var token string = ""
-	switch c.(type) {
-	case *UserClient:
-		token = resp.Body.(map[string]interface{})["user_token"].(string)
-	case *DevClient:
-		token = resp.Body.(map[string]interface{})["dev_token"].(string)
-	}
-	if token == "" {
-		return fmt.Errorf("Token not present i response from platform %+v", resp.Body)
+		return fmt.Errorf("Status code: %d, Error in authenticating, %v\n", resp.StatusCode, resp.Body)
 	}
 	//there isn't really a decent response to this one
 	return nil
@@ -156,11 +163,11 @@ func (d *DevClient) Authenticate() error {
 }
 
 func (u *UserClient) Register(username, password string) error {
-	return register(u, username, password)
+	return register(u, username, password, "", "", "")
 }
 
-func (d *DevClient) Register(username, password string) error {
-	return register(d, username, password)
+func (d *DevClient) Register(username, password, fname, lname, org string) error {
+	return register(d, username, password, fname, lname, org)
 }
 
 func (u *UserClient) Logout() error {
@@ -236,7 +243,6 @@ func do(r *CbReq, creds [][]string) (*CbResp, error) {
 		}
 		req.Header.Add(c[0], c[1])
 	}
-
 	cli := &http.Client{}
 	resp, err := cli.Do(req)
 	if err != nil {
