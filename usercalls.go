@@ -1,11 +1,15 @@
 package GoSDK
 
+import (
+	"errors"
+)
+
 const (
 	_USER_HEADER_KEY = "ClearBlade-UserToken"
 	_USER_PREAMBLE   = "api/v/1"
 )
 
-func (u *UserClient) creds() ([][]string, error) {
+func (u *UserClient) credentials() ([][]string, error) {
 	if u.UserToken != "" {
 		return [][]string{
 			[]string{
@@ -33,9 +37,13 @@ func (u *UserClient) preamble() string {
 	return _USER_PREAMBLE
 }
 
+func (u *UserClient) getSystemInfo() (string, string) {
+	return u.SystemKey, u.SystemSecret
+}
+
 func (u *UserClient) setToken(t string) {
 	u.UserToken = t
 }
-func (u *UserToken) getToken() string {
+func (u *UserClient) getToken() string {
 	return u.UserToken
 }

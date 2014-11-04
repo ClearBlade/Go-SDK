@@ -19,7 +19,11 @@ func (d *DevClient) InsertData(collection_id string, data interface{}) error {
 }
 
 func insertdata(c cbClient, collection_id string, data interface{}) error {
-	resp, err := post(_DATA_PREAMBLE+collection_id, data, c.creds())
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := post(_DATA_PREAMBLE+collection_id, data, creds)
 	if err != nil {
 		return fmt.Errorf("Error inserting: %v", err)
 	}
@@ -49,7 +53,11 @@ func getdata(c cbClient, collection_id string, query [][]map[string]interface{})
 	} else {
 		qry = nil
 	}
-	resp, err := get(_DATA_PREAMBLE+collection_id, qry, c.creds())
+	creds, err := c.credentials()
+	if err != nil {
+		return map[string]interface{}{}, err
+	}
+	resp, err := get(_DATA_PREAMBLE+collection_id, qry, creds)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting data: %v", err)
 	}
@@ -60,11 +68,13 @@ func getdata(c cbClient, collection_id string, query [][]map[string]interface{})
 }
 
 func (u *UserClient) UpdateData(collection_id string, query [][]map[string]interface{}, changes map[string]interface{}) error {
-	return getdata(u, collection_id, query, changes)
+	err := updatedata(u, collection_id, query, changes)
+	return err
 }
 
 func (d *DevClient) UpdateData(collection_id string, query [][]map[string]interface{}, changes map[string]interface{}) error {
-	return getdata(d, collection_id, query)
+	err := updatedata(d, collection_id, query, changes)
+	return err
 }
 
 func updatedata(c cbClient, collection_id string, query [][]map[string]interface{}, changes map[string]interface{}) error {
@@ -72,7 +82,11 @@ func updatedata(c cbClient, collection_id string, query [][]map[string]interface
 		"query": query,
 		"$set":  changes,
 	}
-	resp, err := put(_DATA_PREAMBLE+collection_id, body, c.creds())
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := put(_DATA_PREAMBLE+collection_id, body, creds)
 	if err != nil {
 		return fmt.Errorf("Error updating data: %v", err)
 	}
@@ -82,11 +96,11 @@ func updatedata(c cbClient, collection_id string, query [][]map[string]interface
 	return nil
 }
 
-func (u *UserClient) DeleteData(collection_id string, query [][]map[string]interface{}) (map[string]interface{}, error) {
+func (u *UserClient) DeleteData(collection_id string, query [][]map[string]interface{}) error {
 	return deletedata(u, collection_id, query)
 }
 
-func (d *DevClient) DeleteData(collection_id string, query [][]map[string]interface{}) (map[string]interface{}, error) {
+func (d *DevClient) DeleteData(collection_id string, query [][]map[string]interface{}) error {
 	return deletedata(d, collection_id, query)
 }
 
@@ -102,7 +116,11 @@ func deletedata(c cbClient, collection_id string, query [][]map[string]interface
 	} else {
 		return fmt.Errorf("Must supply a query to delete")
 	}
-	resp, err := delete(_DATA_PREAMBLE+collection_id, qry, c.creds())
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(_DATA_PREAMBLE+collection_id, qry, creds)
 	if err != nil {
 		return fmt.Errorf("Error deleting data: %v", err)
 	}

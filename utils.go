@@ -13,9 +13,9 @@ import (
 )
 
 var (
-	CB_ADDR            string = "https://platform.clearblade.com"
-	_HEADER_SECRET_KEY        = "ClearBlade-SystemKey"
-	_HEADER_KEY_KEY           = "ClearBlade-SystemSecret"
+	CB_ADDR            = "https://platform.clearblade.com"
+	_HEADER_SECRET_KEY = "ClearBlade-SystemKey"
+	_HEADER_KEY_KEY    = "ClearBlade-SystemSecret"
 )
 
 //Client is a convience interface for API consumers, if they want to use the same functions for both
@@ -33,35 +33,39 @@ type Client interface {
 //cbClient will supply various information that differs between privleged and unprivleged users
 //this interface is meant to be unexported
 type cbClient interface {
-	credentials() [][]string    //the inner slice is a tuple of "Header":"Value"
-	authInfo() (string, string) //username,password
-	preamble(bool) string       // "api/v/1" ||"admin", the bool is whether or not it's a user call
+	credentials() ([][]string, error) //the inner slice is a tuple of "Header":"Value"
+	preamble() string
 	setToken(string)
-	getToken(string)
-	getKeySecret() (string, string)
+	getToken() string
+	getSystemInfo() (string, string)
+	initMqtt()
 }
 
 type UserClient struct {
-	UserToken string
-	mrand     *rand.Rand
-	MQTTClient
+	UserToken    string
+	mrand        *rand.Rand
+	MQTTClient   *mqttclient.Client
 	SystemKey    string
 	SystemSecret string
 }
 
 type DevClient struct {
-	DevToken string
-	mrand    *rand.Rand
-	MQTTClient
+	DevToken     string
+	mrand        *rand.Rand
+	MQTTClient   *mqttclient.Client
 	SystemKey    string
 	SystemSecret string
 }
 
 func authenticate(c cbClient, username, password string) error {
-	resp, err := post(c.preamble(true)+"/auth", map[string]interface{}{
+	creds, err := c.credentials()
+	if err != nil {
+		return error
+	}
+	resp, err := post(c.preamble()+"/auth", map[string]interface{}{
 		"username": username,
 		"password": password,
-	}, c.creds())
+	}, creds)
 	if err != nil {
 		return err
 	}
@@ -84,10 +88,14 @@ func authenticate(c cbClient, username, password string) error {
 }
 
 func register(c cbClient, username, password string) error {
-	resp, err := post(c.preamble(true)+"/reg", map[string]interface{}{
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := post(c.preamble()+"/reg", map[string]interface{}{
 		"username": username,
 		"password": password,
-	})
+	}, creds)
 	if err != nil {
 		return err
 	}
@@ -110,7 +118,11 @@ func register(c cbClient, username, password string) error {
 }
 
 func logout(c cbClient) error {
-	resp, err := post(c.preamble(true)+"/logout", nil, c.creds())
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := post(c.preamble()+"/logout", nil, creds)
 	if err != nil {
 		return err
 	}
@@ -144,18 +156,6 @@ func (d *DevClient) Logout() error {
 	return logout(d)
 }
 
-type Client struct {
-	URL        string
-	Headers    map[string]string
-	MQTTClient *mqttclient.Client
-	//We are redundantly storing these so that they presist after the usertoken
-	//is added to the header, and the SystemKey and SystemSecret are removed
-	//as the MQTT Client requires them
-	SystemKey    string
-	SystemSecret string
-	mrand        *rand.Rand
-}
-
 type CbReq struct {
 	Body        interface{}
 	Method      string
@@ -177,55 +177,13 @@ func NewClient() *Client {
 	}
 }
 
-func (c *Client) AddHeader(key, value string) {
-	c.Headers[key] = value
+func NewUserClient(systemkey, systemkey, email, password string) *UserClient {
+	return &Client{
+		URL: CB_ADDR,
+	}
 }
 
-func (c *Client) RemoveHeader(key string) {
-	delete(c.Headers, key)
-}
-
-func (c *Client) GetHeader(key string) string {
-	s, _ := c.Headers[key]
-	return s
-}
-
-func (c *Client) SetSystem(key, secret string) {
-	c.SystemKey = key
-	c.SystemSecret = secret
-	c.AddHeader("ClearBlade-SystemKey", key)
-	c.AddHeader("ClearBlade-SystemSecret", secret)
-}
-
-func (c *Client) SetDevToken(tok string) {
-	c.RemoveHeader("ClearBlade-SystemKey")
-	c.RemoveHeader("ClearBlade-SystemSecret")
-	c.RemoveHeader("ClearBlade-UserToken") // just in case
-	c.AddHeader("ClearBlade-DevToken", tok)
-}
-
-func (c *Client) SetUserToken(tok string) {
-	c.RemoveHeader("ClearBlade-SystemKey")
-	c.RemoveHeader("ClearBlade-SystemSecret")
-	c.RemoveHeader("ClearBlade-DevToken") // just in case
-	c.AddHeader("ClearBlade-UserToken", tok)
-}
-
-func (c *Client) GetSystemInfo() (string, string) {
-	k := c.GetHeader("ClearBlade-SystemKey")
-	s := c.GetHeader("ClearBlade-SystemSecret")
-	return k, s
-}
-
-func (c *Client) GetUserToken() string {
-	tok := c.GetHeader("ClearBlade-UserToken")
-	return tok
-}
-
-func (c *Client) GetDevToken() string {
-	tok := c.GetHeader("ClearBlade-DevToken")
-	return tok
-}
+func NewDevClient(email, password string) *DevClient {}
 
 func do(r *CbReq, creds [][]string) (*CbResp, error) {
 	var bodyToSend *bytes.Buffer
