@@ -13,7 +13,9 @@ import (
 )
 
 var (
-	addr string
+	CB_ADDR            string = "https://platform.clearblade.com"
+	_HEADER_SECRET_KEY        = "ClearBlade-SystemKey"
+	_HEADER_KEY_KEY           = "ClearBlade-SystemSecret"
 )
 
 //Client is a convience interface for API consumers, if they want to use the same functions for both
@@ -29,6 +31,7 @@ type Client interface {
 }
 
 //cbClient will supply various information that differs between privleged and unprivleged users
+//this interface is meant to be unexported
 type cbClient interface {
 	credentials() [][]string    //the inner slice is a tuple of "Header":"Value"
 	authInfo() (string, string) //username,password
@@ -36,13 +39,6 @@ type cbClient interface {
 	setToken(string)
 	getToken(string)
 	getKeySecret() (string, string)
-}
-
-type client struct {
-	mrand *rand.Rand
-	MQTTClient
-	SystemKey    string
-	SystemSecret string
 }
 
 type UserClient struct {
