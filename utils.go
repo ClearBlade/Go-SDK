@@ -2,8 +2,10 @@ package GoSDK
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	mqtt "github.com/clearblade/mqtt_parsing"
 	"github.com/clearblade/mqttclient"
 	"io/ioutil"
 	"math/rand"
@@ -14,6 +16,7 @@ import (
 
 var (
 	CB_ADDR            = "https://platform.clearblade.com"
+	CB_MSG_ADDR        = "messaging.clearblade.com:1883"
 	_HEADER_SECRET_KEY = "ClearBlade-SystemKey"
 	_HEADER_KEY_KEY    = "ClearBlade-SystemSecret"
 )
@@ -21,13 +24,23 @@ var (
 //Client is a convience interface for API consumers, if they want to use the same functions for both
 //Dev Users and unprivleged users, such as tiny helper functions. please use this with care
 type Client interface {
+	//bookkeeping calls
+	Authenticate() error
+	Register(username, password string) error
+	Logout() error
+
+	//data calls
 	InsertData(string, interface{}) error
 	UpdateData(string, [][]map[string]interface{}, map[string]interface{}) error
 	GetData(string, [][]map[string]interface{}) (map[string]interface{}, error)
 	DeleteData(string, [][]map[string]interface{}) (map[string]interface{}, error)
-	Authenticate(string, string) error
-	Register(username, password string) error
-	Logout() error
+	//mqtt calls
+	InitializeMQTT(string, string, int) error
+	ConnectMQTT(string, string, *tls.Config) error
+	Publish(string, string, int) error
+	Subscribe(string, int) (<-chan mqtt.Message, error)
+	Unsubscribe(string) error
+	Disconnect() error
 }
 
 //cbClient will supply various information that differs between privleged and unprivleged users
@@ -38,7 +51,7 @@ type cbClient interface {
 	setToken(string)
 	getToken() string
 	getSystemInfo() (string, string)
-	initMqtt()
+	getMessageId() uint16
 }
 
 type UserClient struct {
@@ -47,20 +60,22 @@ type UserClient struct {
 	MQTTClient   *mqttclient.Client
 	SystemKey    string
 	SystemSecret string
+	Email        string
+	Password     string
 }
 
 type DevClient struct {
-	DevToken     string
-	mrand        *rand.Rand
-	MQTTClient   *mqttclient.Client
-	SystemKey    string
-	SystemSecret string
+	DevToken   string
+	mrand      *rand.Rand
+	MQTTClient *mqttclient.Client
+	Email      string
+	Password   string
 }
 
 func authenticate(c cbClient, username, password string) error {
 	creds, err := c.credentials()
 	if err != nil {
-		return error
+		return err
 	}
 	resp, err := post(c.preamble()+"/auth", map[string]interface{}{
 		"username": username,
@@ -88,7 +103,7 @@ func authenticate(c cbClient, username, password string) error {
 }
 
 func register(c cbClient, username, password string) error {
-	creds, err := d.credentials()
+	creds, err := c.credentials()
 	if err != nil {
 		return err
 	}
@@ -118,7 +133,7 @@ func register(c cbClient, username, password string) error {
 }
 
 func logout(c cbClient) error {
-	creds, err := d.credentials()
+	creds, err := c.credentials()
 	if err != nil {
 		return err
 	}
@@ -132,12 +147,12 @@ func logout(c cbClient) error {
 	return nil
 }
 
-func (u *UserClient) Authenticate(username, password string) error {
-	return authenticate(u, username, password)
+func (u *UserClient) Authenticate() error {
+	return authenticate(u, u.Email, u.Password)
 }
 
-func (d *DevClient) Authenticate(username, password string) error {
-	return authenticate(d, username, password)
+func (d *DevClient) Authenticate() error {
+	return authenticate(d, d.Email, d.Password)
 }
 
 func (u *UserClient) Register(username, password string) error {
@@ -168,22 +183,27 @@ type CbResp struct {
 	StatusCode int
 }
 
-func NewClient() *Client {
-	return &Client{
-		URL:        "https://platform.clearblade.com",
-		Headers:    map[string]string{},
-		MQTTClient: nil,
+func NewUserClient(systemkey, systemsecret, email, password string) *UserClient {
+	return &UserClient{
+		UserToken:    "",
+		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient:   nil,
+		SystemSecret: systemsecret,
+		SystemKey:    systemkey,
+		Email:        email,
+		Password:     password,
+	}
+}
+
+func NewDevClient(email, password string) *DevClient {
+	return &DevClient{
+		DevToken:   "",
 		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient: nil,
+		Email:      email,
+		Password:   password,
 	}
 }
-
-func NewUserClient(systemkey, systemkey, email, password string) *UserClient {
-	return &Client{
-		URL: CB_ADDR,
-	}
-}
-
-func NewDevClient(email, password string) *DevClient {}
 
 func do(r *CbReq, creds [][]string) (*CbResp, error) {
 	var bodyToSend *bytes.Buffer
@@ -196,7 +216,7 @@ func do(r *CbReq, creds [][]string) (*CbResp, error) {
 	} else {
 		bodyToSend = nil
 	}
-	url := c.URL + r.Endpoint
+	url := CB_ADDR + r.Endpoint
 	if r.QueryString != "" {
 		url += "?" + r.QueryString
 	}

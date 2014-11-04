@@ -270,17 +270,6 @@ func (d *DevClient) credentials() ([][]string, error) {
 				d.DevToken,
 			},
 		}, nil
-	} else if d.SystemSecret != "" && d.SystemKey != "" {
-		return [][]string{
-			[]string{
-				_HEADER_SECRET_KEY,
-				d.SystemSecret,
-			},
-			[]string{
-				_HEADER_KEY_KEY,
-				d.SystemKey,
-			},
-		}, nil
 	} else {
 		return [][]string{}, errors.New("No SystemSecret/SystemKey combo, or UserToken found")
 	}
@@ -291,7 +280,7 @@ func (d *DevClient) preamble() string {
 }
 
 func (d *DevClient) getSystemInfo() (string, string) {
-	return d.SystemKey, d.SystemSecret
+	return "", ""
 }
 
 func (d *DevClient) setToken(t string) {
@@ -299,4 +288,8 @@ func (d *DevClient) setToken(t string) {
 }
 func (d *DevClient) getToken() string {
 	return d.DevToken
+}
+
+func (d *DevClient) getMessageId() uint16 {
+	return uint16(d.mrand.Int())
 }
