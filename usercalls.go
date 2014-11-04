@@ -1,9 +1,5 @@
 package GoSDK
 
-import (
-	"fmt"
-)
-
 const (
 	_USER_HEADER_KEY = "ClearBlade-UserToken"
 	_USER_PREAMBLE   = "api/v/1"

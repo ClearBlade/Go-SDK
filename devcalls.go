@@ -7,60 +7,17 @@ import (
 	"strings"
 )
 
+const (
+	_DEV_HEADER_KEY = "ClearBlade-DevToken"
+	_DEV_PREAMBLE   = "admin"
+)
+
 type System struct {
 	Key         string
 	Secret      string
 	Name        string
 	Description string
 	Users       bool
-}
-
-func (d *DevClient) DevReg(email, password, fname, lname, org string) error {
-	resp, err := c.Post("/admin/reg", map[string]interface{}{
-		"email":    email,
-		"password": password,
-		"fname":    fname,
-		"lname":    lname,
-		"org":      org,
-	})
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 200 {
-		return errors.New(fmt.Sprintf("%v", resp.Body))
-	}
-	c.SetDevToken(resp.Body.(map[string]interface{})["dev_token"].(string))
-	return nil
-}
-
-func (d *DevClient) DevAuth(email, password string) error {
-	resp, err := c.Post("/admin/auth", map[string]interface{}{
-		"email":    email,
-		"password": password,
-	})
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 200 {
-		return errors.New(fmt.Sprintf("%v", resp.Body))
-	}
-	c.SetDevToken(resp.Body.(map[string]interface{})["dev_token"].(string))
-	return nil
-}
-
-func (d *DevClient) DevLogout() error {
-	if _, ok := c.Headers["ClearBlade-DevToken"]; !ok {
-		return errors.New("No dev token stored. You need to auth first")
-	}
-	resp, err := c.Post("/admin/logout", nil)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 200 {
-		return errors.New(fmt.Sprintf("%d: %v", resp.StatusCode, resp.Body))
-	}
-	c.RemoveHeader("ClearBlade-DevToken")
-	return nil
 }
 
 func (d *DevClient) NewSystem(name, description string, users bool) (string, error) {
@@ -252,4 +209,40 @@ func (d *DevClient) GetCollectionInfo(collection_id string) (map[string]interfac
 		return nil, fmt.Errorf("Error getting collection info: %v", resp.Body)
 	}
 	return resp.Body.(map[string]interface{}), nil
+}
+
+//second verse, same as the first, eh?
+func (d *DevClient) creds() ([][]string, error) {
+	if d.DevToken != "" {
+		return [][]string{
+			[]string{
+				_DEV_HEADER_KEY,
+				d.DevToken,
+			},
+		}, nil
+	} else if d.SystemSecret != "" && d.SystemKey != "" {
+		return [][]string{
+			[]string{
+				_HEADER_SECRET_KEY,
+				d.SystemSecret,
+			},
+			[]string{
+				_HEADER_KEY_KEY,
+				d.SystemKey,
+			},
+		}, nil
+	} else {
+		return [][]string{}, errors.New("No SystemSecret/SystemKey combo, or UserToken found")
+	}
+}
+
+func (d *DevClient) preamble() string {
+	return _DEV_PREAMBLE
+}
+
+func (d *DevClient) setToken(t string) {
+	d.DevToken = t
+}
+func (d *DevClient) getToken() string {
+	return d.DevToken
 }
