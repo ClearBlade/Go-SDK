@@ -26,7 +26,6 @@ var (
 type Client interface {
 	//bookkeeping calls
 	Authenticate() error
-	//	Register(username, password string) error
 	Logout() error
 
 	//data calls
@@ -71,6 +70,66 @@ type DevClient struct {
 	Email      string
 	Password   string
 }
+
+type CbReq struct {
+	Body        interface{}
+	Method      string
+	Endpoint    string
+	QueryString string
+}
+
+type CbResp struct {
+	Body       interface{}
+	StatusCode int
+}
+
+func NewUserClient(systemkey, systemsecret, email, password string) *UserClient {
+	return &UserClient{
+		UserToken:    "",
+		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient:   nil,
+		SystemSecret: systemsecret,
+		SystemKey:    systemkey,
+		Email:        email,
+		Password:     password,
+	}
+}
+
+func NewDevClient(email, password string) *DevClient {
+	return &DevClient{
+		DevToken:   "",
+		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient: nil,
+		Email:      email,
+		Password:   password,
+	}
+}
+
+func (u *UserClient) Authenticate() error {
+	return authenticate(u, u.Email, u.Password)
+}
+
+func (d *DevClient) Authenticate() error {
+	return authenticate(d, d.Email, d.Password)
+}
+
+func (u *UserClient) Register(username, password string) error {
+	return register(u, username, password, "", "", "")
+}
+
+func (d *DevClient) Register(username, password, fname, lname, org string) error {
+	return register(d, username, password, fname, lname, org)
+}
+
+func (u *UserClient) Logout() error {
+	return logout(u)
+}
+
+func (d *DevClient) Logout() error {
+	return logout(d)
+}
+
+//Below are some shared functions
 
 func authenticate(c cbClient, username, password string) error {
 	var creds [][]string
@@ -154,64 +213,6 @@ func logout(c cbClient) error {
 	return nil
 }
 
-func (u *UserClient) Authenticate() error {
-	return authenticate(u, u.Email, u.Password)
-}
-
-func (d *DevClient) Authenticate() error {
-	return authenticate(d, d.Email, d.Password)
-}
-
-func (u *UserClient) Register(username, password string) error {
-	return register(u, username, password, "", "", "")
-}
-
-func (d *DevClient) Register(username, password, fname, lname, org string) error {
-	return register(d, username, password, fname, lname, org)
-}
-
-func (u *UserClient) Logout() error {
-	return logout(u)
-}
-
-func (d *DevClient) Logout() error {
-	return logout(d)
-}
-
-type CbReq struct {
-	Body        interface{}
-	Method      string
-	Endpoint    string
-	QueryString string
-}
-
-type CbResp struct {
-	Body       interface{}
-	StatusCode int
-}
-
-func NewUserClient(systemkey, systemsecret, email, password string) *UserClient {
-	return &UserClient{
-		UserToken:    "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
-		MQTTClient:   nil,
-		SystemSecret: systemsecret,
-		SystemKey:    systemkey,
-		Email:        email,
-		Password:     password,
-	}
-}
-
-func NewDevClient(email, password string) *DevClient {
-	return &DevClient{
-		DevToken:   "",
-		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
-		MQTTClient: nil,
-		Email:      email,
-		Password:   password,
-	}
-}
-
 func do(r *CbReq, creds [][]string) (*CbResp, error) {
 	var bodyToSend *bytes.Buffer
 	if r.Body != nil {
@@ -281,6 +282,8 @@ func do(r *CbReq, creds [][]string) (*CbResp, error) {
 		StatusCode: resp.StatusCode,
 	}, nil
 }
+
+//standard http verbs
 
 func get(endpoint string, query map[string]string, creds [][]string) (*CbResp, error) {
 	req := &CbReq{
