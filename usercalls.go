@@ -1,48 +1,53 @@
 package GoSDK
 
 import (
-	"fmt"
+	"errors"
 )
 
-func (c *Client) UserReg(email, password string) error {
-	resp, err := c.Post("/api/v/1/user/reg", map[string]interface{}{
-		"email":    email,
-		"password": password,
-	})
-	if err != nil {
-		return fmt.Errorf("Error registering user: %v", err)
+const (
+	_USER_HEADER_KEY = "ClearBlade-UserToken"
+	_USER_PREAMBLE   = "/api/v/1/user"
+)
+
+func (u *UserClient) credentials() ([][]string, error) {
+	if u.UserToken != "" {
+		return [][]string{
+			[]string{
+				_USER_HEADER_KEY,
+				u.UserToken,
+			},
+		}, nil
+	} else if u.SystemSecret != "" && u.SystemKey != "" {
+		return [][]string{
+			[]string{
+				_HEADER_SECRET_KEY,
+				u.SystemSecret,
+			},
+			[]string{
+				_HEADER_KEY_KEY,
+				u.SystemKey,
+			},
+		}, nil
+	} else {
+		return [][]string{}, errors.New("No SystemSecret/SystemKey combo, or UserToken found")
 	}
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error registering user: %v", resp.Body)
-	}
-	return nil
 }
 
-func (c *Client) UserAuth(email, password string) error {
-	resp, err := c.Post("/api/v/1/user/auth", map[string]interface{}{
-		"email":    email,
-		"password": password,
-	})
-	if err != nil {
-		return fmt.Errorf("Error authenticating user: %v", err)
-	}
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error authenticating user: %v", resp.Body)
-	}
-	c.SetUserToken(resp.Body.(map[string]interface{})["user_token"].(string))
-	return nil
+func (u *UserClient) preamble() string {
+	return _USER_PREAMBLE
 }
 
-func (c *Client) UserLogout() error {
-	if _, ok := c.Headers["ClearBlade-UserToken"]; !ok {
-		return fmt.Errorf("No user token stored. you need to auth to get one")
-	}
-	resp, err := c.Post("/api/v/1/user/logout", nil)
-	if err != nil {
-		return fmt.Errorf("Error logging user out: %v", err)
-	}
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error logging user out: %v", resp.Body)
-	}
-	return nil
+func (u *UserClient) getSystemInfo() (string, string) {
+	return u.SystemKey, u.SystemSecret
+}
+
+func (u *UserClient) setToken(t string) {
+	u.UserToken = t
+}
+func (u *UserClient) getToken() string {
+	return u.UserToken
+}
+
+func (u *UserClient) getMessageId() uint16 {
+	return uint16(u.mrand.Int())
 }

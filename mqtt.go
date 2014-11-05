@@ -13,85 +13,126 @@ const (
 	QOS_PreciselyOnce
 )
 
-//InitializeMqttClient allocates a mqtt client.
-//the values for initialization are drawn from the client struct
-//with the exception of the timeout and client id, which is mqtt specific.
-func (c *Client) InitializeMqttClient(clientid string, timeout int) error {
-	var tok string
-	if ut := c.GetUserToken(); ut != "" {
-		tok = ut
-	} else if dt := c.GetDevToken(); dt != "" {
-		tok = dt
-	} else if c.SystemKey == "" && tok == "" {
-		//if there is no token, we are presently unable to log in
-		//there is a method of pure mqtt authentication in development
-		//but presently we require a token to be acquired via http
-		return errors.New("System Key nor Token not present, cannot initialize mqtt")
-		//The client is presently (2014-10-31) allowed
-		//to try to initialize with purely a system key and secret.
-		//That is discontinued legacy behavior
-		//so don't rely on it!
+//herein we use the same trick we used for http clients
+
+//InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
+func (u *UserClient) InitializeMQTT(clientid string, ignore string, timeout int) error {
+	mqc, err := initializeMqttClient(u.UserToken, u.SystemSecret, u.SystemKey, clientid, timeout)
+	if err != nil {
+		return err
 	}
-	c.MQTTClient = mqcli.NewClient(tok,
-		c.SystemKey,
-		c.SystemSecret,
-		clientid,
-		timeout)
+	u.MQTTClient = mqc
 	return nil
+}
+
+//InitializeMQTT allocates the mqtt client for the developer. the second argument is a
+//the systemkey you wish to use for authenticating with the message broker
+//topics are isolated across systems, so in order to communicate with a specific
+//system, you must supply the system key
+func (d *DevClient) InitializeMQTT(clientid, systemkey string, timeout int) error {
+	mqc, err := initializeMqttClient(d.DevToken, systemkey, "", clientid, timeout)
+	if err != nil {
+		return err
+	}
+	d.MQTTClient = mqc
+	return nil
+}
+
+func (u *UserClient) ConnectMQTT(ssl *tls.Config) error {
+	return connectToBroker(u.MQTTClient, CB_MSG_ADDR, ssl)
+}
+
+func (d *DevClient) ConnectMQTT(ssl *tls.Config) error {
+	return connectToBroker(d.MQTTClient, CB_MSG_ADDR, ssl)
+}
+
+func (u *UserClient) Publish(topic string, message []byte, qos int) error {
+	return publish(u.MQTTClient, topic, message, qos, u.getMessageId())
+}
+
+func (d *DevClient) Publish(topic string, message []byte, qos int) error {
+	return publish(d.MQTTClient, topic, message, qos, d.getMessageId())
+}
+
+func (u *UserClient) Subscribe(topic string, qos int) (<-chan mqtt.Message, error) {
+	return subscribe(u.MQTTClient, topic, qos)
+}
+
+func (d *DevClient) Subscribe(topic string, qos int) (<-chan mqtt.Message, error) {
+	return subscribe(d.MQTTClient, topic, qos)
+}
+
+func (u *UserClient) Unsubscribe(topic string) error {
+	return unsubscribe(u.MQTTClient, topic)
+}
+
+func (d *DevClient) Unsubscribe(topic string) error {
+	return unsubscribe(d.MQTTClient, topic)
+}
+
+func (u *UserClient) Disconnect() error {
+	return disconnect(u.MQTTClient)
+}
+
+func (d *DevClient) Disconnect() error {
+	return disconnect(d.MQTTClient)
 }
 
 //Below are a series of convience functions to allow the user to only need to import
 //the clearblade go-sdk
 
+//InitializeMqttClient allocates a mqtt client.
+//the values for initialization are drawn from the client struct
+//with the exception of the timeout and client id, which is mqtt specific.
+func initializeMqttClient(token, username, password, clientid string, timeout int) (*mqcli.Client, error) {
+	cli := mqcli.NewClient(token,
+		username,
+		password,
+		clientid,
+		timeout)
+	return cli, nil
+}
+
 //ConnectToBroker connects to the broker and sends the connect packet
-func (c *Client) ConnectToBroker(address string, ssl *tls.Config) error {
-	if c.MQTTClient == nil {
+func connectToBroker(c *mqcli.Client, address string, ssl *tls.Config) error {
+	if c == nil {
 		return errors.New("MQTTClient is uninitialized")
 	}
-	err := c.MQTTClient.Start(address, ssl)
+	err := c.Start(address, ssl)
 	if err != nil {
 		return err
 	}
-	return mqcli.SendConnect(c.MQTTClient)
+	return mqcli.SendConnect(c)
 }
 
-//PublishString is a simple helper to create a publish with a string payload
-func (c *Client) PublishString(topic, data string, qos int) error {
-	if c.MQTTClient == nil {
+func publish(c *mqcli.Client, topic string, data []byte, qos int, mid uint16) error {
+	if c == nil {
 		return errors.New("MQTTClient is uninitialized")
 	}
-	pub := mqcli.MakeMeAPublish(topic, data, uint16(c.mrand.Int()))
-	return mqcli.PublishFlow(c.MQTTClient, pub)
-}
-
-func (c *Client) PublishBytes(topic string, data []byte, qos int) error {
-	if c.MQTTClient == nil {
-		return errors.New("MQTTClient is uninitialized")
-	}
-	pub := mqcli.MakeMeABytePublish(topic, data, uint16(c.mrand.Int()))
-	return mqcli.PublishFlow(c.MQTTClient, pub)
+	pub := mqcli.MakeMeABytePublish(topic, data, mid)
+	return mqcli.PublishFlow(c, pub)
 }
 
 //Subscribe is a simple wrapper around the mqtt client library
-func (c *Client) Subscribe(topic string, qos int) (<-chan mqtt.Message, error) {
-	if c.MQTTClient == nil {
-		return errors.New("MQTTClient is uninitialized")
+func subscribe(c *mqcli.Client, topic string, qos int) (<-chan mqtt.Message, error) {
+	if c == nil {
+		return nil, errors.New("MQTTClient is uninitialized")
 	}
-	return mqcli.SubscribeFlow(c.MQTTClient, topic, qos)
+	return mqcli.SubscribeFlow(c, topic, qos)
 }
 
 //Unsubscribe is a simple wrapper around the mqtt client library
-func (c *Client) Unsubscribe(topic string) error {
-	if c.MQTTClient == nil {
+func unsubscribe(c *mqcli.Client, topic string) error {
+	if c == nil {
 		return errors.New("MQTTClient is uninitialized")
 	}
-	return mqcli.UnsubscribeFlow(c.MQTTClient, topic)
+	return mqcli.UnsubscribeFlow(c, topic)
 }
 
 //Disconnect is a simple wrapper for sending mqtt disconnects
-func (c *Client) Disconnect() error {
-	if c.MQTTClient == nil {
+func disconnect(c *mqcli.Client) error {
+	if c == nil {
 		return errors.New("MQTTClient is uninitialized")
 	}
-	return mqcli.SendDisconnect(c.MQTTClient)
+	return mqcli.SendDisconnect(c)
 }

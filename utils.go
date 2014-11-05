@@ -2,8 +2,10 @@ package GoSDK
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	mqtt "github.com/clearblade/mqtt_parsing"
 	"github.com/clearblade/mqttclient"
 	"io/ioutil"
 	"math/rand"
@@ -13,19 +15,60 @@ import (
 )
 
 var (
-	addr string
+	CB_ADDR            = "https://platform.clearblade.com"
+	CB_MSG_ADDR        = "messaging.clearblade.com:1883"
+	_HEADER_KEY_KEY    = "ClearBlade-SystemKey"
+	_HEADER_SECRET_KEY = "ClearBlade-SystemSecret"
 )
 
-type Client struct {
-	URL        string
-	Headers    map[string]string
-	MQTTClient *mqttclient.Client
-	//We are redundantly storing these so that they presist after the usertoken
-	//is added to the header, and the SystemKey and SystemSecret are removed
-	//as the MQTT Client requires them
+//Client is a convience interface for API consumers, if they want to use the same functions for both
+//Dev Users and unprivleged users, such as tiny helper functions. please use this with care
+type Client interface {
+	//bookkeeping calls
+	Authenticate() error
+	Logout() error
+
+	//data calls
+	InsertData(string, interface{}) error
+	UpdateData(string, [][]map[string]interface{}, map[string]interface{}) error
+	GetData(string, [][]map[string]interface{}) (map[string]interface{}, error)
+	DeleteData(string, [][]map[string]interface{}) error
+	//mqtt calls
+	InitializeMQTT(string, string, int) error
+	ConnectMQTT(*tls.Config) error
+	Publish(string, []byte, int) error
+	Subscribe(string, int) (<-chan mqtt.Message, error)
+	Unsubscribe(string) error
+	Disconnect() error
+}
+
+//cbClient will supply various information that differs between privleged and unprivleged users
+//this interface is meant to be unexported
+type cbClient interface {
+	credentials() ([][]string, error) //the inner slice is a tuple of "Header":"Value"
+	preamble() string
+	setToken(string)
+	getToken() string
+	getSystemInfo() (string, string)
+	getMessageId() uint16
+}
+
+type UserClient struct {
+	UserToken    string
+	mrand        *rand.Rand
+	MQTTClient   *mqttclient.Client
 	SystemKey    string
 	SystemSecret string
-	mrand        *rand.Rand
+	Email        string
+	Password     string
+}
+
+type DevClient struct {
+	DevToken   string
+	mrand      *rand.Rand
+	MQTTClient *mqttclient.Client
+	Email      string
+	Password   string
 }
 
 type CbReq struct {
@@ -40,66 +83,137 @@ type CbResp struct {
 	StatusCode int
 }
 
-func NewClient() *Client {
-	return &Client{
-		URL:        "https://platform.clearblade.com",
-		Headers:    map[string]string{},
-		MQTTClient: nil,
-		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
+func NewUserClient(systemkey, systemsecret, email, password string) *UserClient {
+	return &UserClient{
+		UserToken:    "",
+		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient:   nil,
+		SystemSecret: systemsecret,
+		SystemKey:    systemkey,
+		Email:        email,
+		Password:     password,
 	}
 }
 
-func (c *Client) AddHeader(key, value string) {
-	c.Headers[key] = value
+func NewDevClient(email, password string) *DevClient {
+	return &DevClient{
+		DevToken:   "",
+		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient: nil,
+		Email:      email,
+		Password:   password,
+	}
 }
 
-func (c *Client) RemoveHeader(key string) {
-	delete(c.Headers, key)
+func (u *UserClient) Authenticate() error {
+	return authenticate(u, u.Email, u.Password)
 }
 
-func (c *Client) GetHeader(key string) string {
-	s, _ := c.Headers[key]
-	return s
+func (d *DevClient) Authenticate() error {
+	return authenticate(d, d.Email, d.Password)
 }
 
-func (c *Client) SetSystem(key, secret string) {
-	c.SystemKey = key
-	c.SystemSecret = secret
-	c.AddHeader("ClearBlade-SystemKey", key)
-	c.AddHeader("ClearBlade-SystemSecret", secret)
+func (u *UserClient) Register(username, password string) error {
+	return register(u, username, password, "", "", "")
 }
 
-func (c *Client) SetDevToken(tok string) {
-	c.RemoveHeader("ClearBlade-SystemKey")
-	c.RemoveHeader("ClearBlade-SystemSecret")
-	c.RemoveHeader("ClearBlade-UserToken") // just in case
-	c.AddHeader("ClearBlade-DevToken", tok)
+func (d *DevClient) Register(username, password, fname, lname, org string) error {
+	return register(d, username, password, fname, lname, org)
 }
 
-func (c *Client) SetUserToken(tok string) {
-	c.RemoveHeader("ClearBlade-SystemKey")
-	c.RemoveHeader("ClearBlade-SystemSecret")
-	c.RemoveHeader("ClearBlade-DevToken") // just in case
-	c.AddHeader("ClearBlade-UserToken", tok)
+func (u *UserClient) Logout() error {
+	return logout(u)
 }
 
-func (c *Client) GetSystemInfo() (string, string) {
-	k := c.GetHeader("ClearBlade-SystemKey")
-	s := c.GetHeader("ClearBlade-SystemSecret")
-	return k, s
+func (d *DevClient) Logout() error {
+	return logout(d)
 }
 
-func (c *Client) GetUserToken() string {
-	tok := c.GetHeader("ClearBlade-UserToken")
-	return tok
+//Below are some shared functions
+
+func authenticate(c cbClient, username, password string) error {
+	var creds [][]string
+	switch c.(type) {
+	case *UserClient:
+		var err error
+		creds, err = c.credentials()
+		if err != nil {
+			return err
+		}
+	}
+
+	resp, err := post(c.preamble()+"/auth", map[string]interface{}{
+		"email":    username,
+		"password": password,
+	}, creds)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error in authenticating, Status Code: %d, %v\n", resp.StatusCode, resp.Body)
+	}
+
+	var token string = ""
+	switch c.(type) {
+	case *UserClient:
+		token = resp.Body.(map[string]interface{})["user_token"].(string)
+	case *DevClient:
+		token = resp.Body.(map[string]interface{})["dev_token"].(string)
+	}
+	if token == "" {
+		return fmt.Errorf("Token not present i response from platform %+v", resp.Body)
+	}
+	c.setToken(token)
+	return nil
 }
 
-func (c *Client) GetDevToken() string {
-	tok := c.GetHeader("ClearBlade-DevToken")
-	return tok
+func register(c cbClient, username, password, fname, lname, org string) error {
+	payload := map[string]interface{}{
+		"email":    username,
+		"password": password,
+	}
+
+	creds := [][]string{}
+	switch c.(type) {
+	case *DevClient:
+		payload["fname"] = fname
+		payload["lname"] = lname
+		payload["org"] = org
+	case *UserClient:
+		var err error
+		creds, err = c.credentials()
+		if err != nil {
+			return err
+		}
+	}
+
+	resp, err := post(c.preamble()+"/reg", payload, creds)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Status code: %d, Error in authenticating, %v\n", resp.StatusCode, resp.Body)
+	}
+	//there isn't really a decent response to this one
+	return nil
 }
 
-func (c *Client) Do(r *CbReq) (*CbResp, error) {
+func logout(c cbClient) error {
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := post(c.preamble()+"/logout", nil, creds)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error in authenticating %v\n", resp.Body)
+	}
+	return nil
+}
+
+func do(r *CbReq, creds [][]string) (*CbResp, error) {
 	var bodyToSend *bytes.Buffer
 	if r.Body != nil {
 		b, jsonErr := json.Marshal(r.Body)
@@ -110,7 +224,7 @@ func (c *Client) Do(r *CbReq) (*CbResp, error) {
 	} else {
 		bodyToSend = nil
 	}
-	url := c.URL + r.Endpoint
+	url := CB_ADDR + r.Endpoint
 	if r.QueryString != "" {
 		url += "?" + r.QueryString
 	}
@@ -124,10 +238,12 @@ func (c *Client) Do(r *CbReq) (*CbResp, error) {
 	if reqErr != nil {
 		return nil, fmt.Errorf("Request Creation Error: %v", reqErr)
 	}
-	for k, v := range c.Headers {
-		req.Header.Add(k, v)
+	for _, c := range creds {
+		if len(c) != 2 {
+			return nil, fmt.Errorf("Request Creation Error: Invalid credential header supplied")
+		}
+		req.Header.Add(c[0], c[1])
 	}
-
 	cli := &http.Client{}
 	resp, err := cli.Do(req)
 	if err != nil {
@@ -167,44 +283,46 @@ func (c *Client) Do(r *CbReq) (*CbResp, error) {
 	}, nil
 }
 
-func (c *Client) Get(endpoint string, query map[string]string) (*CbResp, error) {
+//standard http verbs
+
+func get(endpoint string, query map[string]string, creds [][]string) (*CbResp, error) {
 	req := &CbReq{
 		Body:        nil,
 		Method:      "GET",
 		Endpoint:    endpoint,
 		QueryString: query_to_string(query),
 	}
-	return c.Do(req)
+	return do(req, creds)
 }
 
-func (c *Client) Post(endpoint string, body interface{}) (*CbResp, error) {
+func post(endpoint string, body interface{}, creds [][]string) (*CbResp, error) {
 	req := &CbReq{
 		Body:        body,
 		Method:      "POST",
 		Endpoint:    endpoint,
 		QueryString: "",
 	}
-	return c.Do(req)
+	return do(req, creds)
 }
 
-func (c *Client) Put(endpoint string, body interface{}) (*CbResp, error) {
+func put(endpoint string, body interface{}, heads [][]string) (*CbResp, error) {
 	req := &CbReq{
 		Body:        body,
 		Method:      "PUT",
 		Endpoint:    endpoint,
 		QueryString: "",
 	}
-	return c.Do(req)
+	return do(req, heads)
 }
 
-func (c *Client) Delete(endpoint string, query map[string]string) (*CbResp, error) {
+func delete(endpoint string, query map[string]string, heds [][]string) (*CbResp, error) {
 	req := &CbReq{
 		Body:        nil,
 		Method:      "DELETE",
 		Endpoint:    endpoint,
 		QueryString: query_to_string(query),
 	}
-	return c.Do(req)
+	return do(req, heds)
 }
 
 func query_to_string(query map[string]string) string {
