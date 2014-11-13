@@ -46,13 +46,18 @@ func getdata(c cbClient, collection_id string, query *Query) (map[string]interfa
 	if err != nil {
 		return nil, err
 	}
-	query_map := query.serialize()
-	query_bytes, err := json.Marshal(query_map)
-	if err != nil {
-		return nil, err
-	}
-	qry := map[string]string{
-		"query": url.QueryEscape(string(query_bytes)),
+	var qry map[string]string
+	if query != nil {
+		query_map := query.serialize()
+		query_bytes, err := json.Marshal(query_map)
+		if err != nil {
+			return nil, err
+		}
+		qry = map[string]string{
+			"query": url.QueryEscape(string(query_bytes)),
+		}
+	} else {
+		qry = nil
 	}
 	resp, err := get(_DATA_PREAMBLE+collection_id, qry, creds)
 	if err != nil {
@@ -107,13 +112,18 @@ func deletedata(c cbClient, collection_id string, query *Query) error {
 	if err != nil {
 		return err
 	}
-	query_map := query.serialize()
-	query_bytes, err := json.Marshal(query_map)
-	if err != nil {
-		return err
-	}
-	qry := map[string]string{
-		"query": url.QueryEscape(string(query_bytes)),
+	var qry map[string]string
+	if query != nil {
+		query_map := query.serialize()
+		query_bytes, err := json.Marshal(query_map)
+		if err != nil {
+			return err
+		}
+		qry = map[string]string{
+			"query": url.QueryEscape(string(query_bytes)),
+		}
+	} else {
+		qry = nil
 	}
 	resp, err := delete(_DATA_PREAMBLE+collection_id, qry, creds)
 	if err != nil {

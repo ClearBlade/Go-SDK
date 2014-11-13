@@ -135,7 +135,7 @@ func (q *Query) serialize() map[string]interface{} {
 			default:
 				op = "EQ"
 			}
-			mapForQuery[op] = map[string]interface{}{query.Field: query.Value}
+			mapForQuery[op] = []map[string]interface{}{map[string]interface{}{query.Field: query.Value}}
 			qm[j] = mapForQuery
 		}
 		filterSlice[i] = qm
