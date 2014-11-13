@@ -87,7 +87,7 @@ func updatedata(c cbClient, collection_id string, query *Query, changes map[stri
 	resp, err := put(_DATA_PREAMBLE+collection_id, body, creds)
 	if err != nil {
 		return fmt.Errorf("Error updating data: %v", err)
-	}n
+	}
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("Error updating data: %v", resp.Body)
 	}
