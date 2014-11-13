@@ -52,7 +52,7 @@ func getdata(c cbClient, collection_id string, query *Query) (map[string]interfa
 		return nil, err
 	}
 	qry := map[string]string{
-		"query": string(query_bytes),
+		"query": url.QueryEscape(string(query_bytes)),
 	}
 	resp, err := get(_DATA_PREAMBLE+collection_id, qry, creds)
 	if err != nil {
@@ -94,29 +94,26 @@ func updatedata(c cbClient, collection_id string, query *Query, changes map[stri
 	return nil
 }
 
-func (u *UserClient) DeleteData(collection_id string, query [][]map[string]interface{}) error {
+func (u *UserClient) DeleteData(collection_id string, query *Query) error {
 	return deletedata(u, collection_id, query)
 }
 
-func (d *DevClient) DeleteData(collection_id string, query [][]map[string]interface{}) error {
+func (d *DevClient) DeleteData(collection_id string, query *Query) error {
 	return deletedata(d, collection_id, query)
 }
 
-func deletedata(c cbClient, collection_id string, query [][]map[string]interface{}) error {
-	var qry map[string]string
-	if query != nil {
-		b, jsonErr := json.Marshal(query)
-		if jsonErr != nil {
-			return fmt.Errorf("JSON Encoding error: %v", jsonErr)
-		}
-		qryStr := url.QueryEscape(string(b))
-		qry = map[string]string{"query": qryStr}
-	} else {
-		return fmt.Errorf("Must supply a query to delete")
-	}
+func deletedata(c cbClient, collection_id string, query *Query) error {
 	creds, err := c.credentials()
 	if err != nil {
 		return err
+	}
+	query_map := query.serialize()
+	query_bytes, err := json.Marshal(query_map)
+	if err != nil {
+		return err
+	}
+	qry := map[string]string{
+		"query": url.QueryEscape(string(query_bytes)),
 	}
 	resp, err := delete(_DATA_PREAMBLE+collection_id, qry, creds)
 	if err != nil {
