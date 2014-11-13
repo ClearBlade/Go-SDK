@@ -33,29 +33,26 @@ func insertdata(c cbClient, collection_id string, data interface{}) error {
 	return nil
 }
 
-func (u *UserClient) GetData(collection_id string, query [][]map[string]interface{}) (map[string]interface{}, error) {
+func (u *UserClient) GetData(collection_id string, query *Query) (map[string]interface{}, error) {
 	return getdata(u, collection_id, query)
 }
 
-func (d *DevClient) GetData(collection_id string, query [][]map[string]interface{}) (map[string]interface{}, error) {
+func (d *DevClient) GetData(collection_id string, query *Query) (map[string]interface{}, error) {
 	return getdata(d, collection_id, query)
 }
 
-func getdata(c cbClient, collection_id string, query [][]map[string]interface{}) (map[string]interface{}, error) {
-	var qry map[string]string
-	if query != nil {
-		b, jsonErr := json.Marshal(query)
-		if jsonErr != nil {
-			return nil, fmt.Errorf("JSON Encoding error: %v", jsonErr)
-		}
-		qryStr := url.QueryEscape(string(b))
-		qry = map[string]string{"query": qryStr}
-	} else {
-		qry = nil
-	}
+func getdata(c cbClient, collection_id string, query *Query) (map[string]interface{}, error) {
 	creds, err := c.credentials()
 	if err != nil {
-		return map[string]interface{}{}, err
+		return nil, err
+	}
+	query_map := query.serialize()
+	query_bytes, err := json.Marshal(query_map)
+	if err != nil {
+		return nil, err
+	}
+	qry := map[string]string{
+		"query": string(query_bytes),
 	}
 	resp, err := get(_DATA_PREAMBLE+collection_id, qry, creds)
 	if err != nil {
