@@ -64,19 +64,20 @@ func getdata(c cbClient, collection_id string, query *Query) (map[string]interfa
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (u *UserClient) UpdateData(collection_id string, query [][]map[string]interface{}, changes map[string]interface{}) error {
+func (u *UserClient) UpdateData(collection_id string, query *Query, changes map[string]interface{}) error {
 	err := updatedata(u, collection_id, query, changes)
 	return err
 }
 
-func (d *DevClient) UpdateData(collection_id string, query [][]map[string]interface{}, changes map[string]interface{}) error {
+func (d *DevClient) UpdateData(collection_id string, query *Query, changes map[string]interface{}) error {
 	err := updatedata(d, collection_id, query, changes)
 	return err
 }
 
-func updatedata(c cbClient, collection_id string, query [][]map[string]interface{}, changes map[string]interface{}) error {
+func updatedata(c cbClient, collection_id string, query *Query, changes map[string]interface{}) error {
+	qry := query.serialize()
 	body := map[string]interface{}{
-		"query": query,
+		"query": qry,
 		"$set":  changes,
 	}
 	creds, err := c.credentials()
@@ -86,7 +87,7 @@ func updatedata(c cbClient, collection_id string, query [][]map[string]interface
 	resp, err := put(_DATA_PREAMBLE+collection_id, body, creds)
 	if err != nil {
 		return fmt.Errorf("Error updating data: %v", err)
-	}
+	}n
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("Error updating data: %v", resp.Body)
 	}
