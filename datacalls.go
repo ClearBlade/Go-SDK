@@ -33,29 +33,26 @@ func insertdata(c cbClient, collection_id string, data interface{}) error {
 	return nil
 }
 
-func (u *UserClient) GetData(collection_id string, query [][]map[string]interface{}) (map[string]interface{}, error) {
+func (u *UserClient) GetData(collection_id string, query *Query) (map[string]interface{}, error) {
 	return getdata(u, collection_id, query)
 }
 
-func (d *DevClient) GetData(collection_id string, query [][]map[string]interface{}) (map[string]interface{}, error) {
+func (d *DevClient) GetData(collection_id string, query *Query) (map[string]interface{}, error) {
 	return getdata(d, collection_id, query)
 }
 
-func getdata(c cbClient, collection_id string, query [][]map[string]interface{}) (map[string]interface{}, error) {
-	var qry map[string]string
-	if query != nil {
-		b, jsonErr := json.Marshal(query)
-		if jsonErr != nil {
-			return nil, fmt.Errorf("JSON Encoding error: %v", jsonErr)
-		}
-		qryStr := url.QueryEscape(string(b))
-		qry = map[string]string{"query": qryStr}
-	} else {
-		qry = nil
-	}
+func getdata(c cbClient, collection_id string, query *Query) (map[string]interface{}, error) {
 	creds, err := c.credentials()
 	if err != nil {
-		return map[string]interface{}{}, err
+		return nil, err
+	}
+	query_map := query.serialize()
+	query_bytes, err := json.Marshal(query_map)
+	if err != nil {
+		return nil, err
+	}
+	qry := map[string]string{
+		"query": url.QueryEscape(string(query_bytes)),
 	}
 	resp, err := get(_DATA_PREAMBLE+collection_id, qry, creds)
 	if err != nil {
@@ -67,19 +64,20 @@ func getdata(c cbClient, collection_id string, query [][]map[string]interface{})
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (u *UserClient) UpdateData(collection_id string, query [][]map[string]interface{}, changes map[string]interface{}) error {
+func (u *UserClient) UpdateData(collection_id string, query *Query, changes map[string]interface{}) error {
 	err := updatedata(u, collection_id, query, changes)
 	return err
 }
 
-func (d *DevClient) UpdateData(collection_id string, query [][]map[string]interface{}, changes map[string]interface{}) error {
+func (d *DevClient) UpdateData(collection_id string, query *Query, changes map[string]interface{}) error {
 	err := updatedata(d, collection_id, query, changes)
 	return err
 }
 
-func updatedata(c cbClient, collection_id string, query [][]map[string]interface{}, changes map[string]interface{}) error {
+func updatedata(c cbClient, collection_id string, query *Query, changes map[string]interface{}) error {
+	qry := query.serialize()
 	body := map[string]interface{}{
-		"query": query,
+		"query": qry,
 		"$set":  changes,
 	}
 	creds, err := c.credentials()
@@ -96,29 +94,26 @@ func updatedata(c cbClient, collection_id string, query [][]map[string]interface
 	return nil
 }
 
-func (u *UserClient) DeleteData(collection_id string, query [][]map[string]interface{}) error {
+func (u *UserClient) DeleteData(collection_id string, query *Query) error {
 	return deletedata(u, collection_id, query)
 }
 
-func (d *DevClient) DeleteData(collection_id string, query [][]map[string]interface{}) error {
+func (d *DevClient) DeleteData(collection_id string, query *Query) error {
 	return deletedata(d, collection_id, query)
 }
 
-func deletedata(c cbClient, collection_id string, query [][]map[string]interface{}) error {
-	var qry map[string]string
-	if query != nil {
-		b, jsonErr := json.Marshal(query)
-		if jsonErr != nil {
-			return fmt.Errorf("JSON Encoding error: %v", jsonErr)
-		}
-		qryStr := url.QueryEscape(string(b))
-		qry = map[string]string{"query": qryStr}
-	} else {
-		return fmt.Errorf("Must supply a query to delete")
-	}
+func deletedata(c cbClient, collection_id string, query *Query) error {
 	creds, err := c.credentials()
 	if err != nil {
 		return err
+	}
+	query_map := query.serialize()
+	query_bytes, err := json.Marshal(query_map)
+	if err != nil {
+		return err
+	}
+	qry := map[string]string{
+		"query": url.QueryEscape(string(query_bytes)),
 	}
 	resp, err := delete(_DATA_PREAMBLE+collection_id, qry, creds)
 	if err != nil {
