@@ -132,6 +132,8 @@ func (q *Query) serialize() map[string]interface{} {
 				op = "LTE"
 			case "/=":
 				op = "NEQ"
+			case "~":
+				op = "RE"
 			default:
 				op = "EQ"
 			}
