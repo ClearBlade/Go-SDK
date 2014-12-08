@@ -13,6 +13,14 @@ const (
 	QOS_PreciselyOnce
 )
 
+//MqttMessage is a wrapper around the mqtt Publish packet type
+//for simplicity in importing libraries when consuming the Go-SDK
+type MqttMessage struct {
+	Payload   []byte
+	MessageId int
+	Topic     string
+}
+
 //herein we use the same trick we used for http clients
 
 //InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
@@ -54,12 +62,23 @@ func (d *DevClient) Publish(topic string, message []byte, qos int) error {
 	return publish(d.MQTTClient, topic, message, qos, d.getMessageId())
 }
 
-func (u *UserClient) Subscribe(topic string, qos int) (<-chan mqtt.Message, error) {
-	return subscribe(u.MQTTClient, topic, qos)
+func (u *UserClient) Subscribe(topic string, qos int) (<-chan MqttMessage, error) {
+	ch, err := subscribe(u.MQTTClient, topic, qos)
+	if err != nil {
+		return nil, err
+	} else {
+		return convertMqttMessage(ch), nil
+	}
+
 }
 
-func (d *DevClient) Subscribe(topic string, qos int) (<-chan mqtt.Message, error) {
-	return subscribe(d.MQTTClient, topic, qos)
+func (d *DevClient) Subscribe(topic string, qos int) (<-chan MqttMessage, error) {
+	ch, err := subscribe(d.MQTTClient, topic, qos)
+	if err != nil {
+		return nil, err
+	} else {
+		return convertMqttMessage(ch), nil
+	}
 }
 
 func (u *UserClient) Unsubscribe(topic string) error {
@@ -135,4 +154,25 @@ func disconnect(c *mqcli.Client) error {
 		return errors.New("MQTTClient is uninitialized")
 	}
 	return mqcli.SendDisconnect(c)
+}
+
+//TODO:have a way of keeping of when to kill these goroutines
+func convertMqttMessage(msg chan mqtt.Message) <-chan *MqttMessage {
+	mmc := make(chan MqttMessage, len(ch))
+	go func(pc <-chan mqtt.Message) {
+		for msg := range pc {
+			switch msg.(type) {
+			case *mqtt.Publish:
+				pub, _ := msg.(*mqtt.Publish)
+				newmm := MqttMessage{
+					Payload:   pub.Payload,
+					MessageId: int(pub.MessageId),
+					Topic:     pub.Topic.Whole,
+				}
+
+				mmc <- convertMqttMessage(msg)
+			}
+		}
+	}(ch)
+	return mmc
 }
