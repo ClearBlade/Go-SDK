@@ -5,6 +5,7 @@ import (
 	"errors"
 	mqtt "github.com/clearblade/mqtt_parsing"
 	mqcli "github.com/clearblade/mqttclient"
+	"sync"
 )
 
 const (
@@ -62,30 +63,36 @@ func (d *DevClient) Publish(topic string, message []byte, qos int) error {
 	return publish(d.MQTTClient, topic, message, qos, d.getMessageId())
 }
 
-func (u *UserClient) Subscribe(topic string, qos int) (<-chan MqttMessage, error) {
+func (u *UserClient) Subscribe(topic string, qos int) (<-chan *MqttMessage, error) {
 	ch, err := subscribe(u.MQTTClient, topic, qos)
 	if err != nil {
 		return nil, err
 	} else {
-		return convertMqttMessage(ch), nil
+		out, ech := convertMqttMessage(ch)
+		u.addpipe(topic, ech)
+		return out, nil
 	}
 
 }
 
-func (d *DevClient) Subscribe(topic string, qos int) (<-chan MqttMessage, error) {
+func (d *DevClient) Subscribe(topic string, qos int) (<-chan *MqttMessage, error) {
 	ch, err := subscribe(d.MQTTClient, topic, qos)
 	if err != nil {
 		return nil, err
 	} else {
-		return convertMqttMessage(ch), nil
+		out, ech := convertMqttMessage(ch)
+		d.addpipe(topic, ech)
+		return out, nil
 	}
 }
 
 func (u *UserClient) Unsubscribe(topic string) error {
+	u.killpipe(topic)
 	return unsubscribe(u.MQTTClient, topic)
 }
 
 func (d *DevClient) Unsubscribe(topic string) error {
+	d.killpipe(topic)
 	return unsubscribe(d.MQTTClient, topic)
 }
 
@@ -157,22 +164,54 @@ func disconnect(c *mqcli.Client) error {
 }
 
 //TODO:have a way of keeping of when to kill these goroutines
-func convertMqttMessage(msg chan mqtt.Message) <-chan *MqttMessage {
-	mmc := make(chan MqttMessage, len(ch))
-	go func(pc <-chan mqtt.Message) {
-		for msg := range pc {
-			switch msg.(type) {
-			case *mqtt.Publish:
+func convertMqttMessage(msg <-chan mqtt.Message) (<-chan *MqttMessage, chan<- struct{}) {
+	mmc := make(chan *MqttMessage, len(msg))
+	ech := make(chan struct{}, 1)
+	go func(pc <-chan mqtt.Message, mc chan *MqttMessage, erch chan struct{}) {
+		//TODO: can we do this without the overhead of a goroutine?
+		for {
+			select {
+			case msg := <-pc:
 				pub, _ := msg.(*mqtt.Publish)
-				newmm := MqttMessage{
+				newmm := &MqttMessage{
 					Payload:   pub.Payload,
 					MessageId: int(pub.MessageId),
 					Topic:     pub.Topic.Whole,
 				}
-
-				mmc <- convertMqttMessage(msg)
+				mc <- newmm
+			case <-erch:
+				//close both channels in unsubscribe calls
+				return
 			}
 		}
-	}(ch)
-	return mmc
+	}(msg, mmc, ech)
+	return mmc, ech
+}
+
+type pipedict struct {
+	p      map[string]chan<- struct{}
+	pd_mut *sync.Mutex
+}
+
+func newpipedict() *pipedict {
+	return &pipedict{
+		pd_mut: new(sync.Mutex),
+		p:      make(map[string]chan<- struct{}),
+	}
+}
+
+func (pd *pipedict) addPipe(top string, ch chan<- struct{}) {
+	pd.pd_mut.Lock()
+	pd.p[top] = ch
+	pd.pd_mut.Unlock()
+}
+
+func (pd *pipedict) removePipe(top string) {
+	pd.pd_mut.Lock()
+	ech := pd.p[top]
+	delete(pd.p, top)
+	ech <- struct{}{}
+	pd.pd_mut.Unlock()
+	//do we close the other chan?
+	close(ech)
 }

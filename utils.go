@@ -56,6 +56,7 @@ type cbClient interface {
 type UserClient struct {
 	UserToken    string
 	mrand        *rand.Rand
+	pipedict     *pipedict
 	MQTTClient   *mqttclient.Client
 	SystemKey    string
 	SystemSecret string
@@ -65,6 +66,7 @@ type UserClient struct {
 
 type DevClient struct {
 	DevToken   string
+	pipedict   *pipedict
 	mrand      *rand.Rand
 	MQTTClient *mqttclient.Client
 	Email      string
@@ -86,6 +88,7 @@ type CbResp struct {
 func NewUserClient(systemkey, systemsecret, email, password string) *UserClient {
 	return &UserClient{
 		UserToken:    "",
+		pipedict:     newpipedict(),
 		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemSecret: systemsecret,
@@ -98,6 +101,7 @@ func NewUserClient(systemkey, systemsecret, email, password string) *UserClient 
 func NewDevClient(email, password string) *DevClient {
 	return &DevClient{
 		DevToken:   "",
+		pipedict:   newpipedict(),
 		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient: nil,
 		Email:      email,
@@ -127,6 +131,22 @@ func (u *UserClient) Logout() error {
 
 func (d *DevClient) Logout() error {
 	return logout(d)
+}
+
+func (u *UserClient) killpipe(top string) {
+	u.pipedict.removePipe(top)
+}
+
+func (d *DevClient) killpipe(top string) {
+	d.pipedict.removePipe(top)
+}
+
+func (u *UserClient) addpipe(top string, ech chan<- struct{}) {
+	u.pipedict.addPipe(top, ech)
+}
+
+func (d *DevClient) addpipe(top string, ech chan<- struct{}) {
+	d.pipedict.addPipe(top, ech)
 }
 
 //Below are some shared functions
