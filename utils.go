@@ -30,14 +30,14 @@ type Client interface {
 
 	//data calls
 	InsertData(string, interface{}) error
-	UpdateData(string, [][]map[string]interface{}, map[string]interface{}) error
-	GetData(string, [][]map[string]interface{}) (map[string]interface{}, error)
-	DeleteData(string, [][]map[string]interface{}) error
+	UpdateData(string, *Query, map[string]interface{}) error
+	GetData(string, *Query) (map[string]interface{}, error)
+	DeleteData(string, *Query) error
 	//mqtt calls
 	InitializeMQTT(string, string, int) error
 	ConnectMQTT(*tls.Config, *LastWillPacket) error
 	Publish(string, []byte, int) error
-	Subscribe(string, int) (<-chan mqtt.Message, error)
+	Subscribe(string, int) (<-chan *mqtt.Publish, error)
 	Unsubscribe(string) error
 	Disconnect() error
 }
