@@ -13,6 +13,13 @@ const (
 	QOS_PreciselyOnce
 )
 
+type LastWillPacket struct {
+	Topic  string
+	Body   string
+	Qos    int
+	Retain bool
+}
+
 //herein we use the same trick we used for http clients
 
 //InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
@@ -38,12 +45,14 @@ func (d *DevClient) InitializeMQTT(clientid, systemkey string, timeout int) erro
 	return nil
 }
 
-func (u *UserClient) ConnectMQTT(ssl *tls.Config) error {
-	return connectToBroker(u.MQTTClient, CB_MSG_ADDR, ssl)
+func (u *UserClient) ConnectMQTT(ssl *tls.Config, lastWill *LastWillPacket) error {
+	//a questionable pointer, mainly for ease of checking nil
+	//be more efficient to pass on the stack
+	return connectToBroker(u.MQTTClient, CB_MSG_ADDR, ssl, lastWill)
 }
 
-func (d *DevClient) ConnectMQTT(ssl *tls.Config) error {
-	return connectToBroker(d.MQTTClient, CB_MSG_ADDR, ssl)
+func (d *DevClient) ConnectMQTT(ssl *tls.Config, lastWill *LastWillPacket) error {
+	return connectToBroker(d.MQTTClient, CB_MSG_ADDR, ssl, lastWill)
 }
 
 func (u *UserClient) Publish(topic string, message []byte, qos int) error {
@@ -94,7 +103,7 @@ func initializeMqttClient(token, username, password, clientid string, timeout in
 }
 
 //ConnectToBroker connects to the broker and sends the connect packet
-func connectToBroker(c *mqcli.Client, address string, ssl *tls.Config) error {
+func connectToBroker(c *mqcli.Client, address string, ssl *tls.Config, lastWill *LastWillPacket) error {
 	if c == nil {
 		return errors.New("MQTTClient is uninitialized")
 	}
@@ -102,7 +111,11 @@ func connectToBroker(c *mqcli.Client, address string, ssl *tls.Config) error {
 	if err != nil {
 		return err
 	}
-	return mqcli.SendConnect(c)
+	if lastWill == nil {
+		return mqcli.SendConnect(c, false, false, 0, "", "")
+	} else {
+		return mqcli.SendConnect(c, true, lastWill.Retain, lastWill.Qos, lastWill.Topic, lastWill.Body)
+	}
 }
 
 func publish(c *mqcli.Client, topic string, data []byte, qos int, mid uint16) error {
