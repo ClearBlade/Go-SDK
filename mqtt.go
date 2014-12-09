@@ -63,11 +63,11 @@ func (d *DevClient) Publish(topic string, message []byte, qos int) error {
 	return publish(d.MQTTClient, topic, message, qos, d.getMessageId())
 }
 
-func (u *UserClient) Subscribe(topic string, qos int) (<-chan mqtt.Message, error) {
+func (u *UserClient) Subscribe(topic string, qos int) (<-chan *mqtt.Publish, error) {
 	return subscribe(u.MQTTClient, topic, qos)
 }
 
-func (d *DevClient) Subscribe(topic string, qos int) (<-chan mqtt.Message, error) {
+func (d *DevClient) Subscribe(topic string, qos int) (<-chan *mqtt.Publish, error) {
 	return subscribe(d.MQTTClient, topic, qos)
 }
 
@@ -127,7 +127,7 @@ func publish(c *mqcli.Client, topic string, data []byte, qos int, mid uint16) er
 }
 
 //Subscribe is a simple wrapper around the mqtt client library
-func subscribe(c *mqcli.Client, topic string, qos int) (<-chan mqtt.Message, error) {
+func subscribe(c *mqcli.Client, topic string, qos int) (<-chan *mqtt.Publish, error) {
 	if c == nil {
 		return nil, errors.New("MQTTClient is uninitialized")
 	}
