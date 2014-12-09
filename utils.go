@@ -35,7 +35,7 @@ type Client interface {
 	DeleteData(string, [][]map[string]interface{}) error
 	//mqtt calls
 	InitializeMQTT(string, string, int) error
-	ConnectMQTT(*tls.Config) error
+	ConnectMQTT(*tls.Config, *LastWillPacket) error
 	Publish(string, []byte, int) error
 	Subscribe(string, int) (<-chan mqtt.Message, error)
 	Unsubscribe(string) error
