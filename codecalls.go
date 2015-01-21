@@ -1,5 +1,32 @@
 package GoSDK
 
+import (
+	"fmt"
+)
+
 const (
 	_CODE_PREAMBLE = "/api/v/1/code"
 )
+
+func callService(c cbClient, systemKey, name string, params map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := post(_CODE_PREAMBLE+"/"+systemKey+"/"+name, params, creds)
+	if err != nil {
+		return nil, fmt.Errorf("Error calling %s service: %v", name, err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error calling %s service: %v", name, resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) CallService(systemKey, name string, params map[string]interface{}) (map[string]interface{}, error) {
+	return callService(d, systemKey, name, params)
+}
+
+func (u *UserClient) CallService(systemKey, name string, params map[string]interface{}) (map[string]interface{}, error) {
+	return callService(u, systemKey, name, params)
+}

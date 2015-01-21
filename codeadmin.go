@@ -85,3 +85,35 @@ func (d *DevClient) UpdateService(systemKey, name, code string, params []string)
 	}
 	return nil
 }
+
+func (d *DevClient) NewService(systemKey, name, code string, params []string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	code = strings.Replace(code, "\\n", "\n", -1)
+	code = strings.Replace(code, "\n", "\\n", -1)
+	resp, err := post(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name,map[string]interface{}{"code": code, "parameters": params}, creds)
+	if err != nil {
+		return fmt.Errorf("Error creating new service: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error creating new service: %v", resp.Body)
+	}
+	return nil
+}
+
+func (d *DevClient) DeleteService(systemKey, name string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, nil, creds)
+	if err != nil {
+		return fmt.Errorf("Error deleting service: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error deleting service: %v", resp.Body)
+	}
+	return nil
+}
