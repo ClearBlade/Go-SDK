@@ -93,7 +93,7 @@ func (d *DevClient) NewService(systemKey, name, code string, params []string) er
 	}
 	code = strings.Replace(code, "\\n", "\n", -1)
 	code = strings.Replace(code, "\n", "\\n", -1)
-	resp, err := post(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name,map[string]interface{}{"code": code, "parameters": params}, creds)
+	resp, err := post(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, map[string]interface{}{"code": code, "parameters": params}, creds)
 	if err != nil {
 		return fmt.Errorf("Error creating new service: %v", err)
 	}

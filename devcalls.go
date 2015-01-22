@@ -277,16 +277,46 @@ func (d *DevClient) AddCollectionToRole(systemKey, collection_id, role_id string
 					"permissions": level,
 				},
 			},
-			"topics": []map[string]interface{}{},
+			"topics":   []map[string]interface{}{},
 			"services": []map[string]interface{}{},
 		},
 	}
-	resp, err := put("/admin/user/" + systemKey + "/roles", data, creds)
+	resp, err := put("/admin/user/"+systemKey+"/roles", data, creds)
 	if err != nil {
 		return err
 	}
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("Error updating a role to have a collection: %v", resp.Body)
+	}
+	return nil
+}
+
+func (d *DevClient) AddServiceToRole(systemKey, service, role_id string, level int) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{
+		"id": role_id,
+		"changes": map[string]interface{}{
+			"services": []map[string]interface{}{
+				map[string]interface{}{
+					"itemInfo": map[string]interface{}{
+						"name": service,
+					},
+					"permissions": level,
+				},
+			},
+			"topics":      []map[string]interface{}{},
+			"collections": []map[string]interface{}{},
+		},
+	}
+	resp, err := put("/admin/user/"+systemKey+"/roles", data, creds)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating a role to have a service: %v", resp.Body)
 	}
 	return nil
 }
