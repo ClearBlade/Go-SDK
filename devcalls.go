@@ -353,6 +353,35 @@ func (d *DevClient) AddServiceToRole(systemKey, service, role_id string, level i
 	return nil
 }
 
+func (d *DevClient) AddGenericRole(systemKey, role_id, permission string, level int) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+
+	data := map[string]interface{}{
+		"id": role_id,
+		"changes": map[string]interface{}{
+			"services":    []map[string]interface{}{},
+			"topics":      []map[string]interface{}{},
+			"collections": []map[string]interface{}{},
+		},
+	}
+
+	data["changes"].(map[string]interface{})[permission] = map[string]interface{}{
+		"permissions": level,
+	}
+
+	resp, err := put("/admin/user/"+systemKey+"/roles", data, creds)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating a role to have a service: %v", resp.Body)
+	}
+	return nil
+}
+
 //second verse, same as the first, eh?
 func (d *DevClient) credentials() ([][]string, error) {
 	if d.DevToken != "" {
