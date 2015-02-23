@@ -10,6 +10,19 @@ const (
 	_DATA_PREAMBLE = "/api/v/1/data/"
 )
 
+type Collection struct {
+	SystemKey    string
+	CollectionID string
+	Name         string
+	Columns      []Column
+	Users        bool
+}
+
+type Column struct {
+	name       string
+	ColumnType string
+}
+
 func (u *UserClient) InsertData(collection_id string, data interface{}) error {
 	return insertdata(u, collection_id, data)
 }
@@ -133,4 +146,20 @@ func deletedata(c cbClient, collection_id string, query *Query) error {
 		return fmt.Errorf("Error deleting data: %v", resp.Body)
 	}
 	return nil
+}
+
+func (d *DevClient) GetColumns(collection_id string) ([]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := get(_DATA_PREAMBLE+collection_id+"/columns", nil, creds)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting collection columns: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting collection columns: %v", resp.Body)
+	}
+	return resp.Body.([]interface{}), nil
 }

@@ -261,6 +261,38 @@ func (d *DevClient) GetCollectionInfo(collection_id string) (map[string]interfac
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//get collections list in system
+func (d *DevClient) GetAllCollections(SystemKey string) ([]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get("/admin/allcollections", map[string]string{
+		"appid": SystemKey,
+	}, creds)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting collection info: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting collection info: %v", resp.Body)
+	}
+
+	//fmt.Printf("body: %+v\n", resp.Body)
+	return resp.Body.([]interface{}), nil
+}
+
+func (d *DevClient) GetAllRoles(SystemKey string) ([]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get("/admin/user/"+SystemKey+"/roles", map[string]string{
+		"appid": SystemKey,
+	}, creds)
+	//fmt.Printf("roles: %+v\n", resp.Body)
+	return resp.Body.([]interface{}), nil
+}
+
 func (d *DevClient) AddCollectionToRole(systemKey, collection_id, role_id string, level int) error {
 	creds, err := d.credentials()
 	if err != nil {
