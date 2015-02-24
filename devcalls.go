@@ -293,6 +293,28 @@ func (d *DevClient) GetAllRoles(SystemKey string) ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
+func (d *DevClient) CreateRole(systemKey, role_id string) (interface{}, error) {
+	fmt.Println("creating role for " + role_id)
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	data := map[string]interface{}{
+		"name":        role_id,
+		"collections": []map[string]interface{}{},
+		"topics":      []map[string]interface{}{},
+		"services":    []map[string]interface{}{},
+	}
+	resp, err := post("/admin/user/"+systemKey+"/roles", data, creds)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error updating a role to have a collection: %v", resp.Body)
+	}
+	return resp.Body, nil
+}
+
 func (d *DevClient) AddCollectionToRole(systemKey, collection_id, role_id string, level int) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -353,7 +375,7 @@ func (d *DevClient) AddServiceToRole(systemKey, service, role_id string, level i
 	return nil
 }
 
-func (d *DevClient) AddGenericRole(systemKey, role_id, permission string, level int) error {
+func (d *DevClient) AddGenericPermissionToRole(systemKey, role_id, permission string, level int) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
