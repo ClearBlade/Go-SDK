@@ -294,7 +294,6 @@ func (d *DevClient) GetAllRoles(SystemKey string) ([]interface{}, error) {
 }
 
 func (d *DevClient) CreateRole(systemKey, role_id string) (interface{}, error) {
-	fmt.Println("creating role for " + role_id)
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
