@@ -25,7 +25,7 @@ func (d *DevClient) NewSystem(name, description string, users bool) (string, err
 	if err != nil {
 		return "", err
 	}
-	resp, err := post("/admin/systemmanagement", map[string]interface{}{
+	resp, err := post(d.preamble()+"/systemmanagement", map[string]interface{}{
 		"name":          name,
 		"description":   description,
 		"auth_required": users,
@@ -48,7 +48,7 @@ func (d *DevClient) GetSystem(key string) (*System, error) {
 	} else if len(creds) != 1 {
 		return nil, fmt.Errorf("Error getting system: No DevToken Supplied")
 	}
-	sysResp, sysErr := get("/admin/systemmanagement", map[string]string{"id": key}, creds)
+	sysResp, sysErr := get(d.preamble()+"/systemmanagement", map[string]string{"id": key}, creds)
 	if sysErr != nil {
 		return nil, fmt.Errorf("Error gathering system information: %v", sysErr)
 	}
@@ -75,7 +75,7 @@ func (d *DevClient) DeleteSystem(s string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := delete("/admin/systemmanagement", map[string]string{"id": s}, creds)
+	resp, err := delete(d.preamble()+"/systemmanagement", map[string]string{"id": s}, creds)
 	if err != nil {
 		return fmt.Errorf("Error deleting system: %v", err)
 	}
@@ -90,7 +90,7 @@ func (d *DevClient) SetSystemName(system_key, system_name string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := put("/admin/systemmanagement", map[string]interface{}{
+	resp, err := put(d.preamble()+"/systemmanagement", map[string]interface{}{
 		"id":   system_key,
 		"name": system_name,
 	}, creds)
@@ -108,7 +108,7 @@ func (d *DevClient) SetSystemDescription(system_key, system_description string) 
 	if err != nil {
 		return err
 	}
-	resp, err := put("/admin/systemmanagement", map[string]interface{}{
+	resp, err := put(d.preamble()+"/systemmanagement", map[string]interface{}{
 		"id":          system_key,
 		"description": system_description,
 	}, creds)
@@ -126,7 +126,7 @@ func (d *DevClient) SetSystemAuthOn(system_key string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := put("/admin/systemmanagement", map[string]interface{}{
+	resp, err := put(d.preamble()+"/systemmanagement", map[string]interface{}{
 		"id":            system_key,
 		"auth_required": true,
 	}, creds)
@@ -144,7 +144,7 @@ func (d *DevClient) SetSystemAuthOff(system_key string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := put("/admin/systemmanagement", map[string]interface{}{
+	resp, err := put(d.preamble()+"/systemmanagement", map[string]interface{}{
 		"id":            system_key,
 		"auth_required": false,
 	}, creds)
@@ -162,7 +162,7 @@ func (d *DevClient) DevUserInfo() error {
 	if err != nil {
 		return err
 	}
-	resp, err := get("/admin/userinfo", nil, creds)
+	resp, err := get(d.preamble()+"/userinfo", nil, creds)
 	if err != nil {
 		return fmt.Errorf("Error getting userdata: %v", err)
 	}
@@ -175,7 +175,7 @@ func (d *DevClient) NewCollection(systemKey, name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	resp, err := post("/admin/collectionmanagement", map[string]interface{}{
+	resp, err := post(d.preamble()+"/collectionmanagement", map[string]interface{}{
 		"name":  name,
 		"appID": systemKey,
 	}, creds)
@@ -193,7 +193,7 @@ func (d *DevClient) DeleteCollection(colId string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := delete("/admin/collectionmanagement", map[string]string{
+	resp, err := delete(d.preamble()+"/collectionmanagement", map[string]string{
 		"id": colId,
 	}, creds)
 	if err != nil {
@@ -210,7 +210,7 @@ func (d *DevClient) AddColumn(collection_id, column_name, column_type string) er
 	if err != nil {
 		return err
 	}
-	resp, err := put("/admin/collectionmanagement", map[string]interface{}{
+	resp, err := put(d.preamble()+"/collectionmanagement", map[string]interface{}{
 		"id": collection_id,
 		"addColumn": map[string]interface{}{
 			"name": column_name,
@@ -231,7 +231,7 @@ func (d *DevClient) DeleteColumn(collection_id, column_name string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := put("/admin/collectionmanagement", map[string]interface{}{
+	resp, err := put(d.preamble()+"/collectionmanagement", map[string]interface{}{
 		"id":           collection_id,
 		"deleteColumn": column_name,
 	}, creds)
@@ -249,7 +249,7 @@ func (d *DevClient) GetCollectionInfo(collection_id string) (map[string]interfac
 	if err != nil {
 		return map[string]interface{}{}, err
 	}
-	resp, err := get("/admin/collectionmanagement", map[string]string{
+	resp, err := get(d.preamble()+"/collectionmanagement", map[string]string{
 		"id": collection_id,
 	}, creds)
 	if err != nil {
@@ -267,7 +267,7 @@ func (d *DevClient) GetAllCollections(SystemKey string) ([]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get("/admin/allcollections", map[string]string{
+	resp, err := get(d.preamble()+"/allcollections", map[string]string{
 		"appid": SystemKey,
 	}, creds)
 	if err != nil {
@@ -286,7 +286,7 @@ func (d *DevClient) GetAllRoles(SystemKey string) ([]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get("/admin/user/"+SystemKey+"/roles", map[string]string{
+	resp, err := get(d.preamble()+"/user/"+SystemKey+"/roles", map[string]string{
 		"appid": SystemKey,
 	}, creds)
 	//fmt.Printf("roles: %+v\n", resp.Body)
@@ -304,7 +304,7 @@ func (d *DevClient) CreateRole(systemKey, role_id string) (interface{}, error) {
 		"topics":      []map[string]interface{}{},
 		"services":    []map[string]interface{}{},
 	}
-	resp, err := post("/admin/user/"+systemKey+"/roles", data, creds)
+	resp, err := post(d.preamble()+"/user/"+systemKey+"/roles", data, creds)
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +334,7 @@ func (d *DevClient) AddCollectionToRole(systemKey, collection_id, role_id string
 			"services": []map[string]interface{}{},
 		},
 	}
-	resp, err := put("/admin/user/"+systemKey+"/roles", data, creds)
+	resp, err := put(d.preamble()+"/user/"+systemKey+"/roles", data, creds)
 	if err != nil {
 		return err
 	}
@@ -364,7 +364,7 @@ func (d *DevClient) AddServiceToRole(systemKey, service, role_id string, level i
 			"collections": []map[string]interface{}{},
 		},
 	}
-	resp, err := put("/admin/user/"+systemKey+"/roles", data, creds)
+	resp, err := put(d.preamble()+"/user/"+systemKey+"/roles", data, creds)
 	if err != nil {
 		return err
 	}
@@ -393,7 +393,7 @@ func (d *DevClient) AddGenericPermissionToRole(systemKey, role_id, permission st
 		"permissions": level,
 	}
 
-	resp, err := put("/admin/user/"+systemKey+"/roles", data, creds)
+	resp, err := put(d.preamble()+"/user/"+systemKey+"/roles", data, creds)
 	if err != nil {
 		return err
 	}

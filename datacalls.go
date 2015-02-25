@@ -10,19 +10,6 @@ const (
 	_DATA_PREAMBLE = "/api/v/1/data/"
 )
 
-type Collection struct {
-	SystemKey    string
-	CollectionID string
-	Name         string
-	Columns      []Column
-	Users        bool
-}
-
-type Column struct {
-	name       string
-	ColumnType string
-}
-
 func (u *UserClient) InsertData(collection_id string, data interface{}) error {
 	return insertdata(u, collection_id, data)
 }
@@ -149,7 +136,15 @@ func deletedata(c cbClient, collection_id string, query *Query) error {
 }
 
 func (d *DevClient) GetColumns(collection_id string) ([]interface{}, error) {
-	creds, err := d.credentials()
+	return getColumns(d, collection_id)
+}
+
+func (u *UserClient) GetColumns(collection_id string) ([]interface{}, error) {
+	return getColumns(u, collection_id)
+}
+
+func getColumns(c cbClient, collection_id string) ([]interface{}, error) {
+	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
