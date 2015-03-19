@@ -194,7 +194,17 @@ func register(c cbClient, username, password, fname, lname, org string) error {
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("Status code: %d, Error in authenticating, %v\n", resp.StatusCode, resp.Body)
 	}
-	//there isn't really a decent response to this one
+	var token string = ""
+	switch c.(type) {
+	case *UserClient:
+		token = resp.Body.(map[string]interface{})["user_token"].(string)
+	case *DevClient:
+		token = resp.Body.(map[string]interface{})["dev_token"].(string)
+	}
+	if token == "" {
+		return fmt.Errorf("Token not present i response from platform %+v", resp.Body)
+	}
+	c.setToken(token)
 	return nil
 }
 
