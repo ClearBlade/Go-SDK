@@ -31,7 +31,7 @@ func (d *DevClient) GetServiceNames(systemKey string) ([]string, error) {
 	}
 	code := resp.Body.(map[string]interface{})["code"]
 	sliceBody, isSlice := code.([]interface{})
-	if !isSlice {
+	if !isSlice && code != nil {
 		return nil, fmt.Errorf("Error getting services: server returned unexpected response")
 	}
 	services := make([]string, len(sliceBody))
