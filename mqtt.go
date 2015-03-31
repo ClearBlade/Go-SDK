@@ -24,7 +24,7 @@ type LastWillPacket struct {
 
 //InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
 func (u *UserClient) InitializeMQTT(clientid string, ignore string, timeout int) error {
-	mqc, err := initializeMqttClient(u.UserToken, u.SystemSecret, u.SystemKey, clientid, timeout)
+	mqc, err := initializeMqttClient(u.UserToken, u.SystemKey, u.SystemSecret, clientid, timeout)
 	if err != nil {
 		return err
 	}
@@ -93,10 +93,10 @@ func (d *DevClient) Disconnect() error {
 //InitializeMqttClient allocates a mqtt client.
 //the values for initialization are drawn from the client struct
 //with the exception of the timeout and client id, which is mqtt specific.
-func initializeMqttClient(token, username, password, clientid string, timeout int) (*mqcli.Client, error) {
+func initializeMqttClient(token, systemkey, systemsecret, clientid string, timeout int) (*mqcli.Client, error) {
 	cli := mqcli.NewClient(token,
-		username,
-		password,
+		systemkey,
+		systemsecret,
 		clientid,
 		timeout)
 	return cli, nil
