@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	CB_ADDR            = "https://platform.clearblade.com"
-	CB_MSG_ADDR        = "messaging.clearblade.com:1883"
+	CB_ADDR            = "https://rtp.clearblade.com"
+	CB_MSG_ADDR        = "rtp.clearblade.com:1883"
 	_HEADER_KEY_KEY    = "ClearBlade-SystemKey"
 	_HEADER_SECRET_KEY = "ClearBlade-SystemSecret"
 )
@@ -31,8 +31,13 @@ type Client interface {
 	//data calls
 	InsertData(string, interface{}) error
 	UpdateData(string, *Query, map[string]interface{}) error
+
 	GetData(string, *Query) (map[string]interface{}, error)
+	GetDataByName(string, *Query) (map[string]interface{}, error)
+	GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error)
+
 	DeleteData(string, *Query) error
+
 	//mqtt calls
 	InitializeMQTT(string, string, int) error
 	ConnectMQTT(*tls.Config, *LastWillPacket) error
