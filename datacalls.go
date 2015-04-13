@@ -171,3 +171,11 @@ func deletedata(c cbClient, collection_id string, query *Query) error {
 	}
 	return nil
 }
+
+func (d *DevClient) GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error) {
+	return nil, fmt.Errorf("Unimplemented")
+}
+
+func (d *UserClient) GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error) {
+	return nil, fmt.Errorf("Unimplemented")
+}
