@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	CB_ADDR            = "https://rtp.clearblade.com"
-	CB_MSG_ADDR        = "rtp.clearblade.com:1883"
+	CB_ADDR            = "https://platform.clearblade.com"
+	CB_MSG_ADDR        = "messaging.clearblade.com:1883"
 	_HEADER_KEY_KEY    = "ClearBlade-SystemKey"
 	_HEADER_SECRET_KEY = "ClearBlade-SystemSecret"
 )
