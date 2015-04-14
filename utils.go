@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	CB_ADDR            = "https://platform.clearblade.com"
-	CB_MSG_ADDR        = "messaging.clearblade.com:1883"
+	CB_ADDR            = "https://rtp.clearblade.com"
+	CB_MSG_ADDR        = "rtp.clearblade.com:1883"
 	_HEADER_KEY_KEY    = "ClearBlade-SystemKey"
 	_HEADER_SECRET_KEY = "ClearBlade-SystemSecret"
 )
@@ -35,8 +35,13 @@ type Client interface {
 	//data calls
 	InsertData(string, interface{}) error
 	UpdateData(string, *Query, map[string]interface{}) error
+
 	GetData(string, *Query) (map[string]interface{}, error)
+	GetDataByName(string, *Query) (map[string]interface{}, error)
+	GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error)
+
 	DeleteData(string, *Query) error
+
 	//mqtt calls
 	InitializeMQTT(string, string, int) error
 	ConnectMQTT(*tls.Config, *LastWillPacket) error
@@ -198,7 +203,17 @@ func register(c cbClient, username, password, fname, lname, org string) error {
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("Status code: %d, Error in authenticating, %v\n", resp.StatusCode, resp.Body)
 	}
-	//there isn't really a decent response to this one
+	var token string = ""
+	switch c.(type) {
+	case *UserClient:
+		token = resp.Body.(map[string]interface{})["user_token"].(string)
+	case *DevClient:
+		token = resp.Body.(map[string]interface{})["dev_token"].(string)
+	}
+	if token == "" {
+		return fmt.Errorf("Token not present i response from platform %+v", resp.Body)
+	}
+	c.setToken(token)
 	return nil
 }
 

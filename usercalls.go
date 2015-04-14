@@ -12,26 +12,29 @@ const (
 )
 
 func (u *UserClient) credentials() ([][]string, error) {
+	ret := make([][]string, 0)
 	if u.UserToken != "" {
-		return [][]string{
-			[]string{
-				_USER_HEADER_KEY,
-				u.UserToken,
-			},
-		}, nil
-	} else if u.SystemSecret != "" && u.SystemKey != "" {
-		return [][]string{
-			[]string{
-				_HEADER_SECRET_KEY,
-				u.SystemSecret,
-			},
-			[]string{
-				_HEADER_KEY_KEY,
-				u.SystemKey,
-			},
-		}, nil
-	} else {
+		ret = append(ret, []string{
+			_USER_HEADER_KEY,
+			u.UserToken,
+		})
+	}
+	if u.SystemSecret != "" && u.SystemKey != "" {
+		ret = append(ret, []string{
+			_HEADER_SECRET_KEY,
+			u.SystemSecret,
+		})
+		ret = append(ret, []string{
+			_HEADER_KEY_KEY,
+			u.SystemKey,
+		})
+
+	}
+
+	if len(ret) == 0 {
 		return [][]string{}, errors.New("No SystemSecret/SystemKey combo, or UserToken found")
+	} else {
+		return ret, nil
 	}
 }
 
