@@ -2,11 +2,13 @@ package GoSDK
 
 import (
 	"errors"
+	"fmt"
 )
 
 const (
 	_USER_HEADER_KEY = "ClearBlade-UserToken"
 	_USER_PREAMBLE   = "/api/v/1/user"
+	_USER_ADMIN      = "/admin/user"
 )
 
 func (u *UserClient) credentials() ([][]string, error) {
@@ -53,4 +55,42 @@ func (u *UserClient) getToken() string {
 
 func (u *UserClient) getMessageId() uint16 {
 	return uint16(u.mrand.Int())
+}
+
+func (d *DevClient) GetUserColumns(systemKey string) ([]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := get(_USER_ADMIN+"/"+systemKey+"/columns", nil, creds)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting user columns: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting user columns: %v", resp.Body)
+	}
+	return resp.Body.([]interface{}), nil
+}
+
+func (d *DevClient) CreateUserColumn(systemKey, columnName, columnType string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+
+	data := map[string]interface{}{
+		"column_name": columnName,
+		"type":        columnType,
+	}
+
+	resp, err := post(_USER_ADMIN+"/"+systemKey+"/columns", data, creds)
+	if err != nil {
+		return fmt.Errorf("Error creating user column: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error creating user column: %v", resp.Body)
+	}
+
+	return nil
 }

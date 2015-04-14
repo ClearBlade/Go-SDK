@@ -172,10 +172,35 @@ func deletedata(c cbClient, collection_id string, query *Query) error {
 	return nil
 }
 
+func (d *DevClient) GetColumns(collection_id string) ([]interface{}, error) {
+	return getColumns(d, collection_id)
+}
+
+func (u *UserClient) GetColumns(collection_id string) ([]interface{}, error) {
+	return getColumns(u, collection_id)
+}
+
+func getColumns(c cbClient, collection_id string) ([]interface{}, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := get(_DATA_PREAMBLE+collection_id+"/columns", nil, creds)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting collection columns: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting collection columns: %v", resp.Body)
+	}
+	return resp.Body.([]interface{}), nil
+}
+
 func (d *DevClient) GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error) {
 	return nil, fmt.Errorf("Unimplemented")
 }
 
 func (d *UserClient) GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error) {
 	return nil, fmt.Errorf("Unimplemented")
+
 }

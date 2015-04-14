@@ -21,6 +21,10 @@ var (
 	_HEADER_SECRET_KEY = "ClearBlade-SystemSecret"
 )
 
+var tr = &http.Transport{
+	TLSClientConfig: &tls.Config{InsecureSkipVerify: false},
+}
+
 //Client is a convience interface for API consumers, if they want to use the same functions for both
 //Dev Users and unprivleged users, such as tiny helper functions. please use this with care
 type Client interface {
@@ -245,6 +249,7 @@ func do(r *CbReq, creds [][]string) (*CbResp, error) {
 	}
 	var req *http.Request
 	var reqErr error
+
 	if bodyToSend != nil {
 		req, reqErr = http.NewRequest(r.Method, url, bodyToSend)
 	} else {
@@ -259,7 +264,8 @@ func do(r *CbReq, creds [][]string) (*CbResp, error) {
 		}
 		req.Header.Add(c[0], c[1])
 	}
-	cli := &http.Client{}
+
+	cli := &http.Client{Transport: tr}
 	resp, err := cli.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Error Making Request: %v", err)
