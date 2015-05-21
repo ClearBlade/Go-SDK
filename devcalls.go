@@ -170,7 +170,7 @@ func (d *DevClient) DevUserInfo() error {
 	return nil
 }
 
-func (d *DevClient) NewConnectCollection(systemkey, connectConfig connectCollection) (string, error) {
+func (d *DevClient) NewConnectCollection(systemkey string, connectConfig connectCollection) (string, error) {
 	creds, err := d.credentials()
 	m := connectConfig.toMap()
 	m["appID"] = systemkey
