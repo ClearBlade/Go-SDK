@@ -190,11 +190,12 @@ func (d *DevClient) NewConnectCollection(systemkey string, connectConfig connect
 
 func (d *DevClient) AlterConnectionDetails(systemkey string, connectConfig connectCollection) error {
 	creds, err := d.credentials()
+	out := make(map[string]interface{})
 	m := connectConfig.toMap()
-	m["appID"] = systemkey
-	m["name"] = connectConfig.tableName()
-	m["connectionStringMap"] = m
-	resp, err := put(d.preamble()+"/collectionmanagement", m, creds)
+	out["appID"] = systemkey
+	out["name"] = connectConfig.tableName()
+	out["connectionStringMap"] = m
+	resp, err := put(d.preamble()+"/collectionmanagement", out, creds)
 	if err != nil {
 		return fmt.Errorf("Error creating collection: %s", err.Error())
 	} else if resp.StatusCode != 200 {
