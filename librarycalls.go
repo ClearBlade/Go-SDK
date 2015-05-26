@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	_LIB_PREAMBLE = "/codeadmin/api/v/1/library/"
+	_LIB_PREAMBLE = "/codeadmin/api/v/2/library/"
 )
 
 func (d *DevClient) GetLibraries(systemKey string) ([]interface{}, error) {
