@@ -197,6 +197,7 @@ func register(c cbClient, username, password, fname, lname, org string) error {
 	}
 
 	resp, err := post(c.preamble()+"/reg", payload, creds)
+
 	if err != nil {
 		return err
 	}
@@ -249,7 +250,6 @@ func do(r *CbReq, creds [][]string) (*CbResp, error) {
 	}
 	var req *http.Request
 	var reqErr error
-
 	if bodyToSend != nil {
 		req, reqErr = http.NewRequest(r.Method, url, bodyToSend)
 	} else {
