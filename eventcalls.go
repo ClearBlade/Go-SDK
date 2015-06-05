@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	_EVENTS_DEFS_PREAMBLE  = "/api/v/1/events/definitions"
-	_EVENTS_HDLRS_PREAMBLE = "/api/v/1/events/handlers/"
+	_EVENTS_DEFS_PREAMBLE  = "/api/v/2/triggers/definitions"
+	_EVENTS_HDLRS_PREAMBLE = "/api/v/2/triggers/handlers/"
 )
 
 func (d *DevClient) GetEventDefinitions() ([]interface{}, error) {
@@ -36,13 +36,13 @@ func (d *DevClient) GetEventHandlers(systemKey string) ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
-func (d *DevClient) CreateEventHandler(systemKey string,
+func (d *DevClient) CreateEventHandler(systemKey, name string,
 	data map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(_EVENTS_HDLRS_PREAMBLE+systemKey, data, creds)
+	resp, err := post(_EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds)
 	resp, err = mapResponse(resp, err)
 	fmt.Printf("RESP: %+v\n", resp)
 	if err != nil {
