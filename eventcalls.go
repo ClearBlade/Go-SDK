@@ -36,6 +36,19 @@ func (d *DevClient) GetEventHandlers(systemKey string) ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
+func (d *DevClient) GetEventHandler(systemKey, name string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(_EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, nil, creds)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
 func (d *DevClient) CreateEventHandler(systemKey, name string,
 	data map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
@@ -45,6 +58,29 @@ func (d *DevClient) CreateEventHandler(systemKey, name string,
 	resp, err := post(_EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds)
 	resp, err = mapResponse(resp, err)
 	fmt.Printf("RESP: %+v\n", resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) DeleteEventHandler(systemKey, name string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(_EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, nil, creds)
+	_, err = mapResponse(resp, err)
+	return err
+}
+
+func (d *DevClient) UpdateEventHandler(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := put(_EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds)
+	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
 	}
