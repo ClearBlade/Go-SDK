@@ -20,6 +20,7 @@ type Query struct {
 	PageSize   int
 	PageNumber int
 	Order      []Ordering
+	Columns    []string
 }
 
 func NewQuery() *Query {
@@ -103,6 +104,7 @@ func (q *Query) serialize() map[string]interface{} {
 	qrMap := make(map[string]interface{})
 	qrMap["PAGENUM"] = q.PageNumber
 	qrMap["PAGESIZE"] = q.PageSize
+	qrMap["SELECTCOLUMNS"] = q.Columns
 	sortMap := make([]map[string]interface{}, len(q.Order))
 	for i, ordering := range q.Order {
 		sortMap[i] = make(map[string]interface{})
