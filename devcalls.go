@@ -38,6 +38,7 @@ func (d *DevClient) NewSystem(name, description string, users bool) (string, err
 	}
 
 	// TODO we need to make this json
+	fmt.Printf("NEW SYSTEM RETURNS: %+v\n", resp.Body)
 	return strings.TrimSpace(strings.Split(resp.Body.(string), ":")[1]), nil
 }
 

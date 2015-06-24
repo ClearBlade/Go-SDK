@@ -86,14 +86,25 @@ func (d *DevClient) UpdateService(systemKey, name, code string, params []string)
 	return nil
 }
 
+func (d *DevClient) NewServiceWithLibraries(systemKey, name, code, deps string, params []string) error {
+	extra := map[string]interface{}{"parameters": params, "dependencies": deps}
+	return d.newService(systemKey, name, code, extra)
+}
+
 func (d *DevClient) NewService(systemKey, name, code string, params []string) error {
+	extra := map[string]interface{}{"parameters": params}
+	return d.newService(systemKey, name, code, extra)
+}
+
+func (d *DevClient) newService(systemKey, name, code string, extra map[string]interface{}) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
 	code = strings.Replace(code, "\\n", "\n", -1)
 	code = strings.Replace(code, "\n", "\\n", -1)
-	resp, err := post(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, map[string]interface{}{"code": code, "parameters": params}, creds)
+	extra["code"] = code
+	resp, err := post(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, extra, creds)
 	if err != nil {
 		return fmt.Errorf("Error creating new service: %v", err)
 	}
