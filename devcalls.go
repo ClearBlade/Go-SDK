@@ -3,7 +3,7 @@ package GoSDK
 import (
 	"errors"
 	"fmt"
-	"log"
+	//	"log"
 	"strings"
 )
 
@@ -38,6 +38,7 @@ func (d *DevClient) NewSystem(name, description string, users bool) (string, err
 	}
 
 	// TODO we need to make this json
+	fmt.Printf("NEW SYSTEM RETURNS: %+v\n", resp.Body)
 	return strings.TrimSpace(strings.Split(resp.Body.(string), ":")[1]), nil
 }
 
@@ -157,17 +158,16 @@ func (d *DevClient) SetSystemAuthOff(system_key string) error {
 	return nil
 }
 
-func (d *DevClient) DevUserInfo() error {
+func (d *DevClient) DevUserInfo() (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	resp, err := get(d.preamble()+"/userinfo", nil, creds)
 	if err != nil {
-		return fmt.Errorf("Error getting userdata: %v", err)
+		return nil, fmt.Errorf("Error getting userdata: %v", err)
 	}
-	log.Printf("HERE IS THE BODY: %+v\n", resp)
-	return nil
+	return resp.Body.(map[string]interface{}), nil
 }
 
 func (d *DevClient) NewConnectCollection(systemkey string, connectConfig connectCollection) (string, error) {
