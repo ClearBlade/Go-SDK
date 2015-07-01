@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	_CODE_ADMIN_PREAMBLE = "/admin/code/v/1"
+	_CODE_ADMIN_PREAMBLE    = "/admin/code/v/1"
+	_CODE_ADMIN_PREAMBLE_V2 = "/admin/code/v/2"
 )
 
 type Service struct {
@@ -15,6 +16,11 @@ type Service struct {
 	Version int
 	Params  []string
 	System  string
+}
+
+type CodeLog struct {
+	Log  string
+	Time string
 }
 
 func (d *DevClient) GetServiceNames(systemKey string) ([]string, error) {
@@ -118,7 +124,7 @@ func (d *DevClient) EnableLogsForService(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	_, err = post(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, map[string]interface{}{"logging": true}, creds, nil)
+	_, err = post(_CODE_ADMIN_PREAMBLE_V2+"/"+systemKey+"/"+name, map[string]interface{}{"logging": true}, creds, nil)
 	return err
 }
 
@@ -127,8 +133,41 @@ func (d *DevClient) DisableLogsForService(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	_, err = post(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, map[string]interface{}{"logging": false}, creds, nil)
+	_, err = post(_CODE_ADMIN_PREAMBLE_V2+"/"+systemKey+"/"+name, map[string]interface{}{"logging": false}, creds, nil)
 	return err
+}
+
+func (d *DevClient) GetLogsForService(systemKey, name string) ([]CodeLog, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(_CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	switch resp.Body.(type) {
+	case string:
+		return nil, fmt.Errorf("%s", resp.Body.(string))
+	case []interface{}:
+		r := resp.Body.([]map[string]interface{})
+		outgoing := make([]CodeLog, len(r))
+		for idx, v := range r {
+			cl := genCodeLog(v)
+			outgoing[idx] = cl
+		}
+		return outgoing, nil
+	case []map[string]interface{}:
+		r := resp.Body.([]map[string]interface{})
+		outgoing := make([]CodeLog, len(r))
+		for idx, v := range r {
+			cl := genCodeLog(v)
+			outgoing[idx] = cl
+		}
+		return outgoing, nil
+	default:
+		return nil, fmt.Errorf("Bad Return Value\n")
+	}
 }
 
 func (d *DevClient) newService(systemKey, name, code string, extra map[string]interface{}) error {
@@ -162,4 +201,17 @@ func (d *DevClient) DeleteService(systemKey, name string) error {
 		return fmt.Errorf("Error deleting service: %v", resp.Body)
 	}
 	return nil
+}
+
+func genCodeLog(m map[string]interface{}) CodeLog {
+	cl := CodeLog{}
+	if tim, ext := m["service_execution_time"]; ext {
+		t := tim.(string)
+		cl.Time = t
+	}
+	if logg, ext := m["log"]; ext {
+		l := logg.(string)
+		cl.Log = l
+	}
+	return cl
 }
