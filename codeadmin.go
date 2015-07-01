@@ -113,6 +113,24 @@ func (d *DevClient) NewService(systemKey, name, code string, params []string) er
 	return d.newService(systemKey, name, code, extra)
 }
 
+func (d *DevClient) EnableLogsForService(systemKey, name string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	_, err = post(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, map[string]interface{}{"logging": true}, creds, nil)
+	return err
+}
+
+func (d *DevClient) DisableLogsForService(systemKey, name string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	_, err = post(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, map[string]interface{}{"logging": false}, creds, nil)
+	return err
+}
+
 func (d *DevClient) newService(systemKey, name, code string, extra map[string]interface{}) error {
 	creds, err := d.credentials()
 	if err != nil {
