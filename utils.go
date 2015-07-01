@@ -85,6 +85,7 @@ type CbReq struct {
 	Method      string
 	Endpoint    string
 	QueryString string
+	Headers     map[string][]string
 }
 
 type CbResp struct {
@@ -154,7 +155,7 @@ func authenticate(c cbClient, username, password string) error {
 	resp, err := post(c.preamble()+"/auth", map[string]interface{}{
 		"email":    username,
 		"password": password,
-	}, creds)
+	}, creds, nil)
 	if err != nil {
 		return err
 	}
@@ -196,7 +197,7 @@ func register(c cbClient, username, password, fname, lname, org string) error {
 		}
 	}
 
-	resp, err := post(c.preamble()+"/reg", payload, creds)
+	resp, err := post(c.preamble()+"/reg", payload, creds, nil)
 
 	if err != nil {
 		return err
@@ -223,7 +224,7 @@ func logout(c cbClient) error {
 	if err != nil {
 		return err
 	}
-	resp, err := post(c.preamble()+"/logout", nil, creds)
+	resp, err := post(c.preamble()+"/logout", nil, creds, nil)
 	if err != nil {
 		return err
 	}
@@ -257,6 +258,13 @@ func do(r *CbReq, creds [][]string) (*CbResp, error) {
 	}
 	if reqErr != nil {
 		return nil, fmt.Errorf("Request Creation Error: %v", reqErr)
+	}
+	if r.Headers != nil {
+		for hed, val := range r.Headers {
+			for _, vv := range val {
+				req.Header.Add(hed, vv)
+			}
+		}
 	}
 	for _, c := range creds {
 		if len(c) != 2 {
@@ -306,41 +314,45 @@ func do(r *CbReq, creds [][]string) (*CbResp, error) {
 
 //standard http verbs
 
-func get(endpoint string, query map[string]string, creds [][]string) (*CbResp, error) {
+func get(endpoint string, query map[string]string, creds [][]string, headers map[string][]string) (*CbResp, error) {
 	req := &CbReq{
 		Body:        nil,
 		Method:      "GET",
 		Endpoint:    endpoint,
 		QueryString: query_to_string(query),
+		Headers:     headers,
 	}
 	return do(req, creds)
 }
 
-func post(endpoint string, body interface{}, creds [][]string) (*CbResp, error) {
+func post(endpoint string, body interface{}, creds [][]string, headers map[string][]string) (*CbResp, error) {
 	req := &CbReq{
 		Body:        body,
 		Method:      "POST",
 		Endpoint:    endpoint,
 		QueryString: "",
+		Headers:     headers,
 	}
 	return do(req, creds)
 }
 
-func put(endpoint string, body interface{}, heads [][]string) (*CbResp, error) {
+func put(endpoint string, body interface{}, heads [][]string, headers map[string][]string) (*CbResp, error) {
 	req := &CbReq{
 		Body:        body,
 		Method:      "PUT",
 		Endpoint:    endpoint,
 		QueryString: "",
+		Headers:     headers,
 	}
 	return do(req, heads)
 }
 
-func delete(endpoint string, query map[string]string, heds [][]string) (*CbResp, error) {
+func delete(endpoint string, query map[string]string, heds [][]string, headers map[string][]string) (*CbResp, error) {
 	req := &CbReq{
 		Body:        nil,
 		Method:      "DELETE",
 		Endpoint:    endpoint,
+		Headers:     headers,
 		QueryString: query_to_string(query),
 	}
 	return do(req, heds)

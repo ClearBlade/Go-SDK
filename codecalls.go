@@ -8,12 +8,18 @@ const (
 	_CODE_PREAMBLE = "/api/v/1/code"
 )
 
-func callService(c cbClient, systemKey, name string, params map[string]interface{}) (map[string]interface{}, error) {
+func callService(c cbClient, systemKey, name string, params map[string]interface{}, log bool) (map[string]interface{}, error) {
 	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(_CODE_PREAMBLE+"/"+systemKey+"/"+name, params, creds)
+	var resp *CbResp
+	if log {
+
+		resp, err = post(_CODE_PREAMBLE+"/"+systemKey+"/"+name, params, creds, map[string][]string{"LOGGING_ENABLED": []string{"true"}})
+	} else {
+		resp, err = post(_CODE_PREAMBLE+"/"+systemKey+"/"+name, params, creds, nil)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("Error calling %s service: %v", name, err)
 	}
@@ -23,10 +29,10 @@ func callService(c cbClient, systemKey, name string, params map[string]interface
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) CallService(systemKey, name string, params map[string]interface{}) (map[string]interface{}, error) {
-	return callService(d, systemKey, name, params)
+func (d *DevClient) CallService(systemKey, name string, params map[string]interface{}, log bool) (map[string]interface{}, error) {
+	return callService(d, systemKey, name, params, log)
 }
 
 func (u *UserClient) CallService(systemKey, name string, params map[string]interface{}) (map[string]interface{}, error) {
-	return callService(u, systemKey, name, params)
+	return callService(u, systemKey, name, params, false)
 }

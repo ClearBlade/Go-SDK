@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	_CODE_ADMIN_PREAMBLE = "/admin/code/v/1"
+	_CODE_ADMIN_PREAMBLE    = "/admin/code/v/1"
+	_CODE_ADMIN_PREAMBLE_V2 = "/admin/code/v/2"
 )
 
 type Service struct {
@@ -17,12 +18,17 @@ type Service struct {
 	System  string
 }
 
+type CodeLog struct {
+	Log  string
+	Time string
+}
+
 func (d *DevClient) GetServiceNames(systemKey string) ([]string, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_CODE_ADMIN_PREAMBLE+"/"+systemKey, nil, creds)
+	resp, err := get(_CODE_ADMIN_PREAMBLE+"/"+systemKey, nil, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting services: %v", err)
 	}
@@ -46,7 +52,7 @@ func (d *DevClient) GetService(systemKey, name string) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_CODE_PREAMBLE+"/"+systemKey+"/"+name, nil, creds)
+	resp, err := get(_CODE_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting service: %v", err)
 	}
@@ -76,7 +82,7 @@ func (d *DevClient) SetServiceEffectiveUser(systemKey, name, userid string) erro
 	}
 	resp, err := put(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, map[string]interface{}{
 		"runuser": userid,
-	}, creds)
+	}, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error updating service: %v\n", err)
 	}
@@ -93,7 +99,7 @@ func (d *DevClient) UpdateService(systemKey, name, code string, params []string)
 	}
 	code = strings.Replace(code, "\\n", "\n", -1) // just to make sure we're not creating a \\\n since we could have removed some of the double escapes
 	code = strings.Replace(code, "\n", "\\n", -1) // add back in the escaped stuff
-	resp, err := put(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, map[string]interface{}{"code": code, "parameters": params, "name": name}, creds)
+	resp, err := put(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, map[string]interface{}{"code": code, "parameters": params, "name": name}, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error updating service: %v\n", err)
 	}
@@ -113,6 +119,57 @@ func (d *DevClient) NewService(systemKey, name, code string, params []string) er
 	return d.newService(systemKey, name, code, extra)
 }
 
+func (d *DevClient) EnableLogsForService(systemKey, name string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	_, err = post(_CODE_ADMIN_PREAMBLE_V2+"/"+systemKey+"/"+name, map[string]interface{}{"logging": true}, creds, nil)
+	return err
+}
+
+func (d *DevClient) DisableLogsForService(systemKey, name string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	_, err = post(_CODE_ADMIN_PREAMBLE_V2+"/"+systemKey+"/"+name, map[string]interface{}{"logging": false}, creds, nil)
+	return err
+}
+
+func (d *DevClient) GetLogsForService(systemKey, name string) ([]CodeLog, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(_CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	switch resp.Body.(type) {
+	case string:
+		return nil, fmt.Errorf("%s", resp.Body.(string))
+	case []interface{}:
+		r := resp.Body.([]map[string]interface{})
+		outgoing := make([]CodeLog, len(r))
+		for idx, v := range r {
+			cl := genCodeLog(v)
+			outgoing[idx] = cl
+		}
+		return outgoing, nil
+	case []map[string]interface{}:
+		r := resp.Body.([]map[string]interface{})
+		outgoing := make([]CodeLog, len(r))
+		for idx, v := range r {
+			cl := genCodeLog(v)
+			outgoing[idx] = cl
+		}
+		return outgoing, nil
+	default:
+		return nil, fmt.Errorf("Bad Return Value\n")
+	}
+}
+
 func (d *DevClient) newService(systemKey, name, code string, extra map[string]interface{}) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -121,7 +178,7 @@ func (d *DevClient) newService(systemKey, name, code string, extra map[string]in
 	code = strings.Replace(code, "\\n", "\n", -1)
 	code = strings.Replace(code, "\n", "\\n", -1)
 	extra["code"] = code
-	resp, err := post(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, extra, creds)
+	resp, err := post(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, extra, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error creating new service: %v", err)
 	}
@@ -136,7 +193,7 @@ func (d *DevClient) DeleteService(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := delete(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, nil, creds)
+	resp, err := delete(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error deleting service: %v", err)
 	}
@@ -144,4 +201,17 @@ func (d *DevClient) DeleteService(systemKey, name string) error {
 		return fmt.Errorf("Error deleting service: %v", resp.Body)
 	}
 	return nil
+}
+
+func genCodeLog(m map[string]interface{}) CodeLog {
+	cl := CodeLog{}
+	if tim, ext := m["service_execution_time"]; ext {
+		t := tim.(string)
+		cl.Time = t
+	}
+	if logg, ext := m["log"]; ext {
+		l := logg.(string)
+		cl.Log = l
+	}
+	return cl
 }

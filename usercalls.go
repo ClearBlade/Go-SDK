@@ -63,7 +63,7 @@ func (d *DevClient) GetUserColumns(systemKey string) ([]interface{}, error) {
 		return nil, err
 	}
 
-	resp, err := get(_USER_ADMIN+"/"+systemKey+"/columns", nil, creds)
+	resp, err := get(_USER_ADMIN+"/"+systemKey+"/columns", nil, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting user columns: %v", err)
 	}
@@ -84,7 +84,7 @@ func (d *DevClient) CreateUserColumn(systemKey, columnName, columnType string) e
 		"type":        columnType,
 	}
 
-	resp, err := post(_USER_ADMIN+"/"+systemKey+"/columns", data, creds)
+	resp, err := post(_USER_ADMIN+"/"+systemKey+"/columns", data, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error creating user column: %v", err)
 	}
