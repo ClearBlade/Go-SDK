@@ -8,6 +8,7 @@ const (
 	_EVENTS_DEFS_PREAMBLE  = "/api/v/2/triggers/definitions"
 	_EVENTS_HDLRS_PREAMBLE = "/api/v/2/triggers/handlers/"
 	_TIMERS_HDLRS_PREAMBLE = "/api/v/2/triggers/timers/"
+	_MH_PREAMBLE           = "/api/v/1/message/"
 )
 
 func (d *DevClient) GetEventDefinitions() ([]interface{}, error) {
@@ -163,4 +164,17 @@ func (d *DevClient) UpdateTimer(systemKey, name string, data map[string]interfac
 		return nil, err
 	}
 	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) MessageHistory(systemKey string) (interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(_MH_PREAMBLE+systemKey, nil, creds)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
