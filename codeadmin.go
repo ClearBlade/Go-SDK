@@ -137,6 +137,23 @@ func (d *DevClient) DisableLogsForService(systemKey, name string) error {
 	return err
 }
 
+func (d *DevClient) AreServiceLogsEnabled(systemKey, name string) (bool, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return false, err
+	}
+	resp, err := get(_CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name+"/active", nil, creds, nil)
+	if err != nil {
+		return false, err
+	}
+	le := resp.Body.(map[string]interface{})["logging_enabled"]
+	if le == nil {
+		return false, fmt.Errorf("Improperly formatted json response")
+	} else {
+		return le.(bool), nil
+	}
+}
+
 func (d *DevClient) GetLogsForService(systemKey, name string) ([]CodeLog, error) {
 	creds, err := d.credentials()
 	if err != nil {
