@@ -16,7 +16,7 @@ func callService(c cbClient, systemKey, name string, params map[string]interface
 	var resp *CbResp
 	if log {
 
-		resp, err = post(_CODE_PREAMBLE+"/"+systemKey+"/"+name, params, creds, map[string][]string{"LOGGING_ENABLED": []string{"true"}})
+		resp, err = post(_CODE_PREAMBLE+"/"+systemKey+"/"+name, params, creds, map[string][]string{"Logging-enabled": []string{"true"}})
 	} else {
 		resp, err = post(_CODE_PREAMBLE+"/"+systemKey+"/"+name, params, creds, nil)
 	}

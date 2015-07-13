@@ -7,7 +7,7 @@ import (
 
 const (
 	_CODE_ADMIN_PREAMBLE    = "/admin/code/v/1"
-	_CODE_ADMIN_PREAMBLE_V2 = "/admin/code/v/2"
+	_CODE_ADMIN_PREAMBLE_V2 = "/codeadmin/v/2"
 )
 
 type Service struct {
@@ -124,7 +124,7 @@ func (d *DevClient) EnableLogsForService(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	_, err = post(_CODE_ADMIN_PREAMBLE_V2+"/"+systemKey+"/"+name, map[string]interface{}{"logging": true}, creds, nil)
+	_, err = post(_CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name, map[string]interface{}{"logging": "true"}, creds, nil)
 	return err
 }
 
@@ -133,8 +133,25 @@ func (d *DevClient) DisableLogsForService(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	_, err = post(_CODE_ADMIN_PREAMBLE_V2+"/"+systemKey+"/"+name, map[string]interface{}{"logging": false}, creds, nil)
+	_, err = post(_CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name, map[string]interface{}{"logging": false}, creds, nil)
 	return err
+}
+
+func (d *DevClient) AreServiceLogsEnabled(systemKey, name string) (bool, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return false, err
+	}
+	resp, err := get(_CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name+"/active", nil, creds, nil)
+	if err != nil {
+		return false, err
+	}
+	le := resp.Body.(map[string]interface{})["logging_enabled"]
+	if le == nil {
+		return false, fmt.Errorf("Improperly formatted json response")
+	} else {
+		return strings.ToLower(le.(string)) == "true", nil
+	}
 }
 
 func (d *DevClient) GetLogsForService(systemKey, name string) ([]CodeLog, error) {
