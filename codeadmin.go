@@ -124,7 +124,7 @@ func (d *DevClient) EnableLogsForService(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	_, err = post(_CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name, map[string]interface{}{"logging": true}, creds, nil)
+	_, err = post(_CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name, map[string]interface{}{"logging": "true"}, creds, nil)
 	return err
 }
 
@@ -150,7 +150,7 @@ func (d *DevClient) AreServiceLogsEnabled(systemKey, name string) (bool, error) 
 	if le == nil {
 		return false, fmt.Errorf("Improperly formatted json response")
 	} else {
-		return le.(bool), nil
+		return strings.ToLower(le.(string)) == "true", nil
 	}
 }
 
