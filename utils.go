@@ -124,11 +124,29 @@ func (d *DevClient) Authenticate() error {
 }
 
 func (u *UserClient) Register(username, password string) error {
-	return register(u, username, password, "", "", "")
+	_, err := register(u, username, password, "", "", "")
+	return err
+}
+
+func (u *UserClient) RegisterUser(username, password string) (map[string]interface{}, error) {
+	resp, err := register(u, username, password, "", "", "")
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 func (d *DevClient) Register(username, password, fname, lname, org string) error {
-	return register(d, username, password, fname, lname, org)
+	_, err := register(d, username, password, fname, lname, org)
+	return err
+}
+
+func (d *DevClient) RegisterUser(username, password, fname, lname, org string) (map[string]interface{}, error) {
+	resp, err := register(d, username, password, fname, lname, org)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 func (u *UserClient) Logout() error {
@@ -152,6 +170,7 @@ func authenticate(c cbClient, username, password string) error {
 		}
 	}
 
+	fmt.Printf("AUTHING WITH %s:%s\n", username, password)
 	resp, err := post(c.preamble()+"/auth", map[string]interface{}{
 		"email":    username,
 		"password": password,
@@ -177,7 +196,7 @@ func authenticate(c cbClient, username, password string) error {
 	return nil
 }
 
-func register(c cbClient, username, password, fname, lname, org string) error {
+func register(c cbClient, username, password, fname, lname, org string) (map[string]interface{}, error) {
 	payload := map[string]interface{}{
 		"email":    username,
 		"password": password,
@@ -193,17 +212,17 @@ func register(c cbClient, username, password, fname, lname, org string) error {
 		var err error
 		creds, err = c.credentials()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	resp, err := post(c.preamble()+"/reg", payload, creds, nil)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Status code: %d, Error in authenticating, %v\n", resp.StatusCode, resp.Body)
+		return nil, fmt.Errorf("Status code: %d, Error in authenticating, %v\n", resp.StatusCode, resp.Body)
 	}
 	var token string = ""
 	switch c.(type) {
@@ -213,10 +232,10 @@ func register(c cbClient, username, password, fname, lname, org string) error {
 		token = resp.Body.(map[string]interface{})["dev_token"].(string)
 	}
 	if token == "" {
-		return fmt.Errorf("Token not present i response from platform %+v", resp.Body)
+		return nil, fmt.Errorf("Token not present i response from platform %+v", resp.Body)
 	}
 	c.setToken(token)
-	return nil
+	return resp.Body.(map[string]interface{}), nil
 }
 
 func logout(c cbClient) error {

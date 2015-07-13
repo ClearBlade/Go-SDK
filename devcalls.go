@@ -349,6 +349,61 @@ func (d *DevClient) CreateRole(systemKey, role_id string) (interface{}, error) {
 	return resp.Body, nil
 }
 
+func (d *DevClient) DeleteRole(systemKey, roleId string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(d.preamble()+"/user/"+systemKey+"/roles", map[string]string{"role": roleId}, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error deleting role: %v", resp.Body)
+	}
+	return nil
+}
+
+func (d *DevClient) DeleteUser(systemKey, userId string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(d.preamble()+"/user/"+systemKey, map[string]string{"user": userId}, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error deleting user: %v", resp.Body)
+	}
+
+	return nil
+}
+
+func (d *DevClient) AddUserToRoles(systemKey, userId string, roles []string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{
+		"user": userId,
+		"changes": map[string]interface{}{
+			"roles": map[string]interface{}{
+				"add": roles,
+			},
+		},
+	}
+	resp, err := put(d.preamble()+"/user/"+systemKey, data, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error adding roles to a user: %v", resp.Body)
+	}
+
+	return nil
+}
+
 func (d *DevClient) AddCollectionToRole(systemKey, collection_id, role_id string, level int) error {
 	creds, err := d.credentials()
 	if err != nil {

@@ -109,7 +109,7 @@ func (d *DevClient) UpdateService(systemKey, name, code string, params []string)
 	return nil
 }
 
-func (d *DevClient) NewServiceWithLibraries(systemKey, name, code, deps string, params []string) error {
+func (d *DevClient) NewServiceWithLibraries(systemKey, name, code, deps string, params []interface{}) error {
 	extra := map[string]interface{}{"parameters": params, "dependencies": deps}
 	return d.newService(systemKey, name, code, extra)
 }

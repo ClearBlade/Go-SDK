@@ -12,26 +12,36 @@ const (
 )
 
 func (u *UserClient) InsertData(collection_id string, data interface{}) error {
-	return insertdata(u, collection_id, data)
+	_, err := insertdata(u, collection_id, data)
+	return err
 }
 
 func (d *DevClient) InsertData(collection_id string, data interface{}) error {
-	return insertdata(d, collection_id, data)
+	_, err := insertdata(d, collection_id, data)
+	return err
 }
 
-func insertdata(c cbClient, collection_id string, data interface{}) error {
+func (d *DevClient) CreateData(collection_id string, data interface{}) ([]interface{}, error) {
+	resp, err := insertdata(d, collection_id, data)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func insertdata(c cbClient, collection_id string, data interface{}) ([]interface{}, error) {
 	creds, err := c.credentials()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	resp, err := post(_DATA_PREAMBLE+collection_id, data, creds, nil)
 	if err != nil {
-		return fmt.Errorf("Error inserting: %v", err)
+		return nil, fmt.Errorf("Error inserting: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error inserting: %v", resp.Body)
+		return nil, fmt.Errorf("Error inserting: %v", resp.Body)
 	}
-	return nil
+	return resp.Body.([]interface{}), nil
 }
 
 func (u *UserClient) GetData(collection_id string, query *Query) (map[string]interface{}, error) {
