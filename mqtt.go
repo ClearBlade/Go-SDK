@@ -123,6 +123,7 @@ func publish(c *mqcli.Client, topic string, data []byte, qos int, mid uint16) er
 		return errors.New("MQTTClient is uninitialized")
 	}
 	pub, err := mqcli.MakeMeABytePublish(topic, data, mid)
+	pub.Header.QOS = uint8(qos)
 	if err != nil {
 		return err
 	}

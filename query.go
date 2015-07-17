@@ -132,12 +132,12 @@ func (q *Query) serialize() map[string]interface{} {
 				op = "GTE"
 			case "<=":
 				op = "LTE"
-			case "/=":
+			case "/=", "!=":
 				op = "NEQ"
 			case "~":
 				op = "RE"
 			default:
-				op = "EQ"
+				op = "WHAT_THE_HELL_ARE_YOU_DOING"
 			}
 			mapForQuery[op] = []map[string]interface{}{map[string]interface{}{query.Field: query.Value}}
 			qm[j] = mapForQuery
