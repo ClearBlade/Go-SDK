@@ -44,3 +44,5 @@ func (pg PostgresqlConfig) toMap() map[string]interface{} {
 	m["dbtype"] = "postgres"
 	return m
 }
+
+func (pg PostgresqlConfig) tableName() string { return pg.Tablename }
