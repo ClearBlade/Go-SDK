@@ -28,3 +28,19 @@ func (ms MSSqlConfig) toMap() map[string]interface{} {
 	m["dbtype"] = "mssql"
 	return m
 }
+
+type PostgresqlConfig struct {
+	User, Password, Host, Port, DBName, Tablename string
+}
+
+func (pg PostgresqlConfig) toMap() map[string]interface{} {
+	m := make(map[string]interface{})
+	m["user"] = pg.User
+	m["password"] = pg.Password
+	m["address"] = pg.Host
+	m["port"] = pg.Port
+	m["dbname"] = pg.DBName
+	m["tablename"] = pg.Tablename
+	m["dbtype"] = "postgres"
+	return m
+}
