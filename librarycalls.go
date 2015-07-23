@@ -1,7 +1,7 @@
 package GoSDK
 
 import (
-	"fmt"
+	//"fmt"
 	"strconv"
 )
 
@@ -33,7 +33,6 @@ func (d *DevClient) GetLibraries(systemKey string) ([]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("GOT BACK: %+v\n", resp.Body)
 	return resp.Body.([]interface{}), nil
 }
 

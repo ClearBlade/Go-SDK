@@ -38,7 +38,6 @@ func (d *DevClient) NewSystem(name, description string, users bool) (string, err
 	}
 
 	// TODO we need to make this json
-	fmt.Printf("NEW SYSTEM RETURNS: %+v\n", resp.Body)
 	return strings.TrimSpace(strings.Split(resp.Body.(string), ":")[1]), nil
 }
 
@@ -312,7 +311,6 @@ func (d *DevClient) GetAllCollections(SystemKey string) ([]interface{}, error) {
 		return nil, fmt.Errorf("Error getting collection info: %v", resp.Body)
 	}
 
-	//fmt.Printf("body: %+v\n", resp.Body)
 	return resp.Body.([]interface{}), nil
 }
 

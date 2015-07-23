@@ -21,7 +21,6 @@ func (d *DevClient) GetEventDefinitions() ([]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("IT WORKED: %+v\n", resp)
 	return resp.Body.([]interface{}), nil
 }
 
@@ -59,7 +58,6 @@ func (d *DevClient) CreateEventHandler(systemKey, name string,
 	}
 	resp, err := post(_EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds, nil)
 	resp, err = mapResponse(resp, err)
-	fmt.Printf("RESP: %+v\n", resp)
 	if err != nil {
 		return nil, err
 	}

@@ -170,7 +170,6 @@ func authenticate(c cbClient, username, password string) error {
 		}
 	}
 
-	fmt.Printf("AUTHING WITH %s:%s\n", username, password)
 	resp, err := post(c.preamble()+"/auth", map[string]interface{}{
 		"email":    username,
 		"password": password,

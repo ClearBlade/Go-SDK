@@ -29,6 +29,14 @@ func (d *DevClient) CreateData(collection_id string, data interface{}) ([]interf
 	return resp, nil
 }
 
+func (u *UserClient) CreateData(collection_id string, data interface{}) ([]interface{}, error) {
+	resp, err := insertdata(u, collection_id, data)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func insertdata(c cbClient, collection_id string, data interface{}) ([]interface{}, error) {
 	creds, err := c.credentials()
 	if err != nil {
