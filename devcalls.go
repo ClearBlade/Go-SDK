@@ -65,7 +65,6 @@ func (d *DevClient) GetSystem(key string) (*System, error) {
 		Secret:      sysMap["appSecret"].(string),
 		Name:        sysMap["name"].(string),
 		Description: sysMap["description"].(string),
-		Users:       sysMap["auth_required"].(bool),
 	}
 	return newSys, nil
 
