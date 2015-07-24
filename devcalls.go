@@ -18,6 +18,7 @@ type System struct {
 	Name        string
 	Description string
 	Users       bool
+	TokenTTL    int32
 }
 
 func (d *DevClient) NewSystem(name, description string, users bool) (string, error) {
@@ -59,11 +60,13 @@ func (d *DevClient) GetSystem(key string) (*System, error) {
 	if !isMap {
 		return nil, fmt.Errorf("Error gathering system information: incorrect return type\n")
 	}
+	fmt.Printf("sys map %+v\n", sysMap)
 	newSys := &System{
 		Key:         sysMap["appID"].(string),
 		Secret:      sysMap["appSecret"].(string),
 		Name:        sysMap["name"].(string),
 		Description: sysMap["description"].(string),
+		TokenTTL:    int32(sysMap["token_ttl"].(float64)),
 	}
 	return newSys, nil
 
