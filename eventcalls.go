@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	_EVENTS_DEFS_PREAMBLE  = "/api/v/2/triggers/definitions"
-	_EVENTS_HDLRS_PREAMBLE = "/api/v/2/triggers/handlers/"
-	_TIMERS_HDLRS_PREAMBLE = "/api/v/2/triggers/timers/"
+	_EVENTS_DEFS_PREAMBLE  = "/admin/triggers/definitions"
+	_EVENTS_HDLRS_PREAMBLE = "/admin/triggers/handlers/"
+	_TIMERS_HDLRS_PREAMBLE = "/admin/triggers/timers/"
 	_MH_PREAMBLE           = "/api/v/1/message/"
 )
 
