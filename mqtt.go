@@ -8,8 +8,11 @@ import (
 )
 
 const (
+	//Mqtt QOS 0
 	QOS_AtMostOnce = iota
+	//Mqtt QOS 1
 	QOS_AtLeastOnce
+	//Mqtt QOS 2
 	QOS_PreciselyOnce
 )
 

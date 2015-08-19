@@ -15,8 +15,11 @@ import (
 )
 
 var (
-	CB_ADDR            = "https://rtp.clearblade.com"
-	CB_MSG_ADDR        = "rtp.clearblade.com:1883"
+	//CB_ADDR is the address of the ClearBlade Platform you are speaking with
+	CB_ADDR = "https://rtp.clearblade.com"
+	//CB_MSG_ADDR is the messaging address you wish to speak to
+	CB_MSG_ADDR = "rtp.clearblade.com:1883"
+
 	_HEADER_KEY_KEY    = "ClearBlade-SystemKey"
 	_HEADER_SECRET_KEY = "ClearBlade-SystemSecret"
 )
@@ -25,21 +28,18 @@ var tr = &http.Transport{
 	TLSClientConfig: &tls.Config{InsecureSkipVerify: false},
 }
 
-//Client is a convience interface for API consumers, if they want to use the same functions for both
-//Dev Users and unprivleged users, such as tiny helper functions. please use this with care
+//Client is a convience interface for API consumers, if they want to use the same functions for both developer users and unprivleged users
 type Client interface {
-	//bookkeeping calls
+	//session bookkeeping calls
 	Authenticate() error
 	Logout() error
 
 	//data calls
 	InsertData(string, interface{}) error
 	UpdateData(string, *Query, map[string]interface{}) error
-
 	GetData(string, *Query) (map[string]interface{}, error)
 	GetDataByName(string, *Query) (map[string]interface{}, error)
 	GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error)
-
 	DeleteData(string, *Query) error
 
 	//mqtt calls
@@ -62,6 +62,7 @@ type cbClient interface {
 	getMessageId() uint16
 }
 
+//UserClient is the type for users
 type UserClient struct {
 	UserToken    string
 	mrand        *rand.Rand
@@ -72,6 +73,7 @@ type UserClient struct {
 	Password     string
 }
 
+//DevClient is the type for developers
 type DevClient struct {
 	DevToken   string
 	mrand      *rand.Rand
@@ -80,6 +82,7 @@ type DevClient struct {
 	Password   string
 }
 
+//CbReq is a wrapper around an HTTP request
 type CbReq struct {
 	Body        interface{}
 	Method      string
@@ -88,11 +91,13 @@ type CbReq struct {
 	Headers     map[string][]string
 }
 
+//CbResp is a wrapper around an HTTP response
 type CbResp struct {
 	Body       interface{}
 	StatusCode int
 }
 
+//NewUserClient allocates a new UserClient struct
 func NewUserClient(systemkey, systemsecret, email, password string) *UserClient {
 	return &UserClient{
 		UserToken:    "",
@@ -105,6 +110,7 @@ func NewUserClient(systemkey, systemsecret, email, password string) *UserClient 
 	}
 }
 
+//NewDevClient allocates a new DevClient struct
 func NewDevClient(email, password string) *DevClient {
 	return &DevClient{
 		DevToken:   "",
@@ -115,19 +121,23 @@ func NewDevClient(email, password string) *DevClient {
 	}
 }
 
+//Authenticate retrieves a token from the specified Clearblade Platform
 func (u *UserClient) Authenticate() error {
 	return authenticate(u, u.Email, u.Password)
 }
 
+//Authenticate retrieves a token from the specified Clearblade Platform
 func (d *DevClient) Authenticate() error {
 	return authenticate(d, d.Email, d.Password)
 }
 
+//Register creates a new user
 func (u *UserClient) Register(username, password string) error {
 	_, err := register(u, username, password, "", "", "")
 	return err
 }
 
+//RegisterUser creates a new user, returning the body of the response.
 func (u *UserClient) RegisterUser(username, password string) (map[string]interface{}, error) {
 	resp, err := register(u, username, password, "", "", "")
 	if err != nil {
@@ -141,6 +151,7 @@ func (d *DevClient) Register(username, password, fname, lname, org string) error
 	return err
 }
 
+//Register creates a new developer user
 func (d *DevClient) RegisterUser(username, password, fname, lname, org string) (map[string]interface{}, error) {
 	resp, err := register(d, username, password, fname, lname, org)
 	if err != nil {
@@ -149,10 +160,12 @@ func (d *DevClient) RegisterUser(username, password, fname, lname, org string) (
 	return resp, nil
 }
 
+//Logout ends the session
 func (u *UserClient) Logout() error {
 	return logout(u)
 }
 
+//Logout ends the session
 func (d *DevClient) Logout() error {
 	return logout(d)
 }
