@@ -11,6 +11,7 @@ const (
 	_MH_PREAMBLE           = "/api/v/1/message/"
 )
 
+//GetEventDefinitions returns a slice of the event definitions
 func (d *DevClient) GetEventDefinitions() ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -24,6 +25,7 @@ func (d *DevClient) GetEventDefinitions() ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
+//GetEventHandlers returns a slice of the event handlers for a system
 func (d *DevClient) GetEventHandlers(systemKey string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -37,6 +39,7 @@ func (d *DevClient) GetEventHandlers(systemKey string) ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
+//GetEventHandler reuturns a single event handler
 func (d *DevClient) GetEventHandler(systemKey, name string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -50,6 +53,7 @@ func (d *DevClient) GetEventHandler(systemKey, name string) (map[string]interfac
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//CreateEventHandler creates an event handler, otherwise known as a trigger
 func (d *DevClient) CreateEventHandler(systemKey, name string,
 	data map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
@@ -64,6 +68,7 @@ func (d *DevClient) CreateEventHandler(systemKey, name string,
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//DeleteEventHandler removes the event handler
 func (d *DevClient) DeleteEventHandler(systemKey, name string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -74,6 +79,7 @@ func (d *DevClient) DeleteEventHandler(systemKey, name string) error {
 	return err
 }
 
+//UpdateEventHandler allows the developer to alter the code executed by the event handler
 func (d *DevClient) UpdateEventHandler(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -101,6 +107,7 @@ func mapResponse(resp *CbResp, err error) (*CbResp, error) {
 //
 //  Timer calls are from here down
 
+//Returns a slice of timer descriptions
 func (d *DevClient) GetTimers(systemKey string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -114,6 +121,7 @@ func (d *DevClient) GetTimers(systemKey string) ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
+//GetTimer returns the definition of a single timer
 func (d *DevClient) GetTimer(systemKey, name string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -127,6 +135,7 @@ func (d *DevClient) GetTimer(systemKey, name string) (map[string]interface{}, er
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//CreateTimer allows the user to create the timer with code
 func (d *DevClient) CreateTimer(systemKey, name string,
 	data map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
@@ -141,6 +150,7 @@ func (d *DevClient) CreateTimer(systemKey, name string,
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//DeleteTimer removes the timer
 func (d *DevClient) DeleteTimer(systemKey, name string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -151,6 +161,7 @@ func (d *DevClient) DeleteTimer(systemKey, name string) error {
 	return err
 }
 
+//UpdateTimer allows the developer to change the code executed with the timer
 func (d *DevClient) UpdateTimer(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -164,6 +175,7 @@ func (d *DevClient) UpdateTimer(systemKey, name string, data map[string]interfac
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//MessageHistory allows the developer to retrieve the message history
 func (d *DevClient) MessageHistory(systemKey string) (interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
