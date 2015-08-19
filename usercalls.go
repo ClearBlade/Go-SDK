@@ -57,6 +57,7 @@ func (u *UserClient) getMessageId() uint16 {
 	return uint16(u.mrand.Int())
 }
 
+//GetUserColumns returns the description of the columns in the user table
 func (d *DevClient) GetUserColumns(systemKey string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -73,6 +74,7 @@ func (d *DevClient) GetUserColumns(systemKey string) ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
+//CreateUserColumn creates a new column in the user table
 func (d *DevClient) CreateUserColumn(systemKey, columnName, columnType string) error {
 	creds, err := d.credentials()
 	if err != nil {
