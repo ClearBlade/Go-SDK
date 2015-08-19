@@ -10,6 +10,7 @@ const (
 	_HIST_PREAMBLE = "/codeadmin/v/2/history/library"
 )
 
+//GetAllLibraries returns descriptions of all libraries for a platform instance
 func (d *DevClient) GetAllLibraries() ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -23,6 +24,7 @@ func (d *DevClient) GetAllLibraries() ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
+//GetLibrary returns a list of libraries for a system
 func (d *DevClient) GetLibraries(systemKey string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -36,6 +38,7 @@ func (d *DevClient) GetLibraries(systemKey string) ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
+//GetLibrary returns information about a specific library
 func (d *DevClient) GetLibrary(systemKey, name string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -49,6 +52,7 @@ func (d *DevClient) GetLibrary(systemKey, name string) (map[string]interface{}, 
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//CreateLibrary allows the developer to create a library to be called by other service functions
 func (d *DevClient) CreateLibrary(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -62,6 +66,7 @@ func (d *DevClient) CreateLibrary(systemKey, name string, data map[string]interf
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//UpdateLibrary allows the developer to change the content of the library
 func (d *DevClient) UpdateLibrary(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -75,6 +80,7 @@ func (d *DevClient) UpdateLibrary(systemKey, name string, data map[string]interf
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//DeleteLibrary allows the developer to remove library content
 func (d *DevClient) DeleteLibrary(systemKey, name string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -88,6 +94,7 @@ func (d *DevClient) DeleteLibrary(systemKey, name string) error {
 	return nil
 }
 
+//GetVersionHistory returns a slice of library descriptions corresponding to each library
 func (d *DevClient) GetVersionHistory(systemKey, name string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -101,6 +108,7 @@ func (d *DevClient) GetVersionHistory(systemKey, name string) ([]interface{}, er
 	return resp.Body.([]interface{}), nil
 }
 
+//GetVersion gets the current version of a library
 func (d *DevClient) GetVersion(systemKey, name string, version int) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
