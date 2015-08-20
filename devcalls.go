@@ -268,6 +268,7 @@ func (d *DevClient) DeleteColumn(collection_id, column_name string) error {
 }
 
 //GetCollectionInfo retrieves some describing information on the specified collection
+//Keys "name","collectoinID","appID"
 func (d *DevClient) GetCollectionInfo(collection_id string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -286,6 +287,7 @@ func (d *DevClient) GetCollectionInfo(collection_id string) (map[string]interfac
 }
 
 //GetAllCollections retrieves a list of every collection in the system
+//The return value is a slice of strings
 func (d *DevClient) GetAllCollections(SystemKey string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -305,6 +307,7 @@ func (d *DevClient) GetAllCollections(SystemKey string) ([]interface{}, error) {
 }
 
 //GetAllRoles returns a slice of all roles, including their permissions
+//the return value is a slice of [{"ID":"roleid","Name":"rolename","Description":"role description", "Permissions":{"Collections":[{"ID":"collectionid","Columns":[{"Name":"columnname","Level":0}],"Items":[{"Name":"itemid","Level":2}],"Name":"collectionname"}], "Topics":[{"Name":"topic/path","Level":1}],"CodeServices":[{"Name":"service name","SystemKey":"syskey","Level":4}],"UsersList":{"Name":"users","Level":8},"Push":{"Name":"push","Level":0},"MsgHistory":{"Name":"messagehistory","Level":1}}},...]
 func (d *DevClient) GetAllRoles(SystemKey string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -318,6 +321,7 @@ func (d *DevClient) GetAllRoles(SystemKey string) ([]interface{}, error) {
 }
 
 //CreateRole creates a new role
+//returns a JSON object shaped like {"role_id":"role id goes here"}
 func (d *DevClient) CreateRole(systemKey, role_id string) (interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {

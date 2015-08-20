@@ -58,6 +58,7 @@ func (u *UserClient) getMessageId() uint16 {
 }
 
 //GetUserColumns returns the description of the columns in the user table
+//Returns a structure shaped []map[string]interface{}{map[string]interface{}{"ColumnName":"blah","ColumnType":"int"}}
 func (d *DevClient) GetUserColumns(systemKey string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {

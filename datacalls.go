@@ -23,7 +23,7 @@ func (d *DevClient) InsertData(collection_id string, data interface{}) error {
 	return err
 }
 
-//CreateData is an alias for InsertData, but returns a response value
+//CreateData is an alias for InsertData, but returns a response value, it should be a slice of strings representing the item ids (if not using an external datastore)
 func (d *DevClient) CreateData(collection_id string, data interface{}) ([]interface{}, error) {
 	resp, err := insertdata(d, collection_id, data)
 	if err != nil {
@@ -32,7 +32,7 @@ func (d *DevClient) CreateData(collection_id string, data interface{}) ([]interf
 	return resp, nil
 }
 
-//CreateData is an alias for InsertData, but returns a response value
+//CreateData is an alias for InsertData, but returns a response value, it should be a slice of strings representing the item ids (if not using an external datastore)
 func (u *UserClient) CreateData(collection_id string, data interface{}) ([]interface{}, error) {
 	resp, err := insertdata(u, collection_id, data)
 	if err != nil {
@@ -57,21 +57,25 @@ func insertdata(c cbClient, collection_id string, data interface{}) ([]interface
 }
 
 //GetData performs a query against a collection. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
+//The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
 func (u *UserClient) GetData(collection_id string, query *Query) (map[string]interface{}, error) {
 	return getdata(u, collection_id, query)
 }
 
 //GetDataByName performs a query against a collection, using the collection's name, rather than the ID. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
+//The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
 func (u *UserClient) GetDataByName(collectionName string, query *Query) (map[string]interface{}, error) {
 	return getDataByName(u, u.SystemKey, collectionName, query)
 }
 
 //GetDataByName performs a query against a collection, using the collection's name, rather than the ID. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
+//The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
 func (d *DevClient) GetDataByName(collectionName string, query *Query) (map[string]interface{}, error) {
 	return nil, fmt.Errorf("Developer cannot call this yet")
 }
 
 //GetData performs a query against a collection. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
+//The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
 func (d *DevClient) GetData(collection_id string, query *Query) (map[string]interface{}, error) {
 	return getdata(d, collection_id, query)
 }
