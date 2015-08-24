@@ -205,8 +205,8 @@ func (d *DevClient) newService(systemKey, name, code string, extra map[string]in
 	if err != nil {
 		return err
 	}
-	code = strings.Replace(code, "\\n", "\n", -1)
-	code = strings.Replace(code, "\n", "\\n", -1)
+	//code = strings.Replace(code, "\\n", "\n", -1)
+	//code = strings.Replace(code, "\n", "\\n", -1)
 	extra["code"] = code
 	resp, err := post(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, extra, creds, nil)
 	if err != nil {
