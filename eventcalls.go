@@ -40,15 +40,6 @@ func (d *DevClient) GetEventHandlers(systemKey string) ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
-type EventHandler struct {
-	SystemKey    string                 `json:"system_key"`
-	SystemSecret string                 `json:"system_secret"`
-	Name         string                 `json:"name"`
-	Event        *EventDefinition       `json:"event_definition"`
-	KeyVals      map[string]interface{} `json:"key_value_pairs"`
-	ServiceName  string                 `json:"service_name"`
-}
-
 //GetEventHandler reuturns a single event handler
 //Returns an object shaped map[string]interface{}{"system_key":"associated system key","system_secret":"secret","name":"event name","event_definition":map[string]interface{}{"def_module":"module","def_name":"definition name","event_keys":[]string{"event","keys"},"visibility":false|true}, KeyVals:map[string]interface{}{"keys":"values"},"service_name":"corresponding service name"}
 func (d *DevClient) GetEventHandler(systemKey, name string) (map[string]interface{}, error) {
