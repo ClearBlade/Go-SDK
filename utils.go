@@ -28,6 +28,11 @@ var tr = &http.Transport{
 	TLSClientConfig: &tls.Config{InsecureSkipVerify: false},
 }
 
+const (
+	createDevUser = iota
+	createUser
+)
+
 //Client is a convience interface for API consumers, if they want to use the same functions for both developer users and unprivleged users
 type Client interface {
 	//session bookkeeping calls
@@ -133,27 +138,42 @@ func (d *DevClient) Authenticate() error {
 
 //Register creates a new user
 func (u *UserClient) Register(username, password string) error {
-	_, err := register(u, username, password, "", "", "")
+	if u.UserToken == "" {
+		return fmt.Errorf("Must be logged in to create users")
+	}
+	_, err := register(u, createUser, username, password, u.SystemKey, u.SystemSecret, "", "", "")
 	return err
 }
 
 //RegisterUser creates a new user, returning the body of the response.
 func (u *UserClient) RegisterUser(username, password string) (map[string]interface{}, error) {
-	resp, err := register(u, username, password, "", "", "")
+	if u.UserToken == "" {
+		return nil, fmt.Errorf("Must be logged in to create users")
+	}
+	resp, err := register(u, createUser, username, password, u.SystemKey, u.SystemSecret, "", "", "")
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
+//Registers a new developer
 func (d *DevClient) Register(username, password, fname, lname, org string) error {
-	_, err := register(d, username, password, fname, lname, org)
+	_, err := register(d, createDevUser, username, password, "", "", fname, lname, org)
 	return err
 }
 
+func (d *DevClient) RegisterNewUser(username, password, systemkey, systemsecret string) (map[string]interface{}, error) {
+	if d.DevToken == "" {
+		return nil, fmt.Errorf("Must authenticate first")
+	}
+	return register(d, createUser, username, password, systemkey, systemsecret, "", "", "")
+
+}
+
 //Register creates a new developer user
-func (d *DevClient) RegisterUser(username, password, fname, lname, org string) (map[string]interface{}, error) {
-	resp, err := register(d, username, password, fname, lname, org)
+func (d *DevClient) RegisterDevUser(username, password, fname, lname, org string) (map[string]interface{}, error) {
+	resp, err := register(d, createDevUser, username, password, "", "", fname, lname, org)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +202,6 @@ func authenticate(c cbClient, username, password string) error {
 			return err
 		}
 	}
-
 	resp, err := post(c.preamble()+"/auth", map[string]interface{}{
 		"email":    username,
 		"password": password,
@@ -208,27 +227,51 @@ func authenticate(c cbClient, username, password string) error {
 	return nil
 }
 
-func register(c cbClient, username, password, fname, lname, org string) (map[string]interface{}, error) {
+func register(c cbClient, kind int, username, password, syskey, syssec, fname, lname, org string) (map[string]interface{}, error) {
 	payload := map[string]interface{}{
 		"email":    username,
 		"password": password,
 	}
+	var endpoint string
+	headers := make(map[string][]string)
+	var creds [][]string
 
-	creds := [][]string{}
-	switch c.(type) {
-	case *DevClient:
+	switch kind {
+	case createDevUser:
+		endpoint = "/admin/reg"
 		payload["fname"] = fname
 		payload["lname"] = lname
 		payload["org"] = org
-	case *UserClient:
+	case createUser:
+		switch c.(type) {
+		case *DevClient:
+			if syskey == "" {
+				return nil, fmt.Errorf("System key required")
+			}
+			endpoint = fmt.Sprintf("/admin/user/%s", syskey)
+		case *UserClient:
+			if syskey == "" {
+				return nil, fmt.Errorf("System key required")
+			}
+			if syssec == "" {
+				return nil, fmt.Errorf("System secret required")
+			}
+			endpoint = "/api/v/1/user/reg"
+			headers["Clearblade-Systemkey"] = []string{syskey}
+			headers["Clearblade-Systemsecret"] = []string{syssec}
+		default:
+			return nil, fmt.Errorf("unreachable code detected")
+		}
 		var err error
 		creds, err = c.credentials()
 		if err != nil {
 			return nil, err
 		}
+	default:
+		return nil, fmt.Errorf("Cannot create that kind of user")
 	}
 
-	resp, err := post(c.preamble()+"/reg", payload, creds, nil)
+	resp, err := post(endpoint, payload, creds, headers)
 
 	if err != nil {
 		return nil, err
@@ -237,16 +280,16 @@ func register(c cbClient, username, password, fname, lname, org string) (map[str
 		return nil, fmt.Errorf("Status code: %d, Error in authenticating, %v\n", resp.StatusCode, resp.Body)
 	}
 	var token string = ""
-	switch c.(type) {
-	case *UserClient:
-		token = resp.Body.(map[string]interface{})["user_token"].(string)
-	case *DevClient:
+	switch kind {
+	case createDevUser:
 		token = resp.Body.(map[string]interface{})["dev_token"].(string)
+	case createUser:
+		token = resp.Body.(map[string]interface{})["user_token"].(string)
 	}
+
 	if token == "" {
 		return nil, fmt.Errorf("Token not present i response from platform %+v", resp.Body)
 	}
-	c.setToken(token)
 	return resp.Body.(map[string]interface{}), nil
 }
 
