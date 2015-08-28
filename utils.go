@@ -8,7 +8,6 @@ import (
 	mqtt "github.com/clearblade/mqtt_parsing"
 	"github.com/clearblade/mqttclient"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -236,6 +235,8 @@ func register(c cbClient, kind int, username, password, syskey, syssec, fname, l
 	}
 	var endpoint string
 	headers := make(map[string][]string)
+	var creds [][]string
+
 	switch kind {
 	case createDevUser:
 		endpoint = "/admin/reg"
@@ -262,13 +263,13 @@ func register(c cbClient, kind int, username, password, syskey, syssec, fname, l
 		default:
 			return nil, fmt.Errorf("unreachable code detected")
 		}
+		var err error
+		creds, err = c.credentials()
+		if err != nil {
+			return nil, err
+		}
 	default:
 		return nil, fmt.Errorf("Cannot create that kind of user")
-	}
-
-	creds, err := c.credentials()
-	if err != nil {
-		return nil, err
 	}
 
 	resp, err := post(endpoint, payload, creds, headers)
@@ -280,16 +281,16 @@ func register(c cbClient, kind int, username, password, syskey, syssec, fname, l
 		return nil, fmt.Errorf("Status code: %d, Error in authenticating, %v\n", resp.StatusCode, resp.Body)
 	}
 	var token string = ""
-	switch c.(type) {
-	case *UserClient:
-		token = resp.Body.(map[string]interface{})["user_token"].(string)
-	case *DevClient:
+	switch kind {
+	case createDevUser:
 		token = resp.Body.(map[string]interface{})["dev_token"].(string)
+	case createUser:
+		token = resp.Body.(map[string]interface{})["user_token"].(string)
 	}
+
 	if token == "" {
 		return nil, fmt.Errorf("Token not present i response from platform %+v", resp.Body)
 	}
-	c.setToken(token)
 	return resp.Body.(map[string]interface{}), nil
 }
 
@@ -335,9 +336,7 @@ func do(r *CbReq, creds [][]string) (*CbResp, error) {
 	}
 	if r.Headers != nil {
 		for hed, val := range r.Headers {
-			log.Println("U", val)
 			for _, vv := range val {
-				log.Println("FUK", vv)
 				req.Header.Add(hed, vv)
 			}
 		}
