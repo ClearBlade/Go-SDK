@@ -8,6 +8,7 @@ import (
 	mqtt "github.com/clearblade/mqtt_parsing"
 	"github.com/clearblade/mqttclient"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -215,6 +216,7 @@ func register(c cbClient, username, password, fname, lname, org string) (map[str
 	}
 
 	creds := [][]string{}
+	headers := make(map[string][]string)
 	switch c.(type) {
 	case *DevClient:
 		payload["fname"] = fname
@@ -226,9 +228,14 @@ func register(c cbClient, username, password, fname, lname, org string) (map[str
 		if err != nil {
 			return nil, err
 		}
+
+		usr := c.(*UserClient)
+		headers["Clearblade-Systemkey"] = []string{usr.SystemKey}
+		headers["Clearblade-Systemsecret"] = []string{usr.SystemSecret}
+		log.Println(headers)
 	}
 
-	resp, err := post(c.preamble()+"/reg", payload, creds, nil)
+	resp, err := post(c.preamble()+"/reg", payload, creds, headers)
 
 	if err != nil {
 		return nil, err
@@ -292,7 +299,9 @@ func do(r *CbReq, creds [][]string) (*CbResp, error) {
 	}
 	if r.Headers != nil {
 		for hed, val := range r.Headers {
+			log.Println("U", val)
 			for _, vv := range val {
+				log.Println("FUK", vv)
 				req.Header.Add(hed, vv)
 			}
 		}
