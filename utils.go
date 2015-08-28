@@ -202,7 +202,6 @@ func authenticate(c cbClient, username, password string) error {
 			return err
 		}
 	}
-
 	resp, err := post(c.preamble()+"/auth", map[string]interface{}{
 		"email":    username,
 		"password": password,

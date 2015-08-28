@@ -22,6 +22,13 @@ type System struct {
 	TokenTTL    int32
 }
 
+const (
+	PERM_READ   = 1
+	PERM_CREATE = 2
+	PERM_UPDATE = 4
+	PERM_DELETE = 8
+)
+
 //NewSystem creates a new system. The users parameter has been depreciated. Returned is the systemid.
 func (d *DevClient) NewSystem(name, description string, users bool) (string, error) {
 	creds, err := d.credentials()
