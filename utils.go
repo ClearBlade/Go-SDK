@@ -159,8 +159,13 @@ func (u *UserClient) RegisterUser(username, password string) (map[string]interfa
 
 //Registers a new developer
 func (d *DevClient) Register(username, password, fname, lname, org string) error {
-	_, err := register(d, createDevUser, username, password, "", "", fname, lname, org)
-	return err
+	resp, err := register(d, createDevUser, username, password, "", "", fname, lname, org)
+	if err != nil {
+		return err
+	} else {
+		d.DevToken = resp["dev_token"].(string)
+		return nil
+	}
 }
 
 func (d *DevClient) RegisterNewUser(username, password, systemkey, systemsecret string) (map[string]interface{}, error) {
@@ -270,7 +275,6 @@ func register(c cbClient, kind int, username, password, syskey, syssec, fname, l
 	default:
 		return nil, fmt.Errorf("Cannot create that kind of user")
 	}
-
 	resp, err := post(endpoint, payload, creds, headers)
 
 	if err != nil {
