@@ -60,12 +60,20 @@ func (u *UserClient) GetDataByName(collectionName string, query *Query) (map[str
 	return getDataByName(u, u.SystemKey, collectionName, query)
 }
 
+func (u *UserClient) GetDataTotal(collection_id string, query *Query) (map[string]interface{}, error) {
+	return getdatatotal(u, collection_id, query)
+}
+
 func (d *DevClient) GetDataByName(collectionName string, query *Query) (map[string]interface{}, error) {
 	return nil, fmt.Errorf("Developer cannot call this yet")
 }
 
 func (d *DevClient) GetData(collection_id string, query *Query) (map[string]interface{}, error) {
 	return getdata(d, collection_id, query)
+}
+
+func (d *DevClient) GetDataTotal(collection_id string, query *Query) (map[string]interface{}, error) {
+	return getdatatotal(d, collection_id, query)
 }
 
 func getDataByName(c cbClient, sysKey string, collectionName string, query *Query) (map[string]interface{}, error) {
@@ -115,6 +123,34 @@ func getdata(c cbClient, collection_id string, query *Query) (map[string]interfa
 		qry = nil
 	}
 	resp, err := get(_DATA_PREAMBLE+collection_id, qry, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting data: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting data: %v", resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func getdatatotal(c cbClient, collection_id string, query *Query) (map[string]interface{}, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+	var qry map[string]string
+	if query != nil {
+		query_map := query.serialize()
+		query_bytes, err := json.Marshal(query_map)
+		if err != nil {
+			return nil, err
+		}
+		qry = map[string]string{
+			"query": url.QueryEscape(string(query_bytes)),
+		}
+	} else {
+		qry = nil
+	}
+	resp, err := get(_DATA_PREAMBLE+collection_id+"/count", qry, creds)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting data: %v", err)
 	}
