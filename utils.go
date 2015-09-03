@@ -240,7 +240,6 @@ func register(c cbClient, kind int, username, password, syskey, syssec, fname, l
 	var endpoint string
 	headers := make(map[string][]string)
 	var creds [][]string
-
 	switch kind {
 	case createDevUser:
 		endpoint = "/admin/reg"
@@ -288,7 +287,7 @@ func register(c cbClient, kind int, username, password, syskey, syssec, fname, l
 	case createDevUser:
 		token = resp.Body.(map[string]interface{})["dev_token"].(string)
 	case createUser:
-		token = resp.Body.(map[string]interface{})["user_token"].(string)
+		token = resp.Body.(map[string]interface{})["user_id"].(string)
 	}
 
 	if token == "" {
