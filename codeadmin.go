@@ -64,6 +64,7 @@ func (d *DevClient) GetService(systemKey, name string) (*Service, error) {
 		return nil, fmt.Errorf("Error getting service: %v", resp.Body)
 	}
 	mapBody := resp.Body.(map[string]interface{})
+	fmt.Printf("GetService returns %#v\n", mapBody)
 	paramsSlice := mapBody["params"].([]interface{})
 	params := make([]string, len(paramsSlice))
 	for i, param := range paramsSlice {
@@ -77,6 +78,29 @@ func (d *DevClient) GetService(systemKey, name string) (*Service, error) {
 		Params:  params,
 	}
 	return svc, nil
+}
+
+func (d *DevClient) GetServiceRaw(systemKey, name string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(_CODE_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting service: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting service: %v", resp.Body)
+	}
+	mapBody := resp.Body.(map[string]interface{})
+	/*
+		paramsSlice := mapBody["params"].([]interface{})
+		params := make([]string, len(paramsSlice))
+		for i, param := range paramsSlice {
+			params[i] = param.(string)
+		}
+	*/
+	return mapBody, nil
 }
 
 //SetServiceEffectiveUser allows the developer to set the userid that a service executes under.

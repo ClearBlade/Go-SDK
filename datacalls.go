@@ -210,23 +210,31 @@ func deletedata(c cbClient, collection_id string, query *Query) error {
 
 //GetColumns gets a slice of map[string]interface{} of the column names and values.
 //As map[string]interface{}{"ColumnName":"name","ColumnType":"typename in string", "PK":bool}
-func (d *DevClient) GetColumns(collection_id string) ([]interface{}, error) {
-	return getColumns(d, collection_id)
+func (d *DevClient) GetColumns(collectionId, systemKey, systemSecret string) ([]interface{}, error) {
+	return getColumns(d, collectionId, systemKey, systemSecret)
 }
 
 //GetColumns gets a slice of map[string]interface{} of the column names and values.
 //As map[string]interface{}{"ColumnName":"name","ColumnType":"typename in string", "PK":bool}
 func (u *UserClient) GetColumns(collection_id string) ([]interface{}, error) {
-	return getColumns(u, collection_id)
+	return getColumns(u, collection_id, "", "")
 }
 
-func getColumns(c cbClient, collection_id string) ([]interface{}, error) {
+func getColumns(c cbClient, collection_id, systemKey, systemSecret string) ([]interface{}, error) {
 	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := get(_DATA_PREAMBLE+collection_id+"/columns", nil, creds, nil)
+	var headers map[string][]string = nil
+	if systemKey != "" {
+		headers = map[string][]string{
+			"Clearblade-Systemkey":    []string{systemKey},
+			"Clearblade-Systemsecret": []string{systemSecret},
+		}
+	}
+
+	resp, err := get(_DATA_PREAMBLE+collection_id+"/columns", nil, creds, headers)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting collection columns: %v", err)
 	}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	//	"log"
+	//"encoding/json"
 	"strings"
 )
 
@@ -70,7 +71,6 @@ func (d *DevClient) GetSystem(key string) (*System, error) {
 	if !isMap {
 		return nil, fmt.Errorf("Error gathering system information: incorrect return type\n")
 	}
-	fmt.Printf("sys map %+v\n", sysMap)
 	newSys := &System{
 		Key:         sysMap["appID"].(string),
 		Secret:      sysMap["appSecret"].(string),
@@ -366,6 +366,40 @@ func (d *DevClient) DeleteRole(systemKey, roleId string) error {
 	return nil
 }
 
+func (d *DevClient) GetAllUsers(systemKey string) ([]map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	/*
+		allQuery := NewQuery()
+		queryMap := allQuery.serialize()
+		queryBytes, err := json.Marshal(queryMap)
+	*/
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d.preamble()+"/user/"+systemKey, nil, creds, nil)
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting all users: %v", resp.Body)
+	}
+	fmt.Printf("WTF: %#v\n", resp.Body)
+	dbResponse := resp.Body.(map[string]interface{})
+	rawData := dbResponse["Data"].([]interface{})
+
+	rval := make([]map[string]interface{}, len(rawData))
+	for idx, oneRsp := range rawData {
+		rval[idx] = oneRsp.(map[string]interface{})
+	}
+
+	return rval, nil
+}
+
 //DeleteUser removes a specific user
 func (d *DevClient) DeleteUser(systemKey, userId string) error {
 	creds, err := d.credentials()
@@ -406,6 +440,27 @@ func (d *DevClient) AddUserToRoles(systemKey, userId string, roles []string) err
 	}
 
 	return nil
+}
+
+func (d *DevClient) GetUserRoles(systemKey, userId string) ([]string, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d.preamble()+"/user/"+systemKey+"/roles", map[string]string{"user": userId}, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting roles for a user: %v", resp.Body)
+	}
+	rawBody := resp.Body.([]interface{})
+	rval := make([]string, len(rawBody))
+	for idx, oneBody := range rawBody {
+		oneMap := oneBody.(map[string]interface{})
+		rval[idx] = oneMap["Name"].(string)
+	}
+	return rval, nil
 }
 
 //AddCollectionToRole associates some kind of permission regarding the collection to the role.
