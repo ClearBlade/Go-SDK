@@ -400,7 +400,6 @@ func get(endpoint string, query map[string]string, creds [][]string, headers map
 		QueryString: query_to_string(query),
 		Headers:     headers,
 	}
-	fmt.Printf("QUERY STRING IS %v\n", req.QueryString)
 	return do(req, creds)
 }
 

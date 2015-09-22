@@ -80,6 +80,31 @@ func (d *DevClient) GetData(collection_id string, query *Query) (map[string]inte
 	return getdata(d, collection_id, query)
 }
 
+func (u *UserClient) GetItemCount(collection_id string) (int, error) {
+	return getItemCount(u, collection_id)
+}
+
+func (d *DevClient) GetItemCount(collection_id string) (int, error) {
+	return getItemCount(d, collection_id)
+}
+
+func getItemCount(c cbClient, collection_id string) (int, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return -1, err
+	}
+	resp, err := get(_DATA_PREAMBLE+collection_id+"/count", nil, creds, nil)
+	if err != nil {
+		return -1, fmt.Errorf("Error getting count: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return -1, fmt.Errorf("Error getting count: %v", resp.Body)
+	}
+	bod := resp.Body.(map[string]interface{})
+	theCount := int(bod["count"].(float64))
+	return theCount, nil
+}
+
 func getDataByName(c cbClient, sysKey string, collectionName string, query *Query) (map[string]interface{}, error) {
 	creds, err := c.credentials()
 	if err != nil {

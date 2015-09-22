@@ -64,7 +64,6 @@ func (d *DevClient) GetService(systemKey, name string) (*Service, error) {
 		return nil, fmt.Errorf("Error getting service: %v", resp.Body)
 	}
 	mapBody := resp.Body.(map[string]interface{})
-	fmt.Printf("GetService returns %#v\n", mapBody)
 	paramsSlice := mapBody["params"].([]interface{})
 	params := make([]string, len(paramsSlice))
 	for i, param := range paramsSlice {

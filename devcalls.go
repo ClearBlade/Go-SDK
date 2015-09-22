@@ -388,7 +388,6 @@ func (d *DevClient) GetAllUsers(systemKey string) ([]map[string]interface{}, err
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Error getting all users: %v", resp.Body)
 	}
-	fmt.Printf("WTF: %#v\n", resp.Body)
 	dbResponse := resp.Body.(map[string]interface{})
 	rawData := dbResponse["Data"].([]interface{})
 
