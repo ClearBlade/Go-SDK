@@ -416,6 +416,25 @@ func (d *DevClient) DeleteUser(systemKey, userId string) error {
 	return nil
 }
 
+func (d *DevClient) UpdateUser(systemKey, userId string, info map[string]interface{}) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{
+		"user":    userId,
+		"changes": info,
+	}
+	resp, err := put(d.preamble()+"/user/"+systemKey, data, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating user: %v", resp.Body)
+	}
+	return nil
+}
+
 //AddUserToRoles assigns a role to a user
 func (d *DevClient) AddUserToRoles(systemKey, userId string, roles []string) error {
 	creds, err := d.credentials()
