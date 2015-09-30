@@ -350,6 +350,39 @@ func (d *DevClient) CreateRole(systemKey, role_id string) (interface{}, error) {
 	return resp.Body, nil
 }
 
+func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]interface{}) error {
+	data := map[string]interface{}{
+		"name":        role["Name"],
+		"collections": []map[string]interface{}{},
+		"topics":      []map[string]interface{}{},
+		"services":    []map[string]interface{}{},
+	}
+	if collections, ok := role["Collections"]; ok {
+		data["collections"] = collections
+	}
+	if topics, ok := role["Topics"]; ok {
+		data["topics"] = topics
+	}
+	if services, ok := role["Services"]; ok {
+		data["services"] = services
+	}
+	fmt.Printf("data %+v\n", data)
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	// resp, err := post(d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
+	resp, err := put(d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
+	fmt.Printf("response %+v\n", resp)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating role %s", roleName)
+	}
+	return nil
+}
+
 //DeleteRole removes a role
 func (d *DevClient) DeleteRole(systemKey, roleId string) error {
 	creds, err := d.credentials()
