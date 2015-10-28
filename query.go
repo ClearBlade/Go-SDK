@@ -10,11 +10,13 @@ type Filter struct {
 	Operator string
 }
 
+//Ordering dictates the order the query values are returned in. True is Ascending, False is Descending
 type Ordering struct {
 	SortOrder bool
 	OrderKey  string
 }
 
+//Query contains configuration information for the request against a collection. It creates a subset of results for the operation to be performed upon
 type Query struct {
 	Filters    [][]Filter
 	PageSize   int
@@ -23,6 +25,7 @@ type Query struct {
 	Columns    []string
 }
 
+//NewQuery allocates a new query
 func NewQuery() *Query {
 	query := &Query{
 		Filters: [][]Filter{[]Filter{}},
@@ -31,6 +34,7 @@ func NewQuery() *Query {
 	return query
 }
 
+//EqualTo adds an equality constraint to the query. Similar to "WHERE foo = 'bar'"
 func (q *Query) EqualTo(field string, value interface{}) {
 	f := Filter{
 		Field:    field,
@@ -40,6 +44,7 @@ func (q *Query) EqualTo(field string, value interface{}) {
 	q.Filters[0] = append(q.Filters[0], f)
 }
 
+//GreaterThan adds the corresponding constraint to the query. Similar to "WHERE foo > 3"
 func (q *Query) GreaterThan(field string, value interface{}) {
 	f := Filter{
 		Field:    field,
@@ -49,6 +54,7 @@ func (q *Query) GreaterThan(field string, value interface{}) {
 	q.Filters[0] = append(q.Filters[0], f)
 }
 
+//GreaterThanEqualTo adds the corresponding constraint to the query. Similar to "WHERE foo >= 3"
 func (q *Query) GreaterThanEqualTo(field string, value interface{}) {
 	f := Filter{
 		Field:    field,
@@ -58,6 +64,7 @@ func (q *Query) GreaterThanEqualTo(field string, value interface{}) {
 	q.Filters[0] = append(q.Filters[0], f)
 }
 
+//LessThan adds the corresponding constraint to the query. Similar to "WHERE foo < 3"
 func (q *Query) LessThan(field string, value interface{}) {
 	f := Filter{
 		Field:    field,
@@ -67,6 +74,7 @@ func (q *Query) LessThan(field string, value interface{}) {
 	q.Filters[0] = append(q.Filters[0], f)
 }
 
+//LessThanEqualTo adds the corresponding constraint to the query. Similar to "WHERE foo <= 3"
 func (q *Query) LessThanEqualTo(field string, value interface{}) {
 	f := Filter{
 		Field:    field,
@@ -76,6 +84,7 @@ func (q *Query) LessThanEqualTo(field string, value interface{}) {
 	q.Filters[0] = append(q.Filters[0], f)
 }
 
+//NotEqualTo adds the corresponding constraint to the query. Similar to "WHERE foo != 'bar'"
 func (q *Query) NotEqualTo(field string, value interface{}) {
 	f := Filter{
 		Field:    field,
@@ -85,6 +94,7 @@ func (q *Query) NotEqualTo(field string, value interface{}) {
 	q.Filters[0] = append(q.Filters[0], f)
 }
 
+//Matches allows fuzzy matching on string columns. Use PCRE syntax.
 func (q *Query) Matches(field, regex string) {
 	f := Filter{
 		Field:    field,
@@ -94,6 +104,7 @@ func (q *Query) Matches(field, regex string) {
 	q.Filters[0] = append(q.Filters[0], f)
 }
 
+//Or applies an or constraint to the query.
 func (q *Query) Or(orQuery *Query) {
 	q.Filters = append(q.Filters, orQuery.Filters...)
 }

@@ -8,11 +8,15 @@ import (
 )
 
 const (
+	//Mqtt QOS 0
 	QOS_AtMostOnce = iota
+	//Mqtt QOS 1
 	QOS_AtLeastOnce
+	//Mqtt QOS 2
 	QOS_PreciselyOnce
 )
 
+//LastWillPacket is a type to represent the Last Will and Testament packet
 type LastWillPacket struct {
 	Topic  string
 	Body   string
@@ -45,44 +49,54 @@ func (d *DevClient) InitializeMQTT(clientid, systemkey string, timeout int) erro
 	return nil
 }
 
+//ConnectMQTT allows the user to connect to the mqtt broker. If no TLS config is provided, a TCP socket will be used
 func (u *UserClient) ConnectMQTT(ssl *tls.Config, lastWill *LastWillPacket) error {
 	//a questionable pointer, mainly for ease of checking nil
 	//be more efficient to pass on the stack
 	return connectToBroker(u.MQTTClient, CB_MSG_ADDR, ssl, lastWill)
 }
 
+//ConnectMQTT allows the user to connect to the mqtt broker. If no TLS config is provided, a TCP socket will be used
 func (d *DevClient) ConnectMQTT(ssl *tls.Config, lastWill *LastWillPacket) error {
 	return connectToBroker(d.MQTTClient, CB_MSG_ADDR, ssl, lastWill)
 }
 
+//Publish publishes a message to the specified mqtt topic
 func (u *UserClient) Publish(topic string, message []byte, qos int) error {
 	return publish(u.MQTTClient, topic, message, qos, u.getMessageId())
 }
 
+//Publish publishes a message to the specified mqtt topic
 func (d *DevClient) Publish(topic string, message []byte, qos int) error {
 	return publish(d.MQTTClient, topic, message, qos, d.getMessageId())
 }
 
+//Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
 func (u *UserClient) Subscribe(topic string, qos int) (<-chan *mqtt.Publish, error) {
 	return subscribe(u.MQTTClient, topic, qos)
 }
 
+//Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
 func (d *DevClient) Subscribe(topic string, qos int) (<-chan *mqtt.Publish, error) {
 	return subscribe(d.MQTTClient, topic, qos)
 }
 
+//Unsubscribe stops the flow of messages over the corresponding subscription chan
 func (u *UserClient) Unsubscribe(topic string) error {
 	return unsubscribe(u.MQTTClient, topic)
 }
 
+//Unsubscribe stops the flow of messages over the corresponding subscription chan
 func (d *DevClient) Unsubscribe(topic string) error {
 	return unsubscribe(d.MQTTClient, topic)
 }
 
+//Disconnect stops the TCP connection and unsubscribes the client from any remaining topics
 func (u *UserClient) Disconnect() error {
 	return disconnect(u.MQTTClient)
 }
 
+//Disconnect stops the TCP connection and unsubscribes the client from any remaining topics
 func (d *DevClient) Disconnect() error {
 	return disconnect(d.MQTTClient)
 }

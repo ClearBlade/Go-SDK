@@ -15,8 +15,11 @@ import (
 )
 
 var (
-	CB_ADDR            = "https://rtp.clearblade.com"
-	CB_MSG_ADDR        = "rtp.clearblade.com:1883"
+	//CB_ADDR is the address of the ClearBlade Platform you are speaking with
+	CB_ADDR = "https://rtp.clearblade.com"
+	//CB_MSG_ADDR is the messaging address you wish to speak to
+	CB_MSG_ADDR = "rtp.clearblade.com:1883"
+
 	_HEADER_KEY_KEY    = "ClearBlade-SystemKey"
 	_HEADER_SECRET_KEY = "ClearBlade-SystemSecret"
 )
@@ -25,21 +28,23 @@ var tr = &http.Transport{
 	TLSClientConfig: &tls.Config{InsecureSkipVerify: false},
 }
 
-//Client is a convience interface for API consumers, if they want to use the same functions for both
-//Dev Users and unprivleged users, such as tiny helper functions. please use this with care
+const (
+	createDevUser = iota
+	createUser
+)
+
+//Client is a convience interface for API consumers, if they want to use the same functions for both developer users and unprivleged users
 type Client interface {
-	//bookkeeping calls
+	//session bookkeeping calls
 	Authenticate() error
 	Logout() error
 
 	//data calls
 	InsertData(string, interface{}) error
 	UpdateData(string, *Query, map[string]interface{}) error
-
 	GetData(string, *Query) (map[string]interface{}, error)
 	GetDataByName(string, *Query) (map[string]interface{}, error)
 	GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error)
-
 	DeleteData(string, *Query) error
 
 	//mqtt calls
@@ -62,6 +67,7 @@ type cbClient interface {
 	getMessageId() uint16
 }
 
+//UserClient is the type for users
 type UserClient struct {
 	UserToken    string
 	mrand        *rand.Rand
@@ -72,6 +78,7 @@ type UserClient struct {
 	Password     string
 }
 
+//DevClient is the type for developers
 type DevClient struct {
 	DevToken   string
 	mrand      *rand.Rand
@@ -80,6 +87,7 @@ type DevClient struct {
 	Password   string
 }
 
+//CbReq is a wrapper around an HTTP request
 type CbReq struct {
 	Body        interface{}
 	Method      string
@@ -88,11 +96,13 @@ type CbReq struct {
 	Headers     map[string][]string
 }
 
+//CbResp is a wrapper around an HTTP response
 type CbResp struct {
 	Body       interface{}
 	StatusCode int
 }
 
+//NewUserClient allocates a new UserClient struct
 func NewUserClient(systemkey, systemsecret, email, password string) *UserClient {
 	return &UserClient{
 		UserToken:    "",
@@ -105,6 +115,7 @@ func NewUserClient(systemkey, systemsecret, email, password string) *UserClient 
 	}
 }
 
+//NewDevClient allocates a new DevClient struct
 func NewDevClient(email, password string) *DevClient {
 	return &DevClient{
 		DevToken:   "",
@@ -115,44 +126,71 @@ func NewDevClient(email, password string) *DevClient {
 	}
 }
 
+//Authenticate retrieves a token from the specified Clearblade Platform
 func (u *UserClient) Authenticate() error {
 	return authenticate(u, u.Email, u.Password)
 }
 
+//Authenticate retrieves a token from the specified Clearblade Platform
 func (d *DevClient) Authenticate() error {
 	return authenticate(d, d.Email, d.Password)
 }
 
+//Register creates a new user
 func (u *UserClient) Register(username, password string) error {
-	_, err := register(u, username, password, "", "", "")
+	if u.UserToken == "" {
+		return fmt.Errorf("Must be logged in to create users")
+	}
+	_, err := register(u, createUser, username, password, u.SystemKey, u.SystemSecret, "", "", "")
 	return err
 }
 
+//RegisterUser creates a new user, returning the body of the response.
 func (u *UserClient) RegisterUser(username, password string) (map[string]interface{}, error) {
-	resp, err := register(u, username, password, "", "", "")
+	if u.UserToken == "" {
+		return nil, fmt.Errorf("Must be logged in to create users")
+	}
+	resp, err := register(u, createUser, username, password, u.SystemKey, u.SystemSecret, "", "", "")
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
+//Registers a new developer
 func (d *DevClient) Register(username, password, fname, lname, org string) error {
-	_, err := register(d, username, password, fname, lname, org)
-	return err
+	resp, err := register(d, createDevUser, username, password, "", "", fname, lname, org)
+	if err != nil {
+		return err
+	} else {
+		d.DevToken = resp["dev_token"].(string)
+		return nil
+	}
 }
 
-func (d *DevClient) RegisterUser(username, password, fname, lname, org string) (map[string]interface{}, error) {
-	resp, err := register(d, username, password, fname, lname, org)
+func (d *DevClient) RegisterNewUser(username, password, systemkey, systemsecret string) (map[string]interface{}, error) {
+	if d.DevToken == "" {
+		return nil, fmt.Errorf("Must authenticate first")
+	}
+	return register(d, createUser, username, password, systemkey, systemsecret, "", "", "")
+
+}
+
+//Register creates a new developer user
+func (d *DevClient) RegisterDevUser(username, password, fname, lname, org string) (map[string]interface{}, error) {
+	resp, err := register(d, createDevUser, username, password, "", "", fname, lname, org)
 	if err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
+//Logout ends the session
 func (u *UserClient) Logout() error {
 	return logout(u)
 }
 
+//Logout ends the session
 func (d *DevClient) Logout() error {
 	return logout(d)
 }
@@ -169,7 +207,6 @@ func authenticate(c cbClient, username, password string) error {
 			return err
 		}
 	}
-
 	resp, err := post(c.preamble()+"/auth", map[string]interface{}{
 		"email":    username,
 		"password": password,
@@ -195,27 +232,49 @@ func authenticate(c cbClient, username, password string) error {
 	return nil
 }
 
-func register(c cbClient, username, password, fname, lname, org string) (map[string]interface{}, error) {
+func register(c cbClient, kind int, username, password, syskey, syssec, fname, lname, org string) (map[string]interface{}, error) {
 	payload := map[string]interface{}{
 		"email":    username,
 		"password": password,
 	}
-
-	creds := [][]string{}
-	switch c.(type) {
-	case *DevClient:
+	var endpoint string
+	headers := make(map[string][]string)
+	var creds [][]string
+	switch kind {
+	case createDevUser:
+		endpoint = "/admin/reg"
 		payload["fname"] = fname
 		payload["lname"] = lname
 		payload["org"] = org
-	case *UserClient:
+	case createUser:
+		switch c.(type) {
+		case *DevClient:
+			if syskey == "" {
+				return nil, fmt.Errorf("System key required")
+			}
+			endpoint = fmt.Sprintf("/admin/user/%s", syskey)
+		case *UserClient:
+			if syskey == "" {
+				return nil, fmt.Errorf("System key required")
+			}
+			if syssec == "" {
+				return nil, fmt.Errorf("System secret required")
+			}
+			endpoint = "/api/v/1/user/reg"
+			headers["Clearblade-Systemkey"] = []string{syskey}
+			headers["Clearblade-Systemsecret"] = []string{syssec}
+		default:
+			return nil, fmt.Errorf("unreachable code detected")
+		}
 		var err error
 		creds, err = c.credentials()
 		if err != nil {
 			return nil, err
 		}
+	default:
+		return nil, fmt.Errorf("Cannot create that kind of user")
 	}
-
-	resp, err := post(c.preamble()+"/reg", payload, creds, nil)
+	resp, err := post(endpoint, payload, creds, headers)
 
 	if err != nil {
 		return nil, err
@@ -224,16 +283,16 @@ func register(c cbClient, username, password, fname, lname, org string) (map[str
 		return nil, fmt.Errorf("Status code: %d, Error in authenticating, %v\n", resp.StatusCode, resp.Body)
 	}
 	var token string = ""
-	switch c.(type) {
-	case *UserClient:
-		token = resp.Body.(map[string]interface{})["user_token"].(string)
-	case *DevClient:
+	switch kind {
+	case createDevUser:
 		token = resp.Body.(map[string]interface{})["dev_token"].(string)
+	case createUser:
+		token = resp.Body.(map[string]interface{})["user_id"].(string)
 	}
+
 	if token == "" {
 		return nil, fmt.Errorf("Token not present i response from platform %+v", resp.Body)
 	}
-	c.setToken(token)
 	return resp.Body.(map[string]interface{}), nil
 }
 

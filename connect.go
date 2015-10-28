@@ -11,6 +11,7 @@ type connectCollection interface {
 	tableName() string
 }
 
+//MSSqlConfig houses configuration information for an MSSql-backed collection
 type MSSqlConfig struct {
 	User, Password, Host, Port, DBName, Tablename string
 }
@@ -29,6 +30,7 @@ func (ms MSSqlConfig) toMap() map[string]interface{} {
 	return m
 }
 
+//PostgresqlConfig houses configuration information for an Postgresql-backed collection
 type PostgresqlConfig struct {
 	User, Password, Host, Port, DBName, Tablename string
 }

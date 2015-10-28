@@ -29,10 +29,14 @@ func callService(c cbClient, systemKey, name string, params map[string]interface
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//CallService performs a call against the specific service with the specified parameters. The logging argument will allow the developer to call the service with logging enabled for just that run.
+//The return value is a map[string]interface{} where the results will be stored in the key "results". If logs were enabled, they'll be in "log".
 func (d *DevClient) CallService(systemKey, name string, params map[string]interface{}, log bool) (map[string]interface{}, error) {
 	return callService(d, systemKey, name, params, log)
 }
 
+//CallService performs a call against the specific service with the specified parameters.
+//The return value is a map[string]interface{} where the results will be stored in the key "results". If logs were enabled, they'll be in "log".
 func (u *UserClient) CallService(systemKey, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return callService(u, systemKey, name, params, false)
 }

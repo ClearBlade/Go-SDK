@@ -11,6 +11,8 @@ const (
 	_MH_PREAMBLE           = "/api/v/1/message/"
 )
 
+//GetEventDefinitions returns a slice of the different kinds of events that can be handled.
+//Returns a slice of strings
 func (d *DevClient) GetEventDefinitions() ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -24,6 +26,7 @@ func (d *DevClient) GetEventDefinitions() ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
+//GetEventHandlers returns a slice of the event handlers for a system
 func (d *DevClient) GetEventHandlers(systemKey string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -37,6 +40,8 @@ func (d *DevClient) GetEventHandlers(systemKey string) ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
+//GetEventHandler reuturns a single event handler
+//Returns an object shaped map[string]interface{}{"system_key":"associated system key","system_secret":"secret","name":"event name","event_definition":map[string]interface{}{"def_module":"module","def_name":"definition name","event_keys":[]string{"event","keys"},"visibility":false|true}, KeyVals:map[string]interface{}{"keys":"values"},"service_name":"corresponding service name"}
 func (d *DevClient) GetEventHandler(systemKey, name string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -50,6 +55,8 @@ func (d *DevClient) GetEventHandler(systemKey, name string) (map[string]interfac
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//CreateEventHandler creates an event handler, otherwise known as a trigger
+//Returns the same object as GetEventHandler corresponding to the created event
 func (d *DevClient) CreateEventHandler(systemKey, name string,
 	data map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
@@ -64,6 +71,7 @@ func (d *DevClient) CreateEventHandler(systemKey, name string,
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//DeleteEventHandler removes the event handler
 func (d *DevClient) DeleteEventHandler(systemKey, name string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -74,6 +82,8 @@ func (d *DevClient) DeleteEventHandler(systemKey, name string) error {
 	return err
 }
 
+//UpdateEventHandler allows the developer to alter the code executed by the event handler
+//Returns an object corresponding to GetEventHandler with the altered values
 func (d *DevClient) UpdateEventHandler(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -101,6 +111,8 @@ func mapResponse(resp *CbResp, err error) (*CbResp, error) {
 //
 //  Timer calls are from here down
 
+//Returns a slice of timer descriptions
+//Return value looks like []interface{}[map[string]interface{}{"timer_key":"clearblade generated timer identifier","name":"the name of the timer","start_time":"rfc3339 formatted date string","repeats":0,"frequency":5,"service_name":"name of service executed","system_key":"system key associated with timer","user_id":"userid associated with timer","user_token":"a token the timer runs with"},...]
 func (d *DevClient) GetTimers(systemKey string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -114,6 +126,8 @@ func (d *DevClient) GetTimers(systemKey string) ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
+//GetTimer returns the definition of a single timer
+//Returns a single instance of the object described in GetTimers
 func (d *DevClient) GetTimer(systemKey, name string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -127,6 +141,8 @@ func (d *DevClient) GetTimer(systemKey, name string) (map[string]interface{}, er
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//CreateTimer allows the user to create the timer with code
+//Returns a single instance of the object described in GetTimers for the newly created timer
 func (d *DevClient) CreateTimer(systemKey, name string,
 	data map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
@@ -141,6 +157,7 @@ func (d *DevClient) CreateTimer(systemKey, name string,
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//DeleteTimer removes the timer
 func (d *DevClient) DeleteTimer(systemKey, name string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -151,6 +168,8 @@ func (d *DevClient) DeleteTimer(systemKey, name string) error {
 	return err
 }
 
+//UpdateTimer allows the developer to change the code executed with the timer
+//Returns an updated version of the timer as described in GetTimer
 func (d *DevClient) UpdateTimer(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -164,6 +183,8 @@ func (d *DevClient) UpdateTimer(systemKey, name string, data map[string]interfac
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//MessageHistory allows the developer to retrieve the message history
+//Returns a slice of []map[string]interface{}{map[string]interface{}{"topicid":"/topic/path", "ip":"127.0.0.1", "time":123141244, "payloadsize":12,"payload":"hello world\n","userid":"8675309","qos":0 }}
 func (d *DevClient) MessageHistory(systemKey string) (interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
