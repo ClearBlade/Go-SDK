@@ -81,7 +81,7 @@ func (d *DevClient) GetData(collection_id string, query *Query) (map[string]inte
 	return getdata(d, collection_id, query)
 }
 
-func (d *DevClient) GetDataTotal(collection_id string, query *Query) (map[string]interface{}, error) {
+func (d *UserClient) GetDataTotal(collection_id string, query *Query) (map[string]interface{}, error) {
 	return getdatatotal(d, collection_id, query)
 }
 
@@ -143,6 +143,7 @@ func getdata(c cbClient, collection_id string, query *Query) (map[string]interfa
 
 
 func getdatatotal(c cbClient, collection_id string, query *Query) (map[string]interface{}, error) {
+
 	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
