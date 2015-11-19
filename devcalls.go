@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	//	"log"
+	//"encoding/json"
 	"strings"
 )
 
@@ -70,7 +71,6 @@ func (d *DevClient) GetSystem(key string) (*System, error) {
 	if !isMap {
 		return nil, fmt.Errorf("Error gathering system information: incorrect return type\n")
 	}
-	fmt.Printf("sys map %+v\n", sysMap)
 	newSys := &System{
 		Key:         sysMap["appID"].(string),
 		Secret:      sysMap["appSecret"].(string),
@@ -350,6 +350,39 @@ func (d *DevClient) CreateRole(systemKey, role_id string) (interface{}, error) {
 	return resp.Body, nil
 }
 
+func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]interface{}) error {
+	data := map[string]interface{}{
+		"name":        role["Name"],
+		"collections": []map[string]interface{}{},
+		"topics":      []map[string]interface{}{},
+		"services":    []map[string]interface{}{},
+	}
+	if collections, ok := role["Collections"]; ok {
+		data["collections"] = collections
+	}
+	if topics, ok := role["Topics"]; ok {
+		data["topics"] = topics
+	}
+	if services, ok := role["Services"]; ok {
+		data["services"] = services
+	}
+	fmt.Printf("data %+v\n", data)
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	// resp, err := post(d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
+	resp, err := put(d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
+	fmt.Printf("response %+v\n", resp)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating role %s", roleName)
+	}
+	return nil
+}
+
 //DeleteRole removes a role
 func (d *DevClient) DeleteRole(systemKey, roleId string) error {
 	creds, err := d.credentials()
@@ -366,6 +399,39 @@ func (d *DevClient) DeleteRole(systemKey, roleId string) error {
 	return nil
 }
 
+func (d *DevClient) GetAllUsers(systemKey string) ([]map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	/*
+		allQuery := NewQuery()
+		queryMap := allQuery.serialize()
+		queryBytes, err := json.Marshal(queryMap)
+	*/
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d.preamble()+"/user/"+systemKey, nil, creds, nil)
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting all users: %v", resp.Body)
+	}
+	dbResponse := resp.Body.(map[string]interface{})
+	rawData := dbResponse["Data"].([]interface{})
+
+	rval := make([]map[string]interface{}, len(rawData))
+	for idx, oneRsp := range rawData {
+		rval[idx] = oneRsp.(map[string]interface{})
+	}
+
+	return rval, nil
+}
+
 //DeleteUser removes a specific user
 func (d *DevClient) DeleteUser(systemKey, userId string) error {
 	creds, err := d.credentials()
@@ -380,6 +446,25 @@ func (d *DevClient) DeleteUser(systemKey, userId string) error {
 		return fmt.Errorf("Error deleting user: %v", resp.Body)
 	}
 
+	return nil
+}
+
+func (d *DevClient) UpdateUser(systemKey, userId string, info map[string]interface{}) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{
+		"user":    userId,
+		"changes": info,
+	}
+	resp, err := put(d.preamble()+"/user/"+systemKey, data, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating user: %v", resp.Body)
+	}
 	return nil
 }
 
@@ -406,6 +491,27 @@ func (d *DevClient) AddUserToRoles(systemKey, userId string, roles []string) err
 	}
 
 	return nil
+}
+
+func (d *DevClient) GetUserRoles(systemKey, userId string) ([]string, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d.preamble()+"/user/"+systemKey+"/roles", map[string]string{"user": userId}, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting roles for a user: %v", resp.Body)
+	}
+	rawBody := resp.Body.([]interface{})
+	rval := make([]string, len(rawBody))
+	for idx, oneBody := range rawBody {
+		oneMap := oneBody.(map[string]interface{})
+		rval[idx] = oneMap["Name"].(string)
+	}
+	return rval, nil
 }
 
 //AddCollectionToRole associates some kind of permission regarding the collection to the role.
