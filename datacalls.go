@@ -81,10 +81,10 @@ func (d *DevClient) GetData(collection_id string, query *Query) (map[string]inte
 	return getdata(d, collection_id, query)
 }
 
-<<<<<<< HEAD
+
 func (d *UserClient) GetDataTotal(collection_id string, query *Query) (map[string]interface{}, error) {
 	return getdatatotal(d, collection_id, query)
-=======
+
 func (u *UserClient) GetItemCount(collection_id string) (int, error) {
 	return getItemCount(u, collection_id)
 }
@@ -108,7 +108,7 @@ func getItemCount(c cbClient, collection_id string) (int, error) {
 	bod := resp.Body.(map[string]interface{})
 	theCount := int(bod["count"].(float64))
 	return theCount, nil
->>>>>>> 2875f30784df9cd37801a04fde74889c310d392f
+
 }
 
 func getDataByName(c cbClient, sysKey string, collectionName string, query *Query) (map[string]interface{}, error) {
