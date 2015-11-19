@@ -70,6 +70,7 @@ func (u *UserClient) GetDataByName(collectionName string, query *Query) (map[str
 
 //GetDataByName performs a query against a collection, using the collection's name, rather than the ID. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
 //The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
+
 func (d *DevClient) GetDataByName(collectionName string, query *Query) (map[string]interface{}, error) {
 	return nil, fmt.Errorf("Developer cannot call this yet")
 }
@@ -78,6 +79,36 @@ func (d *DevClient) GetDataByName(collectionName string, query *Query) (map[stri
 //The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
 func (d *DevClient) GetData(collection_id string, query *Query) (map[string]interface{}, error) {
 	return getdata(d, collection_id, query)
+}
+
+func (d *UserClient) GetDataTotal(collection_id string, query *Query) (map[string]interface{}, error) {
+	return getdatatotal(d, collection_id, query)
+
+}
+func (u *UserClient) GetItemCount(collection_id string) (int, error) {
+	return getItemCount(u, collection_id)
+}
+
+func (d *DevClient) GetItemCount(collection_id string) (int, error) {
+	return getItemCount(d, collection_id)
+}
+
+func getItemCount(c cbClient, collection_id string) (int, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return -1, err
+	}
+	resp, err := get(_DATA_PREAMBLE+collection_id+"/count", nil, creds, nil)
+	if err != nil {
+		return -1, fmt.Errorf("Error getting count: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return -1, fmt.Errorf("Error getting count: %v", resp.Body)
+	}
+	bod := resp.Body.(map[string]interface{})
+	theCount := int(bod["count"].(float64))
+	return theCount, nil
+
 }
 
 func getDataByName(c cbClient, sysKey string, collectionName string, query *Query) (map[string]interface{}, error) {
@@ -136,8 +167,38 @@ func getdata(c cbClient, collection_id string, query *Query) (map[string]interfa
 	return resp.Body.(map[string]interface{}), nil
 }
 
+func getdatatotal(c cbClient, collection_id string, query *Query) (map[string]interface{}, error) {
+
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+	var qry map[string]string
+	if query != nil {
+		query_map := query.serialize()
+		query_bytes, err := json.Marshal(query_map)
+		if err != nil {
+			return nil, err
+		}
+		qry = map[string]string{
+			"query": url.QueryEscape(string(query_bytes)),
+		}
+	} else {
+		qry = nil
+	}
+	resp, err := get(_DATA_PREAMBLE+collection_id+"/count", qry, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting data: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting data: %v", resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
 //UpdateData mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
 //changes should be a map of the names of the columns, and the value you want them updated to
+
 func (u *UserClient) UpdateData(collection_id string, query *Query, changes map[string]interface{}) error {
 	err := updatedata(u, collection_id, query, changes)
 	return err
@@ -210,23 +271,31 @@ func deletedata(c cbClient, collection_id string, query *Query) error {
 
 //GetColumns gets a slice of map[string]interface{} of the column names and values.
 //As map[string]interface{}{"ColumnName":"name","ColumnType":"typename in string", "PK":bool}
-func (d *DevClient) GetColumns(collection_id string) ([]interface{}, error) {
-	return getColumns(d, collection_id)
+func (d *DevClient) GetColumns(collectionId, systemKey, systemSecret string) ([]interface{}, error) {
+	return getColumns(d, collectionId, systemKey, systemSecret)
 }
 
 //GetColumns gets a slice of map[string]interface{} of the column names and values.
 //As map[string]interface{}{"ColumnName":"name","ColumnType":"typename in string", "PK":bool}
 func (u *UserClient) GetColumns(collection_id string) ([]interface{}, error) {
-	return getColumns(u, collection_id)
+	return getColumns(u, collection_id, "", "")
 }
 
-func getColumns(c cbClient, collection_id string) ([]interface{}, error) {
+func getColumns(c cbClient, collection_id, systemKey, systemSecret string) ([]interface{}, error) {
 	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := get(_DATA_PREAMBLE+collection_id+"/columns", nil, creds, nil)
+	var headers map[string][]string = nil
+	if systemKey != "" {
+		headers = map[string][]string{
+			"Clearblade-Systemkey":    []string{systemKey},
+			"Clearblade-Systemsecret": []string{systemSecret},
+		}
+	}
+
+	resp, err := get(_DATA_PREAMBLE+collection_id+"/columns", nil, creds, headers)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting collection columns: %v", err)
 	}
