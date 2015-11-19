@@ -81,10 +81,10 @@ func (d *DevClient) GetData(collection_id string, query *Query) (map[string]inte
 	return getdata(d, collection_id, query)
 }
 
-
 func (d *UserClient) GetDataTotal(collection_id string, query *Query) (map[string]interface{}, error) {
 	return getdatatotal(d, collection_id, query)
 
+}
 func (u *UserClient) GetItemCount(collection_id string) (int, error) {
 	return getItemCount(u, collection_id)
 }
@@ -167,7 +167,6 @@ func getdata(c cbClient, collection_id string, query *Query) (map[string]interfa
 	return resp.Body.(map[string]interface{}), nil
 }
 
-
 func getdatatotal(c cbClient, collection_id string, query *Query) (map[string]interface{}, error) {
 
 	creds, err := c.credentials()
@@ -196,7 +195,6 @@ func getdatatotal(c cbClient, collection_id string, query *Query) (map[string]in
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
-
 
 //UpdateData mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
 //changes should be a map of the names of the columns, and the value you want them updated to
