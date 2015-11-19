@@ -366,14 +366,12 @@ func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]inter
 	if services, ok := role["Services"]; ok {
 		data["services"] = services
 	}
-	fmt.Printf("data %+v\n", data)
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
 	// resp, err := post(d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
 	resp, err := put(d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
-	fmt.Printf("response %+v\n", resp)
 	if err != nil {
 		return err
 	}
