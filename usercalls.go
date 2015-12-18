@@ -8,6 +8,7 @@ import (
 const (
 	_USER_HEADER_KEY = "ClearBlade-UserToken"
 	_USER_PREAMBLE   = "/api/v/1/user"
+	_USER_V2         = "/api/v/2/user"
 	_USER_ADMIN      = "/admin/user"
 )
 
@@ -93,6 +94,32 @@ func (d *DevClient) CreateUserColumn(systemKey, columnName, columnType string) e
 	}
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("Error creating user column: %v", resp.Body)
+	}
+
+	return nil
+}
+
+func (u *UserClient) UpdateUser(userQuery *Query, changes map[string]interface{}) error {
+	return updateUser(u, userQuery, changes)
+}
+
+func updateUser(c cbClient, userQuery *Query, changes map[string]interface{}) error {
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	query := userQuery.serialize()
+	body := map[string]interface{}{
+		"query":   query,
+		"changes": changes,
+	}
+
+	resp, err := put(_USER_V2+"/info", body, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error updating data: %s", err.Error())
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating data: %v", resp.Body)
 	}
 
 	return nil

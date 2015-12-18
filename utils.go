@@ -131,6 +131,10 @@ func (u *UserClient) Authenticate() error {
 	return authenticate(u, u.Email, u.Password)
 }
 
+func (u *UserClient) AuthAnon() error {
+	return authAnon(u)
+}
+
 //Authenticate retrieves a token from the specified Clearblade Platform
 func (d *DevClient) Authenticate() error {
 	return authenticate(d, d.Email, d.Password)
@@ -232,6 +236,23 @@ func authenticate(c cbClient, username, password string) error {
 	return nil
 }
 
+func authAnon(c cbClient) error {
+	creds, err := c.credentials()
+	if err != nil {
+		return fmt.Errorf("Invalid client: %+s", err.Error())
+	}
+	resp, err := post(c.preamble()+"/anon", nil, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error retrieving anon user token: %s", err.Error())
+	}
+	token := resp.Body.(map[string]interface{})["user_token"].(string)
+	if token == "" {
+		return fmt.Errorf("Token not present in response from platform %+v", resp.Body)
+	}
+	c.setToken(token)
+	return nil
+}
+
 func register(c cbClient, kind int, username, password, syskey, syssec, fname, lname, org string) (map[string]interface{}, error) {
 	payload := map[string]interface{}{
 		"email":    username,
@@ -291,7 +312,7 @@ func register(c cbClient, kind int, username, password, syskey, syssec, fname, l
 	}
 
 	if token == "" {
-		return nil, fmt.Errorf("Token not present i response from platform %+v", resp.Body)
+		return nil, fmt.Errorf("Token not present in response from platform %+v", resp.Body)
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
