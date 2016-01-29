@@ -126,8 +126,6 @@ func (d *DevClient) UpdateService(systemKey, name, code string, params []string)
 	if err != nil {
 		return err
 	}
-	code = strings.Replace(code, "\\n", "\n", -1) // just to make sure we're not creating a \\\n since we could have removed some of the double escapes
-	code = strings.Replace(code, "\n", "\\n", -1) // add back in the escaped stuff
 	resp, err := put(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, map[string]interface{}{"code": code, "parameters": params, "name": name}, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error updating service: %v\n", err)
@@ -228,8 +226,6 @@ func (d *DevClient) newService(systemKey, name, code string, extra map[string]in
 	if err != nil {
 		return err
 	}
-	//code = strings.Replace(code, "\\n", "\n", -1)
-	//code = strings.Replace(code, "\n", "\\n", -1)
 	extra["code"] = code
 	resp, err := post(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, extra, creds, nil)
 	if err != nil {
