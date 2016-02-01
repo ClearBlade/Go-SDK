@@ -109,7 +109,7 @@ func (d *DevClient) SetServiceEffectiveUser(systemKey, name, userid string) erro
 		return err
 	}
 	resp, err := put(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, map[string]interface{}{
-		"runuser": userid,
+		"run_user": userid,
 	}, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error updating service: %v\n", err)
