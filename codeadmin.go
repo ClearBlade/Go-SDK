@@ -122,11 +122,22 @@ func (d *DevClient) SetServiceEffectiveUser(systemKey, name, userid string) erro
 
 //UpdateService facillitates changes to the service's code
 func (d *DevClient) UpdateService(systemKey, name, code string, params []string) error {
+	extra := map[string]interface{}{"code": code, "name": name, "parameters": params}
+	return d.updateService(systemKey, name, code, extra)
+}
+
+func (d *DevClient) UpdateServiceWithLibraries(systemKey, name, code, deps string, params []string) error {
+	extra := map[string]interface{}{"code": code, "name": name, "parameters": params, "dependencies": deps}
+	return d.updateService(systemKey, name, code, extra)
+}
+
+func (d *DevClient) updateService(sysKey, name, code string, extra map[string]interface{}) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
-	resp, err := put(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, map[string]interface{}{"code": code, "parameters": params, "name": name}, creds, nil)
+
+	resp, err := put(_CODE_ADMIN_PREAMBLE+"/"+sysKey+"/"+name, extra, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error updating service: %v\n", err)
 	}

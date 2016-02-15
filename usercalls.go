@@ -99,6 +99,24 @@ func (d *DevClient) CreateUserColumn(systemKey, columnName, columnType string) e
 	return nil
 }
 
+func (d *DevClient) DeleteUserColumn(systemKey, columnName string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]string{"column": columnName}
+
+	resp, err := delete(_USER_ADMIN+"/"+systemKey+"/columns", data, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error deleting user column: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error deleting user column: %v", resp.Body)
+	}
+
+	return nil
+}
+
 func (u *UserClient) UpdateUser(userQuery *Query, changes map[string]interface{}) error {
 	return updateUser(u, userQuery, changes)
 }
