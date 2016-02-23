@@ -2,9 +2,16 @@ package GoSDK
 
 import (
 	"crypto/tls"
+	"encoding/binary"
 	"errors"
+	"fmt"
 	mqtt "github.com/clearblade/mqtt_parsing"
 	mqcli "github.com/clearblade/mqttclient"
+	"time"
+)
+
+var (
+	NetworkByteOrder = binary.BigEndian
 )
 
 const (
@@ -166,4 +173,86 @@ func disconnect(c *mqcli.Client) error {
 		return errors.New("MQTTClient is uninitialized")
 	}
 	return mqcli.SendDisconnect(c)
+}
+
+func (u *UserClient) AuthenticateUsingMqtt() error {
+	tok, err := authUsingMqtt(u.SystemKey, u.SystemSecret, u.Email, u.Password)
+	if err != nil {
+		return err
+	} else {
+		u.UserToken = tok
+		return nil
+	}
+}
+
+func (d *DevClient) AuthenticateUsingMqtt(systemKey, systemSecret string) error {
+	tok, err := authUsingMqtt(systemKey, systemSecret, d.Email, d.Password)
+	if err != nil {
+		return err
+	} else {
+		d.DevToken = tok
+		return nil
+	}
+}
+
+func authUsingMqtt(systemKey, systemSecret, email, password string) (string, error) {
+	//jumbling up the return values
+	cli := mqcli.NewClient(systemKey, systemSecret, "", formatClientId(email, password), 30)
+	//err := cli.Start(CB_MSG_ADDR, &tls.Config{})
+	err := cli.Start(CB_MSG_ADDR, nil)
+	if err != nil {
+		return "", fmt.Errorf("error starting mqtt client:%s\n", err.Error())
+	}
+	err = mqcli.SendConnect(cli, false, false, 0, "", "")
+	if err != nil {
+		return "", fmt.Errorf("Error in connecting to broker for mqtt auth: %s\n", err)
+	}
+	// go ahead and get read to disconnect
+	defer mqcli.SendDisconnect(cli)
+	//we should be connected
+	//now we subscribe
+	mch, err := mqcli.SubscribeFlow(cli, formatTopicPath(systemKey, email), 0)
+	if err != nil {
+		return "", fmt.Errorf("Error in subscribing to broker for mqtt auth:%s\n", err.Error())
+	}
+	select {
+	case msg := <-mch:
+		token, _, actualServers, err := stripOutMqttAuthPayload(msg.Payload)
+		if err != nil {
+			return "", fmt.Errorf("poorly formatted mqtt authentication packet: %s\n", err.Error())
+		}
+		CB_MSG_ADDR = actualServers
+		return token, err
+	case <-cli.ClientErrorBuffer:
+		return "", fmt.Errorf("bad return code. unauthorized\n")
+	case <-time.After(time.Second * 20):
+	}
+	return "", fmt.Errorf("authenticating via mqtt timed out\n")
+}
+
+func formatClientId(u, p string) string {
+	return u + ":" + p
+}
+
+func formatTopicPath(sk, u string) string {
+	return sk + "/" + u
+}
+
+func stripOutMqttAuthPayload(payload []byte) (string, string, string, error) {
+	siz_tok := NetworkByteOrder.Uint16(payload)
+	if int(siz_tok) > len(payload)-2 {
+		return "", "", "", fmt.Errorf("not enough space in payload")
+	}
+	tok := string(payload[2 : 2+siz_tok])
+	siz_usrid := NetworkByteOrder.Uint16(payload[2+siz_tok:])
+	if int(siz_tok+siz_usrid+4) > len(payload) {
+		return "", "", "", fmt.Errorf("not enough space in payload")
+	}
+	usrid := string(payload[4+siz_tok : 4+siz_tok+siz_usrid])
+	siz_url := NetworkByteOrder.Uint16(payload[4+siz_tok+siz_usrid:])
+	if int(siz_tok+siz_usrid+siz_url+6) > len(payload) {
+		return "", "", "", fmt.Errorf("not enough space in payload")
+	}
+	ip := string(payload[6+siz_tok+siz_usrid:])
+	return tok, usrid, ip, nil
 }
