@@ -198,8 +198,7 @@ func (d *DevClient) AuthenticateUsingMqtt(systemKey, systemSecret string) error 
 func authUsingMqtt(systemKey, systemSecret, email, password string) (string, error) {
 	//jumbling up the return values
 	cli := mqcli.NewClient(systemKey, systemSecret, "", formatClientId(email, password), 30)
-	//err := cli.Start(CB_MSG_ADDR, &tls.Config{})
-	err := cli.Start(CB_MSG_ADDR, nil)
+	err := cli.Start(CB_MSG_ADDR, &tls.Config{})
 	if err != nil {
 		return "", fmt.Errorf("error starting mqtt client:%s\n", err.Error())
 	}
