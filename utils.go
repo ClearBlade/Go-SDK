@@ -19,6 +19,8 @@ var (
 	CB_ADDR = "https://rtp.clearblade.com"
 	//CB_MSG_ADDR is the messaging address you wish to speak to
 	CB_MSG_ADDR = "rtp.clearblade.com:1883"
+	//CB_MSG_AUTH_ADDR is the messaging address you use for authentication
+	CB_MSG_AUTH_ADDR = "rtp.clearblade.com:8907"
 
 	_HEADER_KEY_KEY    = "ClearBlade-SystemKey"
 	_HEADER_SECRET_KEY = "ClearBlade-SystemSecret"
