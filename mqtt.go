@@ -175,6 +175,8 @@ func disconnect(c *mqcli.Client) error {
 	return mqcli.SendDisconnect(c)
 }
 
+// AuthenticateUsingMqtt allows the user to create a one-time connection via TLS to the platform to
+// authenticate and create a session with the clearblade platform.
 func (u *UserClient) AuthenticateUsingMqtt() error {
 	tok, err := authUsingMqtt(u.SystemKey, u.SystemSecret, u.Email, u.Password)
 	if err != nil {
@@ -185,6 +187,8 @@ func (u *UserClient) AuthenticateUsingMqtt() error {
 	}
 }
 
+// AuthenticateUsingMqtt allows the developer to create a one-time connection via TLS to the platform to
+// authenticate and create a session with the clearblade platform.
 func (d *DevClient) AuthenticateUsingMqtt(systemKey, systemSecret string) error {
 	tok, err := authUsingMqtt(systemKey, systemSecret, d.Email, d.Password)
 	if err != nil {
