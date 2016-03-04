@@ -126,6 +126,16 @@ func NewDevClient(email, password string) *DevClient {
 	}
 }
 
+func NewDevClientWithToken(token, email string) *DevClient {
+	return &DevClient{
+		DevToken:   token,
+		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient: nil,
+		Email:      email,
+		Password:   "",
+	}
+}
+
 //Authenticate retrieves a token from the specified Clearblade Platform
 func (u *UserClient) Authenticate() error {
 	return authenticate(u, u.Email, u.Password)
