@@ -255,6 +255,9 @@ func authAnon(c cbClient) error {
 	if err != nil {
 		return fmt.Errorf("Error retrieving anon user token: %s", err.Error())
 	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Bad status code: %v", resp.Body)
+	}
 	token := resp.Body.(map[string]interface{})["user_token"].(string)
 	if token == "" {
 		return fmt.Errorf("Token not present in response from platform %+v", resp.Body)

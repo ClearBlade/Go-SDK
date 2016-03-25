@@ -156,6 +156,9 @@ func (d *DevClient) DevUserInfo() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error getting userdata: %v", err)
 	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Bad status code: %v", resp.Body)
+	}
 	return resp.Body.(map[string]interface{}), nil
 }
 
