@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	//	"log"
-	//"encoding/json"
-	"strings"
 )
 
 const (
@@ -48,8 +46,12 @@ func (d *DevClient) NewSystem(name, description string, users bool) (string, err
 		return "", fmt.Errorf("Error Creating new system: %v", resp.Body)
 	}
 
-	// TODO we need to make this json
-	return strings.TrimSpace(strings.Split(resp.Body.(string), ":")[1]), nil
+	sysMap, isMap := resp.Body.(map[string]interface{})
+	if !isMap {
+		return "", fmt.Errorf("Error returning system information: incorrect return type\n")
+	}
+
+	return sysMap["appID"].(string), nil
 }
 
 //GetSystem retrieves information about the system specified.
