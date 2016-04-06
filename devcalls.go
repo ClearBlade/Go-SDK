@@ -3,6 +3,7 @@ package GoSDK
 import (
 	"errors"
 	"fmt"
+	"strings"
 	//	"log"
 )
 
@@ -46,12 +47,24 @@ func (d *DevClient) NewSystem(name, description string, users bool) (string, err
 		return "", fmt.Errorf("Error Creating new system: %v", resp.Body)
 	}
 
-	sysMap, isMap := resp.Body.(map[string]interface{})
-	if !isMap {
-		return "", fmt.Errorf("Error returning system information: incorrect return type\n")
+	switch resp.Body.(type) {
+	case string:
+		b := resp.Body.(string)
+		s := strings.Split(b, ":")
+		if len(s) < 1 {
+			return "", fmt.Errorf("Error creating new system: Empty response")
+		}
+		return strings.TrimSpace(s[1]), nil
+	case map[string]interface{}:
+		b := resp.Body.(map[string]interface{})
+		id, ok := b["appID"].(string)
+		if !ok {
+			return "", fmt.Errorf("Error creating new system: Missing appID")
+		}
+		return id, nil
+	default:
+		return "", fmt.Errorf("Error creating new system: Incorrect return type: %T\n", resp.Body)
 	}
-
-	return sysMap["appID"].(string), nil
 }
 
 //GetSystem retrieves information about the system specified.
