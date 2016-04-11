@@ -40,6 +40,11 @@ func (d *DevClient) GetEventHandlers(systemKey string) ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
+// Alias for GetEventHandlers() to better match up with Console terminology
+func (d *DevClient) GetTriggers(systemKey string) ([]interface{}, error) {
+	return d.GetEventHandlers(systemKey)
+}
+
 //GetEventHandler reuturns a single event handler
 //Returns an object shaped map[string]interface{}{"system_key":"associated system key","system_secret":"secret","name":"event name","event_definition":map[string]interface{}{"def_module":"module","def_name":"definition name","event_keys":[]string{"event","keys"},"visibility":false|true}, KeyVals:map[string]interface{}{"keys":"values"},"service_name":"corresponding service name"}
 func (d *DevClient) GetEventHandler(systemKey, name string) (map[string]interface{}, error) {
@@ -53,6 +58,11 @@ func (d *DevClient) GetEventHandler(systemKey, name string) (map[string]interfac
 		return nil, err
 	}
 	return resp.Body.(map[string]interface{}), nil
+}
+
+// Alias for GetEventHandler() to better match up with Console terminology
+func (d *DevClient) GetTrigger(systemKey, name string) (map[string]interface{}, error) {
+	return d.GetEventHandler(systemKey, name)
 }
 
 //CreateEventHandler creates an event handler, otherwise known as a trigger
@@ -71,6 +81,13 @@ func (d *DevClient) CreateEventHandler(systemKey, name string,
 	return resp.Body.(map[string]interface{}), nil
 }
 
+// Alias for CreateEventHandler() to better match up with Console terminology
+func (d *DevClient) CreateTrigger(systemKey, name string,
+	data map[string]interface{}) (map[string]interface{}, error) {
+
+	return d.CreateEventHandler(systemKey, name, data)
+}
+
 //DeleteEventHandler removes the event handler
 func (d *DevClient) DeleteEventHandler(systemKey, name string) error {
 	creds, err := d.credentials()
@@ -80,6 +97,11 @@ func (d *DevClient) DeleteEventHandler(systemKey, name string) error {
 	resp, err := delete(_EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
 	_, err = mapResponse(resp, err)
 	return err
+}
+
+// Alias for DeleteEventHandler() to better match up with Console terminology
+func (d *DevClient) DeleteTrigger(systemKey, name string) error {
+	return d.DeleteEventHandler(systemKey, name)
 }
 
 //UpdateEventHandler allows the developer to alter the code executed by the event handler
@@ -95,6 +117,11 @@ func (d *DevClient) UpdateEventHandler(systemKey, name string, data map[string]i
 		return nil, err
 	}
 	return resp.Body.(map[string]interface{}), nil
+}
+
+// Alias for UpdateEventHandler() to better match up with Console terminology
+func (d *DevClient) UpdateTrigger(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	return d.UpdateEventHandler(systemKey, name, data)
 }
 
 func mapResponse(resp *CbResp, err error) (*CbResp, error) {
