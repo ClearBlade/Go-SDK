@@ -31,7 +31,7 @@ func (d *DevClient) GetServiceNames(systemKey string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_CODE_ADMIN_PREAMBLE+"/"+systemKey, nil, creds, nil)
+	resp, err := get(d, _CODE_ADMIN_PREAMBLE+"/"+systemKey, nil, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting services: %v", err)
 	}
@@ -56,7 +56,7 @@ func (d *DevClient) GetService(systemKey, name string) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_CODE_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
+	resp, err := get(d, _CODE_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting service: %v", err)
 	}
@@ -84,7 +84,7 @@ func (d *DevClient) GetServiceRaw(systemKey, name string) (map[string]interface{
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_CODE_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
+	resp, err := get(d, _CODE_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting service: %v", err)
 	}
@@ -108,7 +108,7 @@ func (d *DevClient) SetServiceEffectiveUser(systemKey, name, userid string) erro
 	if err != nil {
 		return err
 	}
-	resp, err := put(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, map[string]interface{}{
+	resp, err := put(d, _CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, map[string]interface{}{
 		"run_user": userid,
 	}, creds, nil)
 	if err != nil {
@@ -137,7 +137,7 @@ func (d *DevClient) updateService(sysKey, name, code string, extra map[string]in
 		return err
 	}
 
-	resp, err := put(_CODE_ADMIN_PREAMBLE+"/"+sysKey+"/"+name, extra, creds, nil)
+	resp, err := put(d, _CODE_ADMIN_PREAMBLE+"/"+sysKey+"/"+name, extra, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error updating service: %v\n", err)
 	}
@@ -166,7 +166,7 @@ func (d *DevClient) EnableLogsForService(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	_, err = post(_CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name, map[string]interface{}{"logging": "true"}, creds, nil)
+	_, err = post(d, _CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name, map[string]interface{}{"logging": "true"}, creds, nil)
 	return err
 }
 
@@ -176,7 +176,7 @@ func (d *DevClient) DisableLogsForService(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	_, err = post(_CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name, map[string]interface{}{"logging": false}, creds, nil)
+	_, err = post(d, _CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name, map[string]interface{}{"logging": false}, creds, nil)
 	return err
 }
 
@@ -186,7 +186,7 @@ func (d *DevClient) AreServiceLogsEnabled(systemKey, name string) (bool, error) 
 	if err != nil {
 		return false, err
 	}
-	resp, err := get(_CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name+"/active", nil, creds, nil)
+	resp, err := get(d, _CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name+"/active", nil, creds, nil)
 	if err != nil {
 		return false, err
 	}
@@ -204,7 +204,7 @@ func (d *DevClient) GetLogsForService(systemKey, name string) ([]CodeLog, error)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name, nil, creds, nil)
+	resp, err := get(d, _CODE_ADMIN_PREAMBLE_V2+"/logs/"+systemKey+"/"+name, nil, creds, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +238,7 @@ func (d *DevClient) newService(systemKey, name, code string, extra map[string]in
 		return err
 	}
 	extra["code"] = code
-	resp, err := post(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, extra, creds, nil)
+	resp, err := post(d, _CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, extra, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error creating new service: %v", err)
 	}
@@ -253,7 +253,7 @@ func (d *DevClient) DeleteService(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := delete(_CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
+	resp, err := delete(d, _CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error deleting service: %v", err)
 	}

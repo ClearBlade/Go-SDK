@@ -53,12 +53,12 @@ func (d *DevClient) InitializeMQTT(clientid, systemkey string, timeout int) erro
 func (u *UserClient) ConnectMQTT(ssl *tls.Config, lastWill *LastWillPacket) error {
 	//a questionable pointer, mainly for ease of checking nil
 	//be more efficient to pass on the stack
-	return connectToBroker(u.MQTTClient, CB_MSG_ADDR, ssl, lastWill)
+	return connectToBroker(u.MQTTClient, u.MqttAddr, ssl, lastWill)
 }
 
 //ConnectMQTT allows the user to connect to the mqtt broker. If no TLS config is provided, a TCP socket will be used
 func (d *DevClient) ConnectMQTT(ssl *tls.Config, lastWill *LastWillPacket) error {
-	return connectToBroker(d.MQTTClient, CB_MSG_ADDR, ssl, lastWill)
+	return connectToBroker(d.MQTTClient, d.MqttAddr, ssl, lastWill)
 }
 
 //Publish publishes a message to the specified mqtt topic

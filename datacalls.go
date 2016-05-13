@@ -46,7 +46,7 @@ func insertdata(c cbClient, collection_id string, data interface{}) ([]interface
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(_DATA_PREAMBLE+collection_id, data, creds, nil)
+	resp, err := post(c, _DATA_PREAMBLE+collection_id, data, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error inserting: %v", err)
 	}
@@ -98,7 +98,7 @@ func getItemCount(c cbClient, collection_id string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	resp, err := get(_DATA_PREAMBLE+collection_id+"/count", nil, creds, nil)
+	resp, err := get(c, _DATA_PREAMBLE+collection_id+"/count", nil, creds, nil)
 	if err != nil {
 		return -1, fmt.Errorf("Error getting count: %v", err)
 	}
@@ -129,7 +129,7 @@ func getDataByName(c cbClient, sysKey string, collectionName string, query *Quer
 	} else {
 		qry = nil
 	}
-	resp, err := get(_DATA_NAME_PREAMBLE+sysKey+"/"+collectionName, qry, creds, nil)
+	resp, err := get(c, _DATA_NAME_PREAMBLE+sysKey+"/"+collectionName, qry, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting data: %v", err)
 	}
@@ -157,7 +157,7 @@ func getdata(c cbClient, collection_id string, query *Query) (map[string]interfa
 	} else {
 		qry = nil
 	}
-	resp, err := get(_DATA_PREAMBLE+collection_id, qry, creds, nil)
+	resp, err := get(c, _DATA_PREAMBLE+collection_id, qry, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting data: %v", err)
 	}
@@ -186,7 +186,7 @@ func getdatatotal(c cbClient, collection_id string, query *Query) (map[string]in
 	} else {
 		qry = nil
 	}
-	resp, err := get(_DATA_PREAMBLE+collection_id+"/count", qry, creds, nil)
+	resp, err := get(c, _DATA_PREAMBLE+collection_id+"/count", qry, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting data: %v", err)
 	}
@@ -221,7 +221,7 @@ func updatedata(c cbClient, collection_id string, query *Query, changes map[stri
 	if err != nil {
 		return err
 	}
-	resp, err := put(_DATA_PREAMBLE+collection_id, body, creds, nil)
+	resp, err := put(c, _DATA_PREAMBLE+collection_id, body, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error updating data: %v", err)
 	}
@@ -259,7 +259,7 @@ func deletedata(c cbClient, collection_id string, query *Query) error {
 	} else {
 		qry = nil
 	}
-	resp, err := delete(_DATA_PREAMBLE+collection_id, qry, creds, nil)
+	resp, err := delete(c, _DATA_PREAMBLE+collection_id, qry, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error deleting data: %v", err)
 	}
@@ -295,7 +295,7 @@ func getColumns(c cbClient, collection_id, systemKey, systemSecret string) ([]in
 		}
 	}
 
-	resp, err := get(_DATA_PREAMBLE+collection_id+"/columns", nil, creds, headers)
+	resp, err := get(c, _DATA_PREAMBLE+collection_id+"/columns", nil, creds, headers)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting collection columns: %v", err)
 	}

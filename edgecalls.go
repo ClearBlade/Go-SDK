@@ -11,7 +11,7 @@ func (d *DevClient) GetEdges(systemKey string) ([]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_EDGES_PREAMBLE+systemKey, nil, creds, nil)
+	resp, err := get(d, _EDGES_PREAMBLE+systemKey, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -24,7 +24,7 @@ func (d *DevClient) GetEdge(systemKey, name string) (map[string]interface{}, err
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_EDGES_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := get(d, _EDGES_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func (d *DevClient) CreateEdge(systemKey, name string,
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(_EDGES_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := post(d, _EDGES_PREAMBLE+systemKey+"/"+name, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (d *DevClient) DeleteEdge(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := delete(_EDGES_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := delete(d, _EDGES_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
 	_, err = mapResponse(resp, err)
 	return err
 }
@@ -61,7 +61,7 @@ func (d *DevClient) UpdateEdge(systemKey, name string, data map[string]interface
 	if err != nil {
 		return nil, err
 	}
-	resp, err := put(_EDGES_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := put(d, _EDGES_PREAMBLE+systemKey+"/"+name, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err

@@ -16,9 +16,9 @@ import (
 
 var (
 	//CB_ADDR is the address of the ClearBlade Platform you are speaking with
-	CB_ADDR = "https://rtp.clearblade.com"
+	CB_ADDR = "https://platform.clearblade.com"
 	//CB_MSG_ADDR is the messaging address you wish to speak to
-	CB_MSG_ADDR = "rtp.clearblade.com:1883"
+	CB_MSG_ADDR = "platform.clearblade.com:1883"
 
 	_HEADER_KEY_KEY    = "ClearBlade-SystemKey"
 	_HEADER_SECRET_KEY = "ClearBlade-SystemSecret"
@@ -65,6 +65,8 @@ type cbClient interface {
 	getToken() string
 	getSystemInfo() (string, string)
 	getMessageId() uint16
+	getHttpAddr() string
+	getMqttAddr() string
 }
 
 //UserClient is the type for users
@@ -76,6 +78,8 @@ type UserClient struct {
 	SystemSecret string
 	Email        string
 	Password     string
+	HttpAddr     string
+	MqttAddr     string
 }
 
 //DevClient is the type for developers
@@ -85,6 +89,8 @@ type DevClient struct {
 	MQTTClient *mqttclient.Client
 	Email      string
 	Password   string
+	HttpAddr   string
+	MqttAddr   string
 }
 
 //CbReq is a wrapper around an HTTP request
@@ -94,12 +100,30 @@ type CbReq struct {
 	Endpoint    string
 	QueryString string
 	Headers     map[string][]string
+	HttpAddr    string
+	MqttAddr    string
 }
 
 //CbResp is a wrapper around an HTTP response
 type CbResp struct {
 	Body       interface{}
 	StatusCode int
+}
+
+func (u *UserClient) getHttpAddr() string {
+	return u.HttpAddr
+}
+
+func (d *DevClient) getHttpAddr() string {
+	return d.HttpAddr
+}
+
+func (u *UserClient) getMqttAddr() string {
+	return u.MqttAddr
+}
+
+func (d *DevClient) getMqttAddr() string {
+	return d.MqttAddr
 }
 
 //NewUserClient allocates a new UserClient struct
@@ -112,27 +136,73 @@ func NewUserClient(systemkey, systemsecret, email, password string) *UserClient 
 		SystemKey:    systemkey,
 		Email:        email,
 		Password:     password,
+		HttpAddr:     CB_ADDR,
+		MqttAddr:     CB_MSG_ADDR,
 	}
 }
 
 //NewDevClient allocates a new DevClient struct
 func NewDevClient(email, password string) *DevClient {
+	fmt.Printf("NEW DEV CLIENT: %s\n", CB_ADDR)
 	return &DevClient{
 		DevToken:   "",
 		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient: nil,
 		Email:      email,
 		Password:   password,
+		HttpAddr:   CB_ADDR,
+		MqttAddr:   CB_MSG_ADDR,
 	}
 }
 
 func NewDevClientWithToken(token, email string) *DevClient {
+	fmt.Printf("NEW DEV CLIENT WITH TOKEN: %s\n", CB_ADDR)
 	return &DevClient{
 		DevToken:   token,
 		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient: nil,
 		Email:      email,
 		Password:   "",
+	}
+}
+
+func NewUserClientWithAddrs(httpAddr, mqttAddr, systemKey, systemSecret, email, password string) *UserClient {
+	fmt.Printf("NEW USER CLIENT WITH: %s\n", CB_ADDR)
+	return &UserClient{
+		UserToken:    "",
+		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient:   nil,
+		SystemSecret: systemSecret,
+		SystemKey:    systemKey,
+		Email:        email,
+		Password:     password,
+		HttpAddr:     httpAddr,
+		MqttAddr:     mqttAddr,
+	}
+}
+func NewDevClientWithAddrs(httpAddr, mqttAddr, email, password string) *DevClient {
+	fmt.Printf("NEW DEV CLIENT WITH: %s\n", CB_ADDR)
+	return &DevClient{
+		DevToken:   "",
+		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient: nil,
+		Email:      email,
+		Password:   password,
+		HttpAddr:   httpAddr,
+		MqttAddr:   mqttAddr,
+	}
+}
+
+func NewDevClientWithTokenAndAddrs(httpAddr, mqttAddr, token, email string) *DevClient {
+	fmt.Printf("NEW DEV CLIENT WITH EVERYTHING: %s\n", CB_ADDR)
+	return &DevClient{
+		DevToken:   token,
+		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient: nil,
+		Email:      email,
+		Password:   "",
+		HttpAddr:   httpAddr,
+		MqttAddr:   mqttAddr,
 	}
 }
 
@@ -220,8 +290,9 @@ func authenticate(c cbClient, username, password string) error {
 		if err != nil {
 			return err
 		}
+	case *DevClient:
 	}
-	resp, err := post(c.preamble()+"/auth", map[string]interface{}{
+	resp, err := post(c, c.preamble()+"/auth", map[string]interface{}{
 		"email":    username,
 		"password": password,
 	}, creds, nil)
@@ -251,7 +322,7 @@ func authAnon(c cbClient) error {
 	if err != nil {
 		return fmt.Errorf("Invalid client: %+s", err.Error())
 	}
-	resp, err := post(c.preamble()+"/anon", nil, creds, nil)
+	resp, err := post(c, c.preamble()+"/anon", nil, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error retrieving anon user token: %s", err.Error())
 	}
@@ -305,7 +376,7 @@ func register(c cbClient, kind int, username, password, syskey, syssec, fname, l
 	default:
 		return nil, fmt.Errorf("Cannot create that kind of user")
 	}
-	resp, err := post(endpoint, payload, creds, headers)
+	resp, err := post(c, endpoint, payload, creds, headers)
 
 	if err != nil {
 		return nil, err
@@ -332,7 +403,7 @@ func logout(c cbClient) error {
 	if err != nil {
 		return err
 	}
-	resp, err := post(c.preamble()+"/logout", nil, creds, nil)
+	resp, err := post(c, c.preamble()+"/logout", nil, creds, nil)
 	if err != nil {
 		return err
 	}
@@ -342,7 +413,8 @@ func logout(c cbClient) error {
 	return nil
 }
 
-func do(r *CbReq, creds [][]string) (*CbResp, error) {
+func do(c cbClient, r *CbReq, creds [][]string) (*CbResp, error) {
+	fmt.Printf("DO: %s\n", c.getHttpAddr())
 	var bodyToSend *bytes.Buffer
 	if r.Body != nil {
 		b, jsonErr := json.Marshal(r.Body)
@@ -353,7 +425,7 @@ func do(r *CbReq, creds [][]string) (*CbResp, error) {
 	} else {
 		bodyToSend = nil
 	}
-	url := CB_ADDR + r.Endpoint
+	url := c.getHttpAddr() + r.Endpoint
 	if r.QueryString != "" {
 		url += "?" + r.QueryString
 	}
@@ -422,7 +494,7 @@ func do(r *CbReq, creds [][]string) (*CbResp, error) {
 
 //standard http verbs
 
-func get(endpoint string, query map[string]string, creds [][]string, headers map[string][]string) (*CbResp, error) {
+func get(c cbClient, endpoint string, query map[string]string, creds [][]string, headers map[string][]string) (*CbResp, error) {
 	req := &CbReq{
 		Body:        nil,
 		Method:      "GET",
@@ -430,10 +502,10 @@ func get(endpoint string, query map[string]string, creds [][]string, headers map
 		QueryString: query_to_string(query),
 		Headers:     headers,
 	}
-	return do(req, creds)
+	return do(c, req, creds)
 }
 
-func post(endpoint string, body interface{}, creds [][]string, headers map[string][]string) (*CbResp, error) {
+func post(c cbClient, endpoint string, body interface{}, creds [][]string, headers map[string][]string) (*CbResp, error) {
 	req := &CbReq{
 		Body:        body,
 		Method:      "POST",
@@ -441,10 +513,10 @@ func post(endpoint string, body interface{}, creds [][]string, headers map[strin
 		QueryString: "",
 		Headers:     headers,
 	}
-	return do(req, creds)
+	return do(c, req, creds)
 }
 
-func put(endpoint string, body interface{}, heads [][]string, headers map[string][]string) (*CbResp, error) {
+func put(c cbClient, endpoint string, body interface{}, heads [][]string, headers map[string][]string) (*CbResp, error) {
 	req := &CbReq{
 		Body:        body,
 		Method:      "PUT",
@@ -452,10 +524,10 @@ func put(endpoint string, body interface{}, heads [][]string, headers map[string
 		QueryString: "",
 		Headers:     headers,
 	}
-	return do(req, heads)
+	return do(c, req, heads)
 }
 
-func delete(endpoint string, query map[string]string, heds [][]string, headers map[string][]string) (*CbResp, error) {
+func delete(c cbClient, endpoint string, query map[string]string, heds [][]string, headers map[string][]string) (*CbResp, error) {
 	req := &CbReq{
 		Body:        nil,
 		Method:      "DELETE",
@@ -463,7 +535,7 @@ func delete(endpoint string, query map[string]string, heds [][]string, headers m
 		Headers:     headers,
 		QueryString: query_to_string(query),
 	}
-	return do(req, heds)
+	return do(c, req, heds)
 }
 
 func query_to_string(query map[string]string) string {

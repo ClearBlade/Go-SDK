@@ -66,7 +66,7 @@ func (d *DevClient) GetUserColumns(systemKey string) ([]interface{}, error) {
 		return nil, err
 	}
 
-	resp, err := get(_USER_ADMIN+"/"+systemKey+"/columns", nil, creds, nil)
+	resp, err := get(d, _USER_ADMIN+"/"+systemKey+"/columns", nil, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting user columns: %v", err)
 	}
@@ -88,7 +88,7 @@ func (d *DevClient) CreateUserColumn(systemKey, columnName, columnType string) e
 		"type":        columnType,
 	}
 
-	resp, err := post(_USER_ADMIN+"/"+systemKey+"/columns", data, creds, nil)
+	resp, err := post(d, _USER_ADMIN+"/"+systemKey+"/columns", data, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error creating user column: %v", err)
 	}
@@ -106,7 +106,7 @@ func (d *DevClient) DeleteUserColumn(systemKey, columnName string) error {
 	}
 	data := map[string]string{"column": columnName}
 
-	resp, err := delete(_USER_ADMIN+"/"+systemKey+"/columns", data, creds, nil)
+	resp, err := delete(d, _USER_ADMIN+"/"+systemKey+"/columns", data, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error deleting user column: %v", err)
 	}
@@ -132,7 +132,7 @@ func updateUser(c cbClient, userQuery *Query, changes map[string]interface{}) er
 		"changes": changes,
 	}
 
-	resp, err := put(_USER_V2+"/info", body, creds, nil)
+	resp, err := put(c, _USER_V2+"/info", body, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error updating data: %s", err.Error())
 	}

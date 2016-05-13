@@ -16,9 +16,9 @@ func callService(c cbClient, systemKey, name string, params map[string]interface
 	var resp *CbResp
 	if log {
 
-		resp, err = post(_CODE_PREAMBLE+"/"+systemKey+"/"+name, params, creds, map[string][]string{"Logging-enabled": []string{"true"}})
+		resp, err = post(c, _CODE_PREAMBLE+"/"+systemKey+"/"+name, params, creds, map[string][]string{"Logging-enabled": []string{"true"}})
 	} else {
-		resp, err = post(_CODE_PREAMBLE+"/"+systemKey+"/"+name, params, creds, nil)
+		resp, err = post(c, _CODE_PREAMBLE+"/"+systemKey+"/"+name, params, creds, nil)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("Error calling %s service: %v", name, err)

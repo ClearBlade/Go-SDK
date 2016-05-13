@@ -12,7 +12,7 @@ func (d *DevClient) GetDevices(systemKey string) ([]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_DEVICES_DEV_PREAMBLE+systemKey, nil, creds, nil)
+	resp, err := get(d, _DEVICES_DEV_PREAMBLE+systemKey, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func (u *UserClient) GetDevices(systemKey string) ([]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_DEVICES_USER_PREAMBLE+systemKey, nil, creds, nil)
+	resp, err := get(u, _DEVICES_USER_PREAMBLE+systemKey, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func (d *DevClient) GetDevice(systemKey, name string) (map[string]interface{}, e
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_DEVICES_DEV_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := get(d, _DEVICES_DEV_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (u *UserClient) GetDevice(systemKey, name string) (map[string]interface{}, 
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_DEVICES_USER_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := get(u, _DEVICES_USER_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (d *DevClient) CreateDevice(systemKey, name string,
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(_DEVICES_DEV_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := post(d, _DEVICES_DEV_PREAMBLE+systemKey+"/"+name, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (d *DevClient) DeleteDevice(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := delete(_DEVICES_DEV_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := delete(d, _DEVICES_DEV_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
 	_, err = mapResponse(resp, err)
 	return err
 }
@@ -88,7 +88,7 @@ func (d *DevClient) UpdateDevice(systemKey, name string, data map[string]interfa
 	if err != nil {
 		return nil, err
 	}
-	resp, err := put(_DEVICES_DEV_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := put(d, _DEVICES_DEV_PREAMBLE+systemKey+"/"+name, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (u *UserClient) UpdateDevice(systemKey, name string, data map[string]interf
 	if err != nil {
 		return nil, err
 	}
-	resp, err := put(_DEVICES_USER_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := put(u, _DEVICES_USER_PREAMBLE+systemKey+"/"+name, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err

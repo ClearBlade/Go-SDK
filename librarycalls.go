@@ -17,7 +17,7 @@ func (d *DevClient) GetLibraries(systemKey string) ([]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_LIB_PREAMBLE+"/"+systemKey, nil, creds, nil)
+	resp, err := get(d, _LIB_PREAMBLE+"/"+systemKey, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (d *DevClient) GetLibrary(systemKey, name string) (map[string]interface{}, 
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_LIB_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
+	resp, err := get(d, _LIB_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (d *DevClient) CreateLibrary(systemKey, name string, data map[string]interf
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(_LIB_PREAMBLE+"/"+systemKey+"/"+name, data, creds, nil)
+	resp, err := post(d, _LIB_PREAMBLE+"/"+systemKey+"/"+name, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (d *DevClient) UpdateLibrary(systemKey, name string, data map[string]interf
 	if err != nil {
 		return nil, err
 	}
-	resp, err := put(_LIB_PREAMBLE+"/"+systemKey+"/"+name, data, creds, nil)
+	resp, err := put(d, _LIB_PREAMBLE+"/"+systemKey+"/"+name, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (d *DevClient) DeleteLibrary(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := delete(_LIB_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
+	resp, err := delete(d, _LIB_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return err
@@ -91,7 +91,7 @@ func (d *DevClient) GetVersionHistory(systemKey, name string) ([]interface{}, er
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_HIST_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
+	resp, err := get(d, _HIST_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func (d *DevClient) GetVersion(systemKey, name string, version int) (map[string]
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_HIST_PREAMBLE+"/"+systemKey+"/"+name+"/"+strconv.Itoa(version), nil, creds, nil)
+	resp, err := get(d, _HIST_PREAMBLE+"/"+systemKey+"/"+name+"/"+strconv.Itoa(version), nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err

@@ -18,7 +18,7 @@ func (d *DevClient) GetEventDefinitions() ([]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_EVENTS_DEFS_PREAMBLE, nil, creds, nil)
+	resp, err := get(d, _EVENTS_DEFS_PREAMBLE, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (d *DevClient) GetEventHandlers(systemKey string) ([]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_EVENTS_HDLRS_PREAMBLE+systemKey, nil, creds, nil)
+	resp, err := get(d, _EVENTS_HDLRS_PREAMBLE+systemKey, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func (d *DevClient) GetEventHandler(systemKey, name string) (map[string]interfac
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := get(d, _EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (d *DevClient) CreateEventHandler(systemKey, name string,
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(_EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := post(d, _EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func (d *DevClient) DeleteEventHandler(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := delete(_EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := delete(d, _EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
 	_, err = mapResponse(resp, err)
 	return err
 }
@@ -111,7 +111,7 @@ func (d *DevClient) UpdateEventHandler(systemKey, name string, data map[string]i
 	if err != nil {
 		return nil, err
 	}
-	resp, err := put(_EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := put(d, _EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -145,7 +145,7 @@ func (d *DevClient) GetTimers(systemKey string) ([]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_TIMERS_HDLRS_PREAMBLE+systemKey, nil, creds, nil)
+	resp, err := get(d, _TIMERS_HDLRS_PREAMBLE+systemKey, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -160,7 +160,7 @@ func (d *DevClient) GetTimer(systemKey, name string) (map[string]interface{}, er
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := get(d, _TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -176,7 +176,7 @@ func (d *DevClient) CreateTimer(systemKey, name string,
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(_TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := post(d, _TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -190,7 +190,7 @@ func (d *DevClient) DeleteTimer(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := delete(_TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := delete(d, _TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
 	_, err = mapResponse(resp, err)
 	return err
 }
@@ -202,7 +202,7 @@ func (d *DevClient) UpdateTimer(systemKey, name string, data map[string]interfac
 	if err != nil {
 		return nil, err
 	}
-	resp, err := put(_TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := put(d, _TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -217,7 +217,7 @@ func (d *DevClient) MessageHistory(systemKey string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(_MH_PREAMBLE+systemKey, nil, creds, nil)
+	resp, err := get(d, _MH_PREAMBLE+systemKey, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
