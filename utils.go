@@ -143,7 +143,6 @@ func NewUserClient(systemkey, systemsecret, email, password string) *UserClient 
 
 //NewDevClient allocates a new DevClient struct
 func NewDevClient(email, password string) *DevClient {
-	fmt.Printf("NEW DEV CLIENT: %s\n", CB_ADDR)
 	return &DevClient{
 		DevToken:   "",
 		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
@@ -156,7 +155,6 @@ func NewDevClient(email, password string) *DevClient {
 }
 
 func NewDevClientWithToken(token, email string) *DevClient {
-	fmt.Printf("NEW DEV CLIENT WITH TOKEN: %s\n", CB_ADDR)
 	return &DevClient{
 		DevToken:   token,
 		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
@@ -167,7 +165,6 @@ func NewDevClientWithToken(token, email string) *DevClient {
 }
 
 func NewUserClientWithAddrs(httpAddr, mqttAddr, systemKey, systemSecret, email, password string) *UserClient {
-	fmt.Printf("NEW USER CLIENT WITH: %s\n", CB_ADDR)
 	return &UserClient{
 		UserToken:    "",
 		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
@@ -181,7 +178,6 @@ func NewUserClientWithAddrs(httpAddr, mqttAddr, systemKey, systemSecret, email, 
 	}
 }
 func NewDevClientWithAddrs(httpAddr, mqttAddr, email, password string) *DevClient {
-	fmt.Printf("NEW DEV CLIENT WITH: %s\n", CB_ADDR)
 	return &DevClient{
 		DevToken:   "",
 		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
@@ -194,7 +190,6 @@ func NewDevClientWithAddrs(httpAddr, mqttAddr, email, password string) *DevClien
 }
 
 func NewDevClientWithTokenAndAddrs(httpAddr, mqttAddr, token, email string) *DevClient {
-	fmt.Printf("NEW DEV CLIENT WITH EVERYTHING: %s\n", CB_ADDR)
 	return &DevClient{
 		DevToken:   token,
 		mrand:      rand.New(rand.NewSource(time.Now().UnixNano())),
@@ -414,7 +409,6 @@ func logout(c cbClient) error {
 }
 
 func do(c cbClient, r *CbReq, creds [][]string) (*CbResp, error) {
-	fmt.Printf("DO: %s\n", c.getHttpAddr())
 	var bodyToSend *bytes.Buffer
 	if r.Body != nil {
 		b, jsonErr := json.Marshal(r.Body)
