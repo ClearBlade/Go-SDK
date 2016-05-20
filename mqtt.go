@@ -136,6 +136,9 @@ func publish(c *mqcli.Client, topic string, data []byte, qos int, mid uint16) er
 	if c == nil {
 		return errors.New("MQTTClient is uninitialized")
 	}
+	if c.C == nil {
+		return errors.New("Must successfully call ConnectMQTT first")
+	}
 	pub, err := mqcli.MakeMeABytePublish(topic, data, mid)
 	pub.Header.QOS = uint8(qos)
 	if err != nil {
