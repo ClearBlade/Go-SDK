@@ -339,6 +339,10 @@ func (d *DevClient) GetAllRoles(SystemKey string) ([]interface{}, error) {
 		"appid": SystemKey,
 	}, creds, nil)
 
+	if err != nil {
+		return []interface{}{}, err
+	}
+
 	return resp.Body.([]interface{}), nil
 }
 
