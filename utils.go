@@ -161,6 +161,8 @@ func NewDevClientWithToken(token, email string) *DevClient {
 		MQTTClient: nil,
 		Email:      email,
 		Password:   "",
+		HttpAddr:   CB_ADDR,
+		MqttAddr:   CB_MSG_ADDR,
 	}
 }
 

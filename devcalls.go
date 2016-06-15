@@ -338,8 +338,16 @@ func (d *DevClient) GetAllRoles(SystemKey string) ([]interface{}, error) {
 	resp, err := get(d, d.preamble()+"/user/"+SystemKey+"/roles", map[string]string{
 		"appid": SystemKey,
 	}, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't get all roles: '%s'\n", err.Error())
+	}
 
-	return resp.Body.([]interface{}), nil
+	rval, ok := resp.Body.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Bad type returned by GetAllRoles")
+	}
+
+	return rval, nil
 }
 
 //CreateRole creates a new role
