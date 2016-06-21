@@ -82,6 +82,18 @@ type UserClient struct {
 	MqttAddr     string
 }
 
+type DeviceClient struct {
+	DeviceName   string
+	ActiveKey    string
+	DeviceToken  string
+	mrand        *rand.Rand
+	MQTTClient   *mqttclient.Client
+	SystemKey    string
+	SystemSecret string
+	HttpAddr     string
+	MqttAddr     string
+}
+
 //DevClient is the type for developers
 type DevClient struct {
 	DevToken   string
@@ -124,6 +136,21 @@ func (u *UserClient) getMqttAddr() string {
 
 func (d *DevClient) getMqttAddr() string {
 	return d.MqttAddr
+}
+
+//NewUserClient allocates a new UserClient struct
+func NewDeviceClient(systemkey, systemsecret, deviceName, activeKey string) *DeviceClient {
+	return &DeviceClient{
+		DeviceName:   deviceName,
+		DeviceToken:  "",
+		ActiveKey:    activeKey,
+		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient:   nil,
+		SystemKey:    systemkey,
+		SystemSecret: systemsecret,
+		HttpAddr:     CB_ADDR,
+		MqttAddr:     CB_MSG_ADDR,
+	}
 }
 
 //NewUserClient allocates a new UserClient struct

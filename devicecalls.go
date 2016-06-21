@@ -1,10 +1,14 @@
 package GoSDK
 
-import ()
+import (
+	"errors"
+	"fmt"
+)
 
 const (
+	_DEVICE_HEADER_KEY     = "ClearBlade-DeviceToken"
 	_DEVICES_DEV_PREAMBLE  = "/admin/devices/"
-	_DEVICES_USER_PREAMBLE = "/api/v/2/devices"
+	_DEVICES_USER_PREAMBLE = "/api/v/2/devices/"
 )
 
 func (d *DevClient) GetDevices(systemKey string) ([]interface{}, error) {
@@ -46,6 +50,19 @@ func (d *DevClient) GetDevice(systemKey, name string) (map[string]interface{}, e
 	return resp.Body.(map[string]interface{}), nil
 }
 
+func (d *DeviceClient) GetDevice(systemKey, name string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, _DEVICES_USER_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
 func (u *UserClient) GetDevice(systemKey, name string) (map[string]interface{}, error) {
 	creds, err := u.credentials()
 	if err != nil {
@@ -71,6 +88,28 @@ func (d *DevClient) CreateDevice(systemKey, name string,
 		return nil, err
 	}
 	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DeviceClient) AuthenticateDeviceWithKey(systemKey, name, activeKey string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	postBody := map[string]interface{}{
+		"deviceName": name,
+		"activeKey":  activeKey,
+	}
+	resp, err := post(d, _DEVICES_USER_PREAMBLE+systemKey+"/auth", postBody, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	theJewels, ok := resp.Body.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Got unexpected return value from AuthenticateDeviceWithKey: %+v", theJewels)
+	}
+	d.DeviceToken = theJewels["deviceToken"].(string)
+	return theJewels, nil
 }
 
 func (d *DevClient) DeleteDevice(systemKey, name string) error {
@@ -107,4 +146,61 @@ func (u *UserClient) UpdateDevice(systemKey, name string, data map[string]interf
 		return nil, err
 	}
 	return resp.Body.(map[string]interface{}), nil
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+func (dvc *DeviceClient) credentials() ([][]string, error) {
+	ret := make([][]string, 0)
+	if dvc.DeviceToken != "" {
+		ret = append(ret, []string{
+			_DEVICE_HEADER_KEY,
+			dvc.DeviceToken,
+		})
+	}
+	if dvc.SystemKey != "" && dvc.SystemSecret != "" {
+		ret = append(ret, []string{
+			_HEADER_SECRET_KEY,
+			dvc.SystemSecret,
+		})
+		ret = append(ret, []string{
+			_HEADER_KEY_KEY,
+			dvc.SystemKey,
+		})
+
+	}
+
+	if len(ret) == 0 {
+		return [][]string{}, errors.New("No SystemSecret/SystemKey combo, or DeviceToken found")
+	} else {
+		return ret, nil
+	}
+}
+
+func (dvc *DeviceClient) preamble() string {
+	return _DEVICES_USER_PREAMBLE
+}
+
+func (dvc *DeviceClient) setToken(tok string) {
+	dvc.DeviceName = tok
+}
+
+func (dvc *DeviceClient) getToken() string {
+	return dvc.DeviceToken
+}
+
+func (dvc *DeviceClient) getSystemInfo() (string, string) {
+	return dvc.SystemKey, dvc.SystemSecret
+}
+
+func (dvc *DeviceClient) getMessageId() uint16 {
+	return uint16(dvc.mrand.Int())
+}
+
+func (dvc *DeviceClient) getHttpAddr() string {
+	return dvc.HttpAddr
+}
+
+func (dvc *DeviceClient) getMqttAddr() string {
+	return dvc.MqttAddr
 }
