@@ -3,8 +3,22 @@ package GoSDK
 import ()
 
 const (
-	_EDGES_PREAMBLE = "/admin/edges/"
+	_EDGES_PREAMBLE      = "/admin/edges/"
+	_EDGES_USER_PREAMBLE = "/api/v/2/edges/"
 )
+
+func (u *UserClient) GetEdges(systemKey string) ([]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(u, _EDGES_USER_PREAMBLE+systemKey, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.([]interface{}), nil
+}
 
 func (d *DevClient) GetEdges(systemKey string) ([]interface{}, error) {
 	creds, err := d.credentials()
