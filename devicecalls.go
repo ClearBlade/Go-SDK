@@ -177,6 +177,48 @@ func (dvc *DeviceClient) credentials() ([][]string, error) {
 	}
 }
 
+//  User (user/device) calls (type Client)
+//func (d *DeviceClient) AuthenticateDeviceWithKey(systemKey, name, activeKey string) (map[string]interface{}, error) {
+
+// "Login and logout"
+func (dvc *DeviceClient) Authenticate() error {
+	_, err := dvc.AuthenticateDeviceWithKey(dvc.SystemKey, dvc.DeviceName, dvc.ActiveKey)
+	return err
+}
+
+func (dvc *DeviceClient) Logout() error {
+	return nil
+}
+
+//
+// Data calls
+//
+/*
+func (dvc *DeviceClient) InsertData(collectionId string, stuff interface{}) error {
+	return nil
+}
+
+func (dvc *DeviceClient) UpdateData(collectionId string, q *Query, changes map[string]interface{}) error {
+	return nil
+}
+
+func (dvc *DeviceClient) GetData(collectionId string, q *Query) (map[string]interface{}, error) {
+	return nil, nil
+}
+
+func (dvc *DeviceClient) GetDataByName(collectionName string, q *Query) (map[string]interface{}, error) {
+	return nil, nil
+}
+
+func (dvc *DeviceClient) DeleteData(collectionId string, q *Query) error {
+	return nil
+}
+*/
+
+// Device MQTT calls are mqtt.go
+
+//  Developer cbClient calls
+
 func (dvc *DeviceClient) preamble() string {
 	return _DEVICES_USER_PREAMBLE
 }

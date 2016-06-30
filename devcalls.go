@@ -514,6 +514,25 @@ func (d *DevClient) AddUserToRoles(systemKey, userId string, roles []string) err
 	return nil
 }
 
+//AddDeviceToRoles assigns a role to a device
+func (d *DevClient) AddDeviceToRoles(systemKey, deviceName string, roles []string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{"add": roles}
+	fmt.Printf("GO SDK DEVICE ROLES\n")
+	resp, err := put(d, d.preamble()+"/devices/roles/"+systemKey+"/"+deviceName, data, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error adding roles to a device: %v", resp.Body)
+	}
+
+	return nil
+}
+
 func (d *DevClient) GetUserRoles(systemKey, userId string) ([]string, error) {
 	creds, err := d.credentials()
 	if err != nil {

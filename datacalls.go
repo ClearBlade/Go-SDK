@@ -18,6 +18,12 @@ func (u *UserClient) InsertData(collection_id string, data interface{}) error {
 }
 
 //Inserts data into the platform. The interface is either a map[string]interface{} representing a row, or a []map[string]interface{} representing many rows.
+func (d *DeviceClient) InsertData(collection_id string, data interface{}) error {
+	_, err := insertdata(d, collection_id, data)
+	return err
+}
+
+//Inserts data into the platform. The interface is either a map[string]interface{} representing a row, or a []map[string]interface{} representing many rows.
 func (d *DevClient) InsertData(collection_id string, data interface{}) error {
 	_, err := insertdata(d, collection_id, data)
 	return err
@@ -35,6 +41,15 @@ func (d *DevClient) CreateData(collection_id string, data interface{}) ([]interf
 //CreateData is an alias for InsertData, but returns a response value, it should be a slice of strings representing the item ids (if not using an external datastore)
 func (u *UserClient) CreateData(collection_id string, data interface{}) ([]interface{}, error) {
 	resp, err := insertdata(u, collection_id, data)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+//CreateData is an alias for InsertData, but returns a response value, it should be a slice of strings representing the item ids (if not using an external datastore)
+func (d *DeviceClient) CreateData(collection_id string, data interface{}) ([]interface{}, error) {
+	resp, err := insertdata(d, collection_id, data)
 	if err != nil {
 		return nil, err
 	}
@@ -62,11 +77,25 @@ func (u *UserClient) GetData(collection_id string, query *Query) (map[string]int
 	return getdata(u, collection_id, query)
 }
 
+//GetData performs a query against a collection. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
+//The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
+func (d *DeviceClient) GetData(collection_id string, query *Query) (map[string]interface{}, error) {
+	return getdata(d, collection_id, query)
+}
+
 //GetDataByName performs a query against a collection, using the collection's name, rather than the ID. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
 //The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
 func (u *UserClient) GetDataByName(collectionName string, query *Query) (map[string]interface{}, error) {
 	return getDataByName(u, u.SystemKey, collectionName, query)
 }
+
+//GetDataByName performs a query against a collection, using the collection's name, rather than the ID. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
+//The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
+func (d *DeviceClient) GetDataByName(collectionName string, query *Query) (map[string]interface{}, error) {
+	return getDataByName(d, d.SystemKey, collectionName, query)
+}
+
+//GetDataByName performs a query against a collection, using the collection's name, rather than the ID. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
 
 //GetDataByName performs a query against a collection, using the collection's name, rather than the ID. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
 //The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
@@ -81,12 +110,24 @@ func (d *DevClient) GetData(collection_id string, query *Query) (map[string]inte
 	return getdata(d, collection_id, query)
 }
 
-func (d *UserClient) GetDataTotal(collection_id string, query *Query) (map[string]interface{}, error) {
+func (d *DevClient) GetDataTotal(collection_id string, query *Query) (map[string]interface{}, error) {
 	return getdatatotal(d, collection_id, query)
-
 }
+
+func (d *DeviceClient) GetDataTotal(collection_id string, query *Query) (map[string]interface{}, error) {
+	return getdatatotal(d, collection_id, query)
+}
+
+func (u *UserClient) GetDataTotal(collection_id string, query *Query) (map[string]interface{}, error) {
+	return getdatatotal(u, collection_id, query)
+}
+
 func (u *UserClient) GetItemCount(collection_id string) (int, error) {
 	return getItemCount(u, collection_id)
+}
+
+func (d *DeviceClient) GetItemCount(collection_id string) (int, error) {
+	return getItemCount(d, collection_id)
 }
 
 func (d *DevClient) GetItemCount(collection_id string) (int, error) {
@@ -204,6 +245,11 @@ func (u *UserClient) UpdateData(collection_id string, query *Query, changes map[
 	return err
 }
 
+func (d *DeviceClient) UpdateData(collection_id string, query *Query, changes map[string]interface{}) error {
+	err := updatedata(d, collection_id, query, changes)
+	return err
+}
+
 //UpdateData mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
 //changes should be a map of the names of the columns, and the value you want them updated to
 func (d *DevClient) UpdateData(collection_id string, query *Query, changes map[string]interface{}) error {
@@ -234,6 +280,11 @@ func updatedata(c cbClient, collection_id string, query *Query, changes map[stri
 //DeleteData removes data from a collection according to what matches the query. If the query is nil, then all data will be removed.
 func (u *UserClient) DeleteData(collection_id string, query *Query) error {
 	return deletedata(u, collection_id, query)
+}
+
+//DeleteData removes data from a collection according to what matches the query. If the query is nil, then all data will be removed.
+func (d *DeviceClient) DeleteData(collection_id string, query *Query) error {
+	return deletedata(d, collection_id, query)
 }
 
 //DeleteData removes data from a collection according to what matches the query. If the query is nil, then all data will be removed.
@@ -277,8 +328,14 @@ func (d *DevClient) GetColumns(collectionId, systemKey, systemSecret string) ([]
 
 //GetColumns gets a slice of map[string]interface{} of the column names and values.
 //As map[string]interface{}{"ColumnName":"name","ColumnType":"typename in string", "PK":bool}
-func (u *UserClient) GetColumns(collection_id string) ([]interface{}, error) {
+func (u *UserClient) GetColumns(collection_id, systemKey, systemSecret string) ([]interface{}, error) {
 	return getColumns(u, collection_id, "", "")
+}
+
+//GetColumns gets a slice of map[string]interface{} of the column names and values.
+//As map[string]interface{}{"ColumnName":"name","ColumnType":"typename in string", "PK":bool}
+func (d *DeviceClient) GetColumns(collection_id, systemKey, systemSecret string) ([]interface{}, error) {
+	return getColumns(d, collection_id, "", "")
 }
 
 func getColumns(c cbClient, collection_id, systemKey, systemSecret string) ([]interface{}, error) {
@@ -311,7 +368,11 @@ func (d *DevClient) GetDataByKeyAndName(string, string, *Query) (map[string]inte
 }
 
 //GetDataByKeyAndName is unimplemented
-func (d *UserClient) GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error) {
+func (u *UserClient) GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error) {
 	return nil, fmt.Errorf("Unimplemented")
+}
 
+//GetDataByKeyAndName is unimplemented
+func (d *DeviceClient) GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error) {
+	return nil, fmt.Errorf("Unimplemented")
 }

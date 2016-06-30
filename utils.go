@@ -40,12 +40,16 @@ type Client interface {
 	Logout() error
 
 	//data calls
+	CreateData(string, interface{}) ([]interface{}, error)
 	InsertData(string, interface{}) error
 	UpdateData(string, *Query, map[string]interface{}) error
 	GetData(string, *Query) (map[string]interface{}, error)
 	GetDataByName(string, *Query) (map[string]interface{}, error)
 	GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error)
 	DeleteData(string, *Query) error
+	GetItemCount(string) (int, error)
+	GetDataTotal(string, *Query) (map[string]interface{}, error)
+	GetColumns(string, string, string) ([]interface{}, error)
 
 	//mqtt calls
 	InitializeMQTT(string, string, int) error

@@ -49,6 +49,23 @@ func (d *DevClient) InitializeMQTT(clientid, systemkey string, timeout int) erro
 	return nil
 }
 
+//InitializeMQTT allocates the mqtt client for the device. the second argument is a
+//the systemkey you wish to use for authenticating with the message broker
+//topics are isolated across systems, so in order to communicate with a specific
+//system, you must supply the system key
+
+//InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
+func (d *DeviceClient) InitializeMQTT(clientid string, ignore string, timeout int) error {
+	mqc, err := initializeMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout)
+	if err != nil {
+		return err
+	}
+	d.MQTTClient = mqc
+	return nil
+}
+
+//InitializeMQTT allocates the mqtt client for the developer. the second argument is a
+
 //ConnectMQTT allows the user to connect to the mqtt broker. If no TLS config is provided, a TCP socket will be used
 func (u *UserClient) ConnectMQTT(ssl *tls.Config, lastWill *LastWillPacket) error {
 	//a questionable pointer, mainly for ease of checking nil
@@ -61,9 +78,19 @@ func (d *DevClient) ConnectMQTT(ssl *tls.Config, lastWill *LastWillPacket) error
 	return connectToBroker(d.MQTTClient, d.MqttAddr, ssl, lastWill)
 }
 
+//ConnectMQTT allows the user to connect to the mqtt broker. If no TLS config is provided, a TCP socket will be used
+func (d *DeviceClient) ConnectMQTT(ssl *tls.Config, lastWill *LastWillPacket) error {
+	return connectToBroker(d.MQTTClient, d.MqttAddr, ssl, lastWill)
+}
+
 //Publish publishes a message to the specified mqtt topic
 func (u *UserClient) Publish(topic string, message []byte, qos int) error {
 	return publish(u.MQTTClient, topic, message, qos, u.getMessageId())
+}
+
+//Publish publishes a message to the specified mqtt topic
+func (d *DeviceClient) Publish(topic string, message []byte, qos int) error {
+	return publish(d.MQTTClient, topic, message, qos, d.getMessageId())
 }
 
 //Publish publishes a message to the specified mqtt topic
@@ -74,6 +101,11 @@ func (d *DevClient) Publish(topic string, message []byte, qos int) error {
 //Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
 func (u *UserClient) Subscribe(topic string, qos int) (<-chan *mqtt.Publish, error) {
 	return subscribe(u.MQTTClient, topic, qos)
+}
+
+//Subscribe subscribes a device to a topic. Incoming messages will be sent over the channel.
+func (d *DeviceClient) Subscribe(topic string, qos int) (<-chan *mqtt.Publish, error) {
+	return subscribe(d.MQTTClient, topic, qos)
 }
 
 //Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
@@ -87,6 +119,11 @@ func (u *UserClient) Unsubscribe(topic string) error {
 }
 
 //Unsubscribe stops the flow of messages over the corresponding subscription chan
+func (d *DeviceClient) Unsubscribe(topic string) error {
+	return unsubscribe(d.MQTTClient, topic)
+}
+
+//Unsubscribe stops the flow of messages over the corresponding subscription chan
 func (d *DevClient) Unsubscribe(topic string) error {
 	return unsubscribe(d.MQTTClient, topic)
 }
@@ -94,6 +131,11 @@ func (d *DevClient) Unsubscribe(topic string) error {
 //Disconnect stops the TCP connection and unsubscribes the client from any remaining topics
 func (u *UserClient) Disconnect() error {
 	return disconnect(u.MQTTClient)
+}
+
+//Disconnect stops the TCP connection and unsubscribes the client from any remaining topics
+func (d *DeviceClient) Disconnect() error {
+	return disconnect(d.MQTTClient)
 }
 
 //Disconnect stops the TCP connection and unsubscribes the client from any remaining topics
