@@ -58,6 +58,13 @@ type Client interface {
 	Subscribe(string, int) (<-chan *mqtt.Publish, error)
 	Unsubscribe(string) error
 	Disconnect() error
+
+	// Device calls
+	GetDevices(string) ([]interface{}, error)
+	GetDevice(string, string) (map[string]interface{}, error)
+	CreateDevice(string, string, map[string]interface{}) (map[string]interface{}, error)
+	UpdateDevice(string, string, map[string]interface{}) (map[string]interface{}, error)
+	DeleteDevice(string, string) error
 }
 
 //cbClient will supply various information that differs between privleged and unprivleged users

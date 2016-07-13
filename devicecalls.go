@@ -37,6 +37,19 @@ func (u *UserClient) GetDevices(systemKey string) ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
+func (u *DeviceClient) GetDevices(systemKey string) ([]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(u, _DEVICES_USER_PREAMBLE+systemKey, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.([]interface{}), nil
+}
+
 func (d *DevClient) GetDevice(systemKey, name string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -90,6 +103,34 @@ func (d *DevClient) CreateDevice(systemKey, name string,
 	return resp.Body.(map[string]interface{}), nil
 }
 
+func (u *UserClient) CreateDevice(systemKey, name string,
+	data map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := post(u, _DEVICES_USER_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DeviceClient) CreateDevice(systemKey, name string,
+	data map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := post(d, _DEVICES_USER_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
 func (d *DeviceClient) AuthenticateDeviceWithKey(systemKey, name, activeKey string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -122,6 +163,26 @@ func (d *DevClient) DeleteDevice(systemKey, name string) error {
 	return err
 }
 
+func (d *DeviceClient) DeleteDevice(systemKey, name string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(d, _DEVICES_DEV_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	_, err = mapResponse(resp, err)
+	return err
+}
+
+func (u *UserClient) DeleteDevice(systemKey, name string) error {
+	creds, err := u.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(u, _DEVICES_DEV_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	_, err = mapResponse(resp, err)
+	return err
+}
+
 func (d *DevClient) UpdateDevice(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -136,6 +197,19 @@ func (d *DevClient) UpdateDevice(systemKey, name string, data map[string]interfa
 }
 
 func (u *UserClient) UpdateDevice(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := put(u, _DEVICES_USER_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (u *DeviceClient) UpdateDevice(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := u.credentials()
 	if err != nil {
 		return nil, err
@@ -189,31 +263,6 @@ func (dvc *DeviceClient) Authenticate() error {
 func (dvc *DeviceClient) Logout() error {
 	return nil
 }
-
-//
-// Data calls
-//
-/*
-func (dvc *DeviceClient) InsertData(collectionId string, stuff interface{}) error {
-	return nil
-}
-
-func (dvc *DeviceClient) UpdateData(collectionId string, q *Query, changes map[string]interface{}) error {
-	return nil
-}
-
-func (dvc *DeviceClient) GetData(collectionId string, q *Query) (map[string]interface{}, error) {
-	return nil, nil
-}
-
-func (dvc *DeviceClient) GetDataByName(collectionName string, q *Query) (map[string]interface{}, error) {
-	return nil, nil
-}
-
-func (dvc *DeviceClient) DeleteData(collectionId string, q *Query) error {
-	return nil
-}
-*/
 
 // Device MQTT calls are mqtt.go
 
