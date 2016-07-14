@@ -168,7 +168,7 @@ func (d *DeviceClient) DeleteDevice(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := delete(d, _DEVICES_DEV_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := delete(d, _DEVICES_USER_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
 	_, err = mapResponse(resp, err)
 	return err
 }
@@ -178,7 +178,7 @@ func (u *UserClient) DeleteDevice(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := delete(u, _DEVICES_DEV_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := delete(u, _DEVICES_USER_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
 	_, err = mapResponse(resp, err)
 	return err
 }
