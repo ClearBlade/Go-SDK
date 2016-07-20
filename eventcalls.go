@@ -134,6 +134,19 @@ func mapResponse(resp *CbResp, err error) (*CbResp, error) {
 	return resp, nil
 }
 
+func mapSyncChanges(resources map[ResourceType][]string) []map[string]interface{} {
+	changes := []map[string]interface{}{}
+	for r, a := range resources {
+		for _, n := range a {
+			changes = append(changes, map[string]interface{}{
+				"def_module": string(r),
+				"def_name":   n,
+			})
+		}
+	}
+	return changes
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  Timer calls are from here down

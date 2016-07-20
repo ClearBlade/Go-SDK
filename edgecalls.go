@@ -3,8 +3,9 @@ package GoSDK
 import ()
 
 const (
-	_EDGES_PREAMBLE      = "/admin/edges/"
-	_EDGES_USER_PREAMBLE = "/api/v/2/edges/"
+	_EDGES_PREAMBLE        = "/admin/edges/"
+	_EDGES_USER_PREAMBLE   = "/api/v/2/edges/"
+	_EDGES_SYNC_MANAGEMENT = "/admin/edges/sync/"
 )
 
 func (u *UserClient) GetEdges(systemKey string) ([]interface{}, error) {
@@ -76,6 +77,55 @@ func (d *DevClient) UpdateEdge(systemKey, name string, data map[string]interface
 		return nil, err
 	}
 	resp, err := put(d, _EDGES_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+type ResourceType string
+
+const (
+	ServiceSync ResourceType = "service"
+	LibrarySync ResourceType = "library"
+	TriggerSync ResourceType = "trigger"
+)
+
+func (d *DevClient) GetSyncResourcesForEdge(systemKey string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, _EDGES_SYNC_MANAGEMENT+systemKey, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) SyncResourceToEdge(systemKey, edgeName string, resources map[ResourceType][]string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	changes := mapSyncChanges(resources)
+	resp, err := post(d, _EDGES_SYNC_MANAGEMENT+systemKey+"/"+edgeName, changes, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) RemoveSyncResourceToEdge(systemKey, edgeName string, resources map[ResourceType][]string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	changes := mapSyncChanges(resources)
+	resp, err := put(d, _EDGES_SYNC_MANAGEMENT+systemKey+"/"+edgeName, changes, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
