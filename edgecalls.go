@@ -1,12 +1,43 @@
 package GoSDK
 
-import ()
+import (
+	"os"
+	"os/exec"
+)
 
 const (
 	_EDGES_PREAMBLE        = "/admin/edges/"
 	_EDGES_USER_PREAMBLE   = "/api/v/2/edges/"
 	_EDGES_SYNC_MANAGEMENT = "/admin/edges/sync/"
 )
+
+type EdgeConfig struct {
+	EdgeName     string
+	EdgeToken    string
+	NoviIp       string
+	ParentSystem string
+	HttpPort     string
+	MqttPort     string
+	MqttTlsPort  string
+	WsPort       string
+	WssPort      string
+	AuthPort     string
+	AuthWsPort   string
+	Lean         bool
+	Cache        bool
+	Stdout       *os.File
+	Stderr       *os.File
+}
+
+func CreateNewEdge(e EdgeConfig) (*os.Process, error) {
+	_, err := exec.LookPath("edge")
+	if err != nil {
+		println("edge not found in $PATH")
+		return nil, err
+	}
+	cmd := parseEdgeConfig(e)
+	return cmd.Process, cmd.Start()
+}
 
 func (u *UserClient) GetEdges(systemKey string) ([]interface{}, error) {
 	creds, err := u.credentials()
