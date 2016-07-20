@@ -105,26 +105,15 @@ func (d *DevClient) GetSyncResourcesForEdge(systemKey string) (map[string]interf
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) SyncResourceToEdge(systemKey, edgeName string, resources map[ResourceType][]string) (map[string]interface{}, error) {
+func (d *DevClient) SyncResourceToEdge(systemKey, edgeName string, add map[ResourceType][]string, remove map[ResourceType][]string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	changes := mapSyncChanges(resources)
-	resp, err := post(d, _EDGES_SYNC_MANAGEMENT+systemKey+"/"+edgeName, changes, creds, nil)
-	resp, err = mapResponse(resp, err)
-	if err != nil {
-		return nil, err
+	changes := map[string][]map[string]interface{}{
+		"add":    mapSyncChanges(add),
+		"remove": mapSyncChanges(remove),
 	}
-	return resp.Body.(map[string]interface{}), nil
-}
-
-func (d *DevClient) RemoveSyncResourceToEdge(systemKey, edgeName string, resources map[ResourceType][]string) (map[string]interface{}, error) {
-	creds, err := d.credentials()
-	if err != nil {
-		return nil, err
-	}
-	changes := mapSyncChanges(resources)
 	resp, err := put(d, _EDGES_SYNC_MANAGEMENT+systemKey+"/"+edgeName, changes, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
