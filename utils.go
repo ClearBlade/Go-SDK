@@ -78,6 +78,7 @@ type cbClient interface {
 	getMessageId() uint16
 	getHttpAddr() string
 	getMqttAddr() string
+	getEdgeProxy() *EdgeProxy
 }
 
 //UserClient is the type for users
@@ -91,6 +92,7 @@ type UserClient struct {
 	Password     string
 	HttpAddr     string
 	MqttAddr     string
+	edgeProxy    *EdgeProxy
 }
 
 type DeviceClient struct {
@@ -103,6 +105,7 @@ type DeviceClient struct {
 	SystemSecret string
 	HttpAddr     string
 	MqttAddr     string
+	edgeProxy    *EdgeProxy
 }
 
 //DevClient is the type for developers
@@ -114,6 +117,12 @@ type DevClient struct {
 	Password   string
 	HttpAddr   string
 	MqttAddr   string
+	edgeProxy  *EdgeProxy
+}
+
+type EdgeProxy struct {
+	SystemKey string
+	EdgeName  string
 }
 
 //CbReq is a wrapper around an HTTP request
@@ -147,6 +156,18 @@ func (u *UserClient) getMqttAddr() string {
 
 func (d *DevClient) getMqttAddr() string {
 	return d.MqttAddr
+}
+
+func (u *UserClient) getEdgeProxy() *EdgeProxy {
+	return u.edgeProxy
+}
+
+func (d *DevClient) getEdgeProxy() *EdgeProxy {
+	return d.edgeProxy
+}
+
+func (d *DeviceClient) getEdgeProxy() *EdgeProxy {
+	return d.edgeProxy
 }
 
 //NewUserClient allocates a new UserClient struct
@@ -239,6 +260,49 @@ func NewDevClientWithTokenAndAddrs(httpAddr, mqttAddr, token, email string) *Dev
 		HttpAddr:   httpAddr,
 		MqttAddr:   mqttAddr,
 	}
+}
+
+func (u *UserClient) ProxyToEdge(systemKey, edgeName string) error {
+	if systemKey == "" || edgeName == "" {
+		return fmt.Errorf("systemKey and edgeName required")
+	}
+	u.edgeProxy = &EdgeProxy{systemKey, edgeName}
+	return nil
+}
+func (u *UserClient) StopProxy() error {
+	if u.edgeProxy == nil {
+		return fmt.Errorf("Requests are not being proxied to edge")
+	}
+	u.edgeProxy = nil
+	return nil
+}
+func (d *DevClient) ProxyToEdge(systemKey, edgeName string) error {
+	if systemKey == "" || edgeName == "" {
+		return fmt.Errorf("systemKey and edgeName required")
+	}
+	d.edgeProxy = &EdgeProxy{systemKey, edgeName}
+	return nil
+}
+func (d *DevClient) StopProxy() error {
+	if d.edgeProxy == nil {
+		return fmt.Errorf("No edge proxy active")
+	}
+	d.edgeProxy = nil
+	return nil
+}
+func (d *DeviceClient) ProxyToEdge(systemKey, edgeName string) error {
+	if systemKey == "" || edgeName == "" {
+		return fmt.Errorf("systemKey and edgeName required")
+	}
+	d.edgeProxy = &EdgeProxy{systemKey, edgeName}
+	return nil
+}
+func (d *DeviceClient) StopProxy() error {
+	if d.edgeProxy == nil {
+		return fmt.Errorf("No edge proxy active")
+	}
+	d.edgeProxy = nil
+	return nil
 }
 
 //Authenticate retrieves a token from the specified Clearblade Platform
@@ -449,6 +513,7 @@ func logout(c cbClient) error {
 }
 
 func do(c cbClient, r *CbReq, creds [][]string) (*CbResp, error) {
+	checkForEdgeProxy(c, r)
 	var bodyToSend *bytes.Buffer
 	if r.Body != nil {
 		b, jsonErr := json.Marshal(r.Body)
@@ -578,4 +643,12 @@ func query_to_string(query map[string]string) string {
 		qryStr += k + "=" + v + "&"
 	}
 	return strings.TrimSuffix(qryStr, "&")
+}
+
+func checkForEdgeProxy(c cbClient, r *CbReq) {
+	edgeProxy := c.getEdgeProxy()
+	if edgeProxy != nil {
+		r.Headers["Clearblade-Systemkey"] = []string{edgeProxy.SystemKey}
+		r.Headers["Clearblade-Edge"] = []string{edgeProxy.EdgeName}
+	}
 }
