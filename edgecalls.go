@@ -110,6 +110,12 @@ func (d *DevClient) SyncResourceToEdge(systemKey, edgeName string, add map[Resou
 	if err != nil {
 		return nil, err
 	}
+	if add == nil {
+		add = map[ResourceType][]string{}
+	}
+	if remove == nil {
+		remove = map[ResourceType][]string{}
+	}
 	changes := map[string][]map[string]interface{}{
 		"add":    mapSyncChanges(add),
 		"remove": mapSyncChanges(remove),

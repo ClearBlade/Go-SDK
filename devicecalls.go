@@ -222,6 +222,62 @@ func (u *DeviceClient) UpdateDevice(systemKey, name string, data map[string]inte
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//  This stuff is developer only -- key sets for devices
+
+func (d *DevClient) GetKeyset(systemKey, name string, count int) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, _DEVICES_DEV_PREAMBLE+"keys/"+systemKey+"/"+name, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) GenerateKeyset(systemKey, name string, count int) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	data := map[string]interface{}{"count": count}
+	resp, err := post(d, _DEVICES_DEV_PREAMBLE+"keys/"+systemKey+"/"+name, data, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) RotateKeyset(systemKey, name string, count int) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	data := map[string]interface{}{}
+	resp, err := put(d, _DEVICES_DEV_PREAMBLE+"keys/"+systemKey+"/"+name, data, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) DeleteKeyset(systemKey, name string, count int) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := delete(d, _DEVICES_DEV_PREAMBLE+"keys/"+systemKey+"/"+name, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 func (dvc *DeviceClient) credentials() ([][]string, error) {
