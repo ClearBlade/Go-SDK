@@ -10,6 +10,8 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"os"
+	"os/exec"
 	"strings"
 	"time"
 )
@@ -651,4 +653,52 @@ func checkForEdgeProxy(c cbClient, r *CbReq) {
 		r.Headers["Clearblade-Systemkey"] = []string{edgeProxy.SystemKey}
 		r.Headers["Clearblade-Edge"] = []string{edgeProxy.EdgeName}
 	}
+}
+
+func parseEdgeConfig(e EdgeConfig) *exec.Cmd {
+	cmd := exec.Command("edge",
+		"-edge-ip=localhost",
+		"-edge-id="+e.EdgeName,
+		"-edge-cookie="+e.EdgeToken,
+		"-novi-ip="+e.NoviIp,
+		"-parent-system="+e.ParentSystem,
+	)
+	if p := e.HttpPort; p != "" {
+		cmd.Args = append(cmd.Args, "-edge-listen-port="+p)
+	}
+	if p := e.MqttPort; p != "" {
+		cmd.Args = append(cmd.Args, "-broker-tcp-port="+p)
+	}
+	if p := e.MqttTlsPort; p != "" {
+		cmd.Args = append(cmd.Args, "-broker-tls-port="+p)
+	}
+	if p := e.WsPort; p != "" {
+		cmd.Args = append(cmd.Args, "-broker-ws-port="+p)
+	}
+	if p := e.WssPort; p != "" {
+		cmd.Args = append(cmd.Args, "-broker-wss-port="+p)
+	}
+	if p := e.AuthPort; p != "" {
+		cmd.Args = append(cmd.Args, "-mqtt-auth-port="+p)
+	}
+	if p := e.AuthWsPort; p != "" {
+		cmd.Args = append(cmd.Args, "-mqtt-ws-auth-port="+p)
+	}
+	if e.Lean {
+		cmd.Args = append(cmd.Args, "-lean-mode")
+	}
+	if e.Cache {
+		cmd.Args = append(cmd.Args, "-local")
+	}
+	if s := e.Stdout; s != nil {
+		cmd.Stdout = s
+	} else {
+		cmd.Stdout = os.Stdout
+	}
+	if s := e.Stderr; s != nil {
+		cmd.Stderr = s
+	} else {
+		cmd.Stderr = os.Stderr
+	}
+	return cmd
 }
