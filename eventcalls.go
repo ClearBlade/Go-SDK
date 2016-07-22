@@ -134,7 +134,7 @@ func mapResponse(resp *CbResp, err error) (*CbResp, error) {
 	return resp, nil
 }
 
-func mapSyncChanges(resources map[ResourceType][]string) []map[string]interface{} {
+func mapSyncChanges(resources map[string][]string) []map[string]interface{} {
 	changes := []map[string]interface{}{}
 	for r, a := range resources {
 		for _, n := range a {
