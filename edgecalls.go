@@ -115,12 +115,10 @@ func (d *DevClient) UpdateEdge(systemKey, name string, data map[string]interface
 	return resp.Body.(map[string]interface{}), nil
 }
 
-type ResourceType string
-
 const (
-	ServiceSync ResourceType = "service"
-	LibrarySync ResourceType = "library"
-	TriggerSync ResourceType = "trigger"
+	ServiceSync = "service"
+	LibrarySync = "library"
+	TriggerSync = "trigger"
 )
 
 func (d *DevClient) GetSyncResourcesForEdge(systemKey string) (map[string]interface{}, error) {
@@ -136,16 +134,16 @@ func (d *DevClient) GetSyncResourcesForEdge(systemKey string) (map[string]interf
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) SyncResourceToEdge(systemKey, edgeName string, add map[ResourceType][]string, remove map[ResourceType][]string) (map[string]interface{}, error) {
+func (d *DevClient) SyncResourceToEdge(systemKey, edgeName string, add map[string][]string, remove map[string][]string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
 	if add == nil {
-		add = map[ResourceType][]string{}
+		add = map[string][]string{}
 	}
 	if remove == nil {
-		remove = map[ResourceType][]string{}
+		remove = map[string][]string{}
 	}
 	changes := map[string][]map[string]interface{}{
 		"add":    mapSyncChanges(add),
