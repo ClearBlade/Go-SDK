@@ -264,28 +264,28 @@ func NewDevClientWithTokenAndAddrs(httpAddr, mqttAddr, token, email string) *Dev
 	}
 }
 
-func (u *UserClient) ProxyToEdge(systemKey, edgeName string) error {
+func (u *UserClient) StartProxyToEdge(systemKey, edgeName string) error {
 	if systemKey == "" || edgeName == "" {
 		return fmt.Errorf("systemKey and edgeName required")
 	}
 	u.edgeProxy = &EdgeProxy{systemKey, edgeName}
 	return nil
 }
-func (u *UserClient) StopProxy() error {
+func (u *UserClient) StopProxyToEdge() error {
 	if u.edgeProxy == nil {
 		return fmt.Errorf("Requests are not being proxied to edge")
 	}
 	u.edgeProxy = nil
 	return nil
 }
-func (d *DevClient) ProxyToEdge(systemKey, edgeName string) error {
+func (d *DevClient) StartProxyToEdge(systemKey, edgeName string) error {
 	if systemKey == "" || edgeName == "" {
 		return fmt.Errorf("systemKey and edgeName required")
 	}
 	d.edgeProxy = &EdgeProxy{systemKey, edgeName}
 	return nil
 }
-func (d *DevClient) StopProxy() error {
+func (d *DevClient) StopProxyToEdge() error {
 	if d.edgeProxy == nil {
 		return fmt.Errorf("No edge proxy active")
 	}
@@ -649,6 +649,9 @@ func query_to_string(query map[string]string) string {
 
 func checkForEdgeProxy(c cbClient, r *CbReq) {
 	edgeProxy := c.getEdgeProxy()
+	if r.Headers == nil {
+		r.Headers = map[string][]string{}
+	}
 	if edgeProxy != nil {
 		r.Headers["Clearblade-Systemkey"] = []string{edgeProxy.SystemKey}
 		r.Headers["Clearblade-Edge"] = []string{edgeProxy.EdgeName}
