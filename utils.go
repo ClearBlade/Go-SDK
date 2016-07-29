@@ -285,42 +285,64 @@ func NewDevClientWithTokenAndAddrs(httpAddr, mqttAddr, token, email string) *Dev
 	}
 }
 
-func (u *UserClient) StartProxyToEdge(systemKey, edgeName string) error {
+func NewEdgeProxyDevClient(email, password, systemKey, edgeName string) (*DevClient, error) {
+	d := NewDevClient(email, password)
+	if err := d.startProxyToEdge(systemKey, edgeName); err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+func NewEdgeProxyUserClient(email, password, systemKey, systemSecret, edgeName string) (*UserClient, error) {
+	u := NewUserClient(systemKey, systemSecret, email, password)
+	if err := u.startProxyToEdge(systemKey, edgeName); err != nil {
+		return nil, err
+	}
+	return u, nil
+}
+func NewEdgeProxyDeviceClient(systemkey, systemsecret, deviceName, activeKey, edgeName string) (*DeviceClient, error) {
+	d := NewDeviceClient(systemkey, systemsecret, deviceName, activeKey)
+	if err := d.startProxyToEdge(systemkey, edgeName); err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+
+func (u *UserClient) startProxyToEdge(systemKey, edgeName string) error {
 	if systemKey == "" || edgeName == "" {
 		return fmt.Errorf("systemKey and edgeName required")
 	}
 	u.edgeProxy = &EdgeProxy{systemKey, edgeName}
 	return nil
 }
-func (u *UserClient) StopProxyToEdge() error {
+func (u *UserClient) stopProxyToEdge() error {
 	if u.edgeProxy == nil {
 		return fmt.Errorf("Requests are not being proxied to edge")
 	}
 	u.edgeProxy = nil
 	return nil
 }
-func (d *DevClient) StartProxyToEdge(systemKey, edgeName string) error {
+func (d *DevClient) startProxyToEdge(systemKey, edgeName string) error {
 	if systemKey == "" || edgeName == "" {
 		return fmt.Errorf("systemKey and edgeName required")
 	}
 	d.edgeProxy = &EdgeProxy{systemKey, edgeName}
 	return nil
 }
-func (d *DevClient) StopProxyToEdge() error {
+func (d *DevClient) stopProxyToEdge() error {
 	if d.edgeProxy == nil {
 		return fmt.Errorf("No edge proxy active")
 	}
 	d.edgeProxy = nil
 	return nil
 }
-func (d *DeviceClient) ProxyToEdge(systemKey, edgeName string) error {
+func (d *DeviceClient) startProxyToEdge(systemKey, edgeName string) error {
 	if systemKey == "" || edgeName == "" {
 		return fmt.Errorf("systemKey and edgeName required")
 	}
 	d.edgeProxy = &EdgeProxy{systemKey, edgeName}
 	return nil
 }
-func (d *DeviceClient) StopProxy() error {
+func (d *DeviceClient) stopProxyToEdge() error {
 	if d.edgeProxy == nil {
 		return fmt.Errorf("No edge proxy active")
 	}
