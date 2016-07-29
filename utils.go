@@ -67,27 +67,6 @@ type Client interface {
 	CreateDevice(string, string, map[string]interface{}) (map[string]interface{}, error)
 	UpdateDevice(string, string, map[string]interface{}) (map[string]interface{}, error)
 	DeleteDevice(string, string) error
-
-	// Edge calls
-	GetEdges(string) ([]interface{}, error)
-	GetEdge(string, string) (map[string]interface{}, error)
-	CreateEdge(string, string, map[string]interface{}) (map[string]interface{}, error)
-	UpdateEdge(string, string, map[string]interface{}) (map[string]interface{}, error)
-	DeleteEdge(string, string) error
-
-	// Dashboard calls
-	GetDashboards(string) ([]interface{}, error)
-	GetDashboard(string, string) (map[string]interface{}, error)
-	CreateDashboard(string, string, map[string]interface{}) (map[string]interface{}, error)
-	UpdateDashboard(string, string, map[string]interface{}) (map[string]interface{}, error)
-	DeleteDashboard(string, string) error
-
-	// Plugin calls
-	GetPlugins(string) ([]interface{}, error)
-	GetPlugin(string, string) (map[string]interface{}, error)
-	CreatePlugin(string, string, map[string]interface{}) (map[string]interface{}, error)
-	UpdatePlugin(string, string, map[string]interface{}) (map[string]interface{}, error)
-	DeletePlugin(string, string) error
 }
 
 //cbClient will supply various information that differs between privleged and unprivleged users
