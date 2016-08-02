@@ -1,8 +1,8 @@
 package GoSDK
 
 const (
-	_DASHBOARDS_DEV_PREAMBLE  = "/admin/dashboards/"
-	_DASHBOARDS_USER_PREAMBLE = "/api/v/2/dashboards/"
+	_DASHBOARDS_DEV_PREAMBLE  = "/admin/portals/"
+	_DASHBOARDS_USER_PREAMBLE = "/api/v/2/portals/"
 )
 
 func (d *DevClient) GetDashboards(systemKey string) ([]interface{}, error) {
@@ -71,5 +71,3 @@ func (d *DevClient) DeleteDashboard(systemKey, name string) (map[string]interfac
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
-
-
