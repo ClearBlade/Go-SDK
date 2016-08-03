@@ -121,30 +121,30 @@ func (d *DevClient) SetServiceEffectiveUser(systemKey, name, userid string) erro
 }
 
 //UpdateService facillitates changes to the service's code
-func (d *DevClient) UpdateService(systemKey, name, code string, params []string) (error, float64) {
+func (d *DevClient) UpdateService(systemKey, name, code string, params []string) (error, map[string]interface{}) {
 	extra := map[string]interface{}{"code": code, "name": name, "parameters": params}
 	return d.updateService(systemKey, name, code, extra)
 }
 
-func (d *DevClient) UpdateServiceWithLibraries(systemKey, name, code, deps string, params []string) (error, float64) {
+func (d *DevClient) UpdateServiceWithLibraries(systemKey, name, code, deps string, params []string) (error, map[string]interface{}) {
 	extra := map[string]interface{}{"code": code, "name": name, "parameters": params, "dependencies": deps}
 	return d.updateService(systemKey, name, code, extra)
 }
 
-func (d *DevClient) updateService(sysKey, name, code string, extra map[string]interface{}) (error, float64) {
+func (d *DevClient) updateService(sysKey, name, code string, extra map[string]interface{}) (error, map[string]interface{}) {
 	creds, err := d.credentials()
 	if err != nil {
-		return err, -1
+		return err, nil
 	}
 	resp, err := put(d, _CODE_ADMIN_PREAMBLE+"/"+sysKey+"/"+name, extra, creds, nil)
 	body := resp.Body.(map[string]interface{})
 	if err != nil {
-		return fmt.Errorf("Error updating service: %v\n", err), -1
+		return fmt.Errorf("Error updating service: %v\n", err), nil
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error updating service: %v\n", resp.Body), -1
+		return fmt.Errorf("Error updating service: %v\n", resp.Body), nil
 	}
-	return nil, body["version_number"].(float64)
+	return nil, body
 }
 
 //NewServiceWithLibraries creates a new service with the specified code, params, and libraries/dependencies.
