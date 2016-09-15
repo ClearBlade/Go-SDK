@@ -27,7 +27,8 @@ var (
 )
 
 var tr = &http.Transport{
-	TLSClientConfig: &tls.Config{InsecureSkipVerify: false},
+	// TLSClientConfig: &tls.Config{InsecureSkipVerify: false},
+	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 }
 
 const (
@@ -676,7 +677,7 @@ func put(c cbClient, endpoint string, body interface{}, heads [][]string, header
 	return do(c, req, heads)
 }
 
-func delete(c cbClient, endpoint string, query map[string]string, heds [][]string, headers map[string][]string) (*CbResp, error) {
+func delete(c cbClient, endpoint string, query map[string]string, heads [][]string, headers map[string][]string) (*CbResp, error) {
 	req := &CbReq{
 		Body:        nil,
 		Method:      "DELETE",
@@ -684,7 +685,18 @@ func delete(c cbClient, endpoint string, query map[string]string, heds [][]strin
 		Headers:     headers,
 		QueryString: query_to_string(query),
 	}
-	return do(c, req, heds)
+	return do(c, req, heads)
+}
+
+func deleteWithBody(c cbClient, endpoint string, body interface{}, heads [][]string, headers map[string][]string) (*CbResp, error) {
+	req := &CbReq{
+		Body:        body,
+		Method:      "DELETE",
+		Endpoint:    endpoint,
+		Headers:     headers,
+		QueryString: "",
+	}
+	return do(c, req, heads)
 }
 
 func query_to_string(query map[string]string) string {

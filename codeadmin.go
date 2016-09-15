@@ -263,6 +263,57 @@ func (d *DevClient) DeleteService(systemKey, name string) error {
 	return nil
 }
 
+func (d *DevClient) GetFailedServices(systemKey string) ([]map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, "/codeadmin/failed/"+systemKey, nil, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Could not get failed services: %s", err)
+	}
+	body := resp.Body.(map[string]interface{})[systemKey].([]interface{})
+	services := make([]map[string]interface{}, len(body))
+	for i, b := range body {
+		services[i] = b.(map[string]interface{})
+	}
+	return services, nil
+}
+
+func (d *DevClient) RetryFailedServices(systemKey string, ids []string) ([]string, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := post(d, "/codeadmin/failed/"+systemKey, map[string]interface{}{"id": ids}, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Could not retry failed service %s/%s: %s", systemKey, ids, err)
+	}
+	body := resp.Body.([]interface{})
+	responses := make([]string, len(body))
+	for i, b := range body {
+		responses[i] = b.(string)
+	}
+	return responses, nil
+}
+
+func (d *DevClient) DeleteFailedServices(systemKey string, ids []string) ([]map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := deleteWithBody(d, "/codeadmin/failed/"+systemKey, map[string]interface{}{"id": ids}, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Could not delete failed services %s/%s: %s", systemKey, ids, err)
+	}
+	body := resp.Body.([]interface{})
+	services := make([]map[string]interface{}, len(body))
+	for i, b := range body {
+		services[i] = b.(map[string]interface{})
+	}
+	return services, nil
+}
+
 func genCodeLog(m map[string]interface{}) CodeLog {
 	cl := CodeLog{}
 	if tim, ext := m["service_execution_time"]; ext {
