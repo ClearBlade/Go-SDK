@@ -9,6 +9,28 @@ package GoSDK
 type connectCollection interface {
 	toMap() map[string]interface{}
 	tableName() string
+	name() string
+}
+
+//MySqlConfig houses configuration information for an MySql-backed collection
+type MySqlConfig struct {
+	Name, User, Password, Host, Port, DBName, Tablename string
+}
+
+func (my MySqlConfig) tableName() string { return my.Tablename }
+func (my MySqlConfig) name() string      { return my.Name }
+
+func (my MySqlConfig) toMap() map[string]interface{} {
+	m := make(map[string]interface{})
+	m["name"] = my.Name
+	m["user"] = my.User
+	m["password"] = my.Password
+	m["address"] = my.Host
+	m["port"] = my.Port
+	m["dbname"] = my.DBName
+	m["tablename"] = my.Tablename
+	m["dbtype"] = "mysql"
+	return m
 }
 
 //MSSqlConfig houses configuration information for an MSSql-backed collection
@@ -17,6 +39,7 @@ type MSSqlConfig struct {
 }
 
 func (ms MSSqlConfig) tableName() string { return ms.Tablename }
+func (ms MSSqlConfig) name() string      { return ms.Tablename }
 
 func (ms MSSqlConfig) toMap() map[string]interface{} {
 	m := make(map[string]interface{})
@@ -48,3 +71,4 @@ func (pg PostgresqlConfig) toMap() map[string]interface{} {
 }
 
 func (pg PostgresqlConfig) tableName() string { return pg.Tablename }
+func (pg PostgresqlConfig) name() string      { return pg.Tablename }

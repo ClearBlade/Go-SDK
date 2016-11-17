@@ -179,7 +179,7 @@ func (d *DevClient) NewConnectCollection(systemkey string, connectConfig connect
 	creds, err := d.credentials()
 	m := connectConfig.toMap()
 	m["appID"] = systemkey
-	m["name"] = connectConfig.tableName()
+	m["name"] = connectConfig.name()
 	if err != nil {
 		return "", err
 	}
@@ -199,7 +199,7 @@ func (d *DevClient) AlterConnectionDetails(systemkey string, connectConfig conne
 	out := make(map[string]interface{})
 	m := connectConfig.toMap()
 	out["appID"] = systemkey
-	out["name"] = connectConfig.tableName()
+	out["name"] = connectConfig.name()
 	out["connectionStringMap"] = m
 	resp, err := put(d, d.preamble()+"/collectionmanagement", out, creds, nil)
 	if err != nil {
@@ -573,6 +573,34 @@ func (d *DevClient) AddCollectionToRole(systemKey, collection_id, role_id string
 			},
 			"topics":   []map[string]interface{}{},
 			"services": []map[string]interface{}{},
+		},
+	}
+	resp, err := put(d, d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating a role to have a collection: %v", resp.Body)
+	}
+	return nil
+}
+
+func (d *DevClient) AddPortalToRole(systemKey, collection_id, role_id string, level int) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{
+		"id": role_id,
+		"changes": map[string]interface{}{
+			"portals": []map[string]interface{}{
+				map[string]interface{}{
+					"itemInfo": map[string]interface{}{
+						"id": collection_id,
+					},
+					"permissions": level,
+				},
+			},
 		},
 	}
 	resp, err := put(d, d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
