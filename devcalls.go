@@ -290,7 +290,7 @@ func (d *DevClient) DeleteColumn(collection_id, column_name string) error {
 }
 
 //GetCollectionInfo retrieves some describing information on the specified collection
-//Keys "name","collectoinID","appID"
+//Keys "name","collectoinID","appID", and much, much more!
 func (d *DevClient) GetCollectionInfo(collection_id string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {

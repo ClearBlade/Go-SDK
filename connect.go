@@ -1,5 +1,9 @@
 package GoSDK
 
+import (
+	"fmt"
+)
+
 //This file provides the interface for establishing connect collections
 //that is to say, collections that are interfaced with non-platform databases
 //they have to be treated a little bit differently, because a lot of configuration information
@@ -35,7 +39,7 @@ func (my MySqlConfig) toMap() map[string]interface{} {
 
 //MSSqlConfig houses configuration information for an MSSql-backed collection
 type MSSqlConfig struct {
-	User, Password, Host, Port, DBName, Tablename string
+	Name, User, Password, Host, Port, DBName, Tablename string
 }
 
 func (ms MSSqlConfig) tableName() string { return ms.Tablename }
@@ -50,12 +54,13 @@ func (ms MSSqlConfig) toMap() map[string]interface{} {
 	m["dbname"] = ms.DBName
 	m["tablename"] = ms.Tablename
 	m["dbtype"] = "mssql"
+	m["name"] = ms.Name
 	return m
 }
 
 //PostgresqlConfig houses configuration information for an Postgresql-backed collection
 type PostgresqlConfig struct {
-	User, Password, Host, Port, DBName, Tablename string
+	Name, User, Password, Host, Port, DBName, Tablename string
 }
 
 func (pg PostgresqlConfig) toMap() map[string]interface{} {
@@ -67,8 +72,50 @@ func (pg PostgresqlConfig) toMap() map[string]interface{} {
 	m["dbname"] = pg.DBName
 	m["tablename"] = pg.Tablename
 	m["dbtype"] = "postgres"
+	m["name"] = pg.Name
 	return m
 }
 
 func (pg PostgresqlConfig) tableName() string { return pg.Tablename }
 func (pg PostgresqlConfig) name() string      { return pg.Tablename }
+
+func GenerateConnectCollection(co map[string]interface{}) (connectCollection, error) {
+	dbtype, ok := co["dbtype"].(string)
+	if !ok {
+		return nil, fmt.Errorf("generateConnectCollection: dbtype field missing or is not a string")
+	}
+	switch dbtype {
+	case "mysql":
+		return &MySqlConfig{
+			User:      co["user"].(string),
+			Password:  co["password"].(string),
+			Host:      co["address"].(string),
+			Port:      co["port"].(string),
+			DBName:    co["dbname"].(string),
+			Tablename: co["tablename"].(string),
+			Name:      co["name"].(string),
+		}, nil
+	case "mssql":
+		return &MSSqlConfig{
+			User:      co["user"].(string),
+			Password:  co["password"].(string),
+			Host:      co["address"].(string),
+			Port:      co["port"].(string),
+			DBName:    co["dbname"].(string),
+			Tablename: co["tablename"].(string),
+			Name:      co["name"].(string),
+		}, nil
+	case "postgresql":
+		return &PostgresqlConfig{
+			User:      co["user"].(string),
+			Password:  co["password"].(string),
+			Host:      co["address"].(string),
+			Port:      co["port"].(string),
+			DBName:    co["dbname"].(string),
+			Tablename: co["tablename"].(string),
+			Name:      co["name"].(string),
+		}, nil
+	default:
+		return nil, fmt.Errorf("generateConnectCollection: Unknown connect database type: '%s'\n", dbtype)
+	}
+}
