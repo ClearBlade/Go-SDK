@@ -374,21 +374,50 @@ func (d *DevClient) CreateRole(systemKey, role_id string) (interface{}, error) {
 }
 
 func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]interface{}) error {
+	fmt.Printf("UpdateRole: %+v\n", role)
 	data := map[string]interface{}{
-		"name":        role["Name"],
-		"collections": []map[string]interface{}{},
-		"topics":      []map[string]interface{}{},
-		"services":    []map[string]interface{}{},
+		"name": roleName,
+		"changes": map[string]interface{}{
+			"collections": []map[string]interface{}{},
+			"topics":      []map[string]interface{}{},
+			"services":    []map[string]interface{}{},
+			"portals":     []map[string]interface{}{},
+		},
 	}
-	if collections, ok := role["Collections"]; ok {
-		data["collections"] = collections
+	changes := data["changes"].(map[string]interface{})
+
+	if roleId, ok := role["ID"].(string); ok {
+		data["id"] = roleId
+	} else {
+		return fmt.Errorf("The role id key (ID) must be present to update the role")
 	}
-	if topics, ok := role["Topics"]; ok {
-		data["topics"] = topics
+	permissions, ok := role["Permissions"].(map[string]interface{})
+	if !ok {
+		permissions = map[string]interface{}{}
 	}
-	if services, ok := role["Services"]; ok {
-		data["services"] = services
+	if collections, ok := permissions["collections"]; ok {
+		changes["collections"] = collections
 	}
+	if topics, ok := permissions["topics"]; ok {
+		changes["topics"] = topics
+	}
+	if services, ok := permissions["services"]; ok {
+		changes["services"] = services
+	}
+	if portals, ok := permissions["portals"]; ok {
+		changes["portals"] = portals
+	}
+	if msgHist, ok := permissions["msgHistory"]; ok {
+		changes["msgHistory"] = msgHist
+	}
+	if deviceList, ok := permissions["devices"]; ok {
+		changes["devices"] = deviceList
+	}
+	if userList, ok := permissions["users"]; ok {
+		changes["users"] = userList
+	}
+	// Just to be safe, this is silly
+	data["changes"] = changes
 	creds, err := d.credentials()
 	if err != nil {
 		return err
