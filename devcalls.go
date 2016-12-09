@@ -550,7 +550,6 @@ func (d *DevClient) AddDeviceToRoles(systemKey, deviceName string, roles []strin
 		return err
 	}
 	data := map[string]interface{}{"add": roles}
-	fmt.Printf("GO SDK DEVICE ROLES\n")
 	resp, err := put(d, d.preamble()+"/devices/roles/"+systemKey+"/"+deviceName, data, creds, nil)
 	if err != nil {
 		return err
@@ -600,8 +599,6 @@ func (d *DevClient) AddCollectionToRole(systemKey, collection_id, role_id string
 					"permissions": level,
 				},
 			},
-			"topics":   []map[string]interface{}{},
-			"services": []map[string]interface{}{},
 		},
 	}
 	resp, err := put(d, d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
@@ -614,18 +611,18 @@ func (d *DevClient) AddCollectionToRole(systemKey, collection_id, role_id string
 	return nil
 }
 
-func (d *DevClient) AddPortalToRole(systemKey, collection_id, role_id string, level int) error {
+func (d *DevClient) AddPortalToRole(systemKey, portalName, roleId string, level int) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
 	data := map[string]interface{}{
-		"id": role_id,
+		"id": roleId,
 		"changes": map[string]interface{}{
 			"portals": []map[string]interface{}{
 				map[string]interface{}{
 					"itemInfo": map[string]interface{}{
-						"id": collection_id,
+						"name": portalName,
 					},
 					"permissions": level,
 				},
@@ -637,19 +634,19 @@ func (d *DevClient) AddPortalToRole(systemKey, collection_id, role_id string, le
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error updating a role to have a collection: %v", resp.Body)
+		return fmt.Errorf("Error updating a role to have a portal: %v", resp.Body)
 	}
 	return nil
 }
 
 //AddServiceToRole associates some kind of permission dealing with the specified service to the role
-func (d *DevClient) AddServiceToRole(systemKey, service, role_id string, level int) error {
+func (d *DevClient) AddServiceToRole(systemKey, service, roleId string, level int) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
 	data := map[string]interface{}{
-		"id": role_id,
+		"id": roleId,
 		"changes": map[string]interface{}{
 			"services": []map[string]interface{}{
 				map[string]interface{}{
@@ -659,8 +656,6 @@ func (d *DevClient) AddServiceToRole(systemKey, service, role_id string, level i
 					"permissions": level,
 				},
 			},
-			"topics":      []map[string]interface{}{},
-			"collections": []map[string]interface{}{},
 		},
 	}
 	resp, err := put(d, d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
@@ -673,19 +668,15 @@ func (d *DevClient) AddServiceToRole(systemKey, service, role_id string, level i
 	return nil
 }
 
-func (d *DevClient) AddGenericPermissionToRole(systemKey, role_id, permission string, level int) error {
+func (d *DevClient) AddGenericPermissionToRole(systemKey, roleId, permission string, level int) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
 
 	data := map[string]interface{}{
-		"id": role_id,
-		"changes": map[string]interface{}{
-			"services":    []map[string]interface{}{},
-			"topics":      []map[string]interface{}{},
-			"collections": []map[string]interface{}{},
-		},
+		"id":      roleId,
+		"changes": map[string]interface{}{},
 	}
 
 	data["changes"].(map[string]interface{})[permission] = map[string]interface{}{
