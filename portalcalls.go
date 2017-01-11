@@ -1,7 +1,5 @@
 package GoSDK
 
-import "fmt"
-
 const (
 	_PORTALS_DEV_PREAMBLE  = "/admin/portals/"
 	_PORTALS_USER_PREAMBLE = "/api/v/2/portals/"
