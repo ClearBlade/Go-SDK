@@ -1,5 +1,7 @@
 package GoSDK
 
+import "fmt"
+
 const (
 	_PORTALS_DEV_PREAMBLE  = "/admin/portals/"
 	_PORTALS_USER_PREAMBLE = "/api/v/2/portals/"
@@ -59,15 +61,15 @@ func (d *DevClient) UpdatePortal(systemKey, name string, dash map[string]interfa
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) DeletePortal(systemKey, name string) (map[string]interface{}, error) {
+func (d *DevClient) DeletePortal(systemKey, name string) error {
 	creds, err := d.credentials()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	resp, err := delete(d, _PORTALS_USER_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.Body.(map[string]interface{}), nil
+	return nil
 }
