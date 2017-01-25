@@ -156,3 +156,40 @@ func (d *DevClient) SyncResourceToEdge(systemKey, edgeName string, add map[strin
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
+
+func (d *DevClient) CreateEdgeColumn(systemKey, colName, colType string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{
+		"column_name": colName,
+		"type":        colType,
+	}
+	resp, err := post(d, _EDGES_PREAMBLE+systemKey+"/columns", data, creds, nil)
+	_, err = mapResponse(resp, err)
+	return err
+}
+
+func (d *DevClient) DeleteEdgeColumn(systemKey, colName string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(d, _EDGES_PREAMBLE+systemKey+"/columns", map[string]string{"column": colName}, creds, nil)
+	_, err = mapResponse(resp, err)
+	return err
+}
+
+func (d *DevClient) GetEdgeColumns(systemKey string) ([]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, _EDGES_PREAMBLE+systemKey+"/columns", nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.([]interface{}), nil
+}
