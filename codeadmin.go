@@ -137,7 +137,10 @@ func (d *DevClient) updateService(sysKey, name, code string, extra map[string]in
 		return err, nil
 	}
 	resp, err := put(d, _CODE_ADMIN_PREAMBLE+"/"+sysKey+"/"+name, extra, creds, nil)
-	body := resp.Body.(map[string]interface{})
+	body, ok := resp.Body.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("Service not created. First create service..."), nil
+	}
 	if err != nil {
 		return fmt.Errorf("Error updating service: %v\n", err), nil
 	}
