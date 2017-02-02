@@ -86,8 +86,7 @@ func (u *UserClient) CreateEventHandler(systemKey, name string,
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, data, creds, nil)
-	resp, err = mapResponse(resp, err)
+	resp, err := mapResponse(post(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, data, creds, nil))
 	if err != nil {
 		return nil, err
 	}
@@ -100,8 +99,7 @@ func (u *UserClient) DeleteEventHandler(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := delete(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, nil, creds, nil)
-	_, err = mapResponse(resp, err)
+	_, err = mapResponse(delete(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, nil, creds, nil))
 	return err
 }
 
@@ -110,8 +108,7 @@ func (u *UserClient) UpdateEventHandler(systemKey, name string, data map[string]
 	if err != nil {
 		return nil, err
 	}
-	resp, err := put(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, data, creds, nil)
-	resp, err = mapResponse(resp, err)
+	resp, err := (put(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, data, creds, nil))
 	if err != nil {
 		return nil, err
 	}
@@ -123,8 +120,7 @@ func (u *UserClient) GetEventHandler(systemKey, name string) (map[string]interfa
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, nil, creds, nil)
-	resp, err = mapResponse(resp, err)
+	resp, err := mapResponse(get(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, nil, creds, nil))
 	if err != nil {
 		return nil, err
 	}
@@ -137,8 +133,7 @@ func (u *UserClient) GetTimer(systemKey, name string) (map[string]interface{}, e
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/timer/"+name, nil, creds, nil)
-	resp, err = mapResponse(resp, err)
+	resp, err := mapResponse(get(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/timer/"+name, nil, creds, nil))
 	if err != nil {
 		return nil, err
 	}
@@ -153,8 +148,7 @@ func (u *UserClient) CreateTimer(systemKey, name string,
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/timer/"+name, data, creds, nil)
-	resp, err = mapResponse(resp, err)
+	resp, err := mapResponse(post(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/timer/"+name, data, creds, nil))
 	if err != nil {
 		return nil, err
 	}
@@ -167,8 +161,7 @@ func (u *UserClient) DeleteTimer(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := delete(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/timer/"+name, nil, creds, nil)
-	_, err = mapResponse(resp, err)
+	_, err = mapResponse(delete(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/timer/"+name, nil, creds, nil))
 	return err
 }
 
@@ -179,8 +172,7 @@ func (u *UserClient) UpdateTimer(systemKey, name string, data map[string]interfa
 	if err != nil {
 		return nil, err
 	}
-	resp, err := put(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/timer/"+name, data, creds, nil)
-	resp, err = mapResponse(resp, err)
+	resp, err := mapResponse(put(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/timer/"+name, data, creds, nil))
 	if err != nil {
 		return nil, err
 	}
