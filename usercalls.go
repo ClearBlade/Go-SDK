@@ -77,7 +77,7 @@ func (d *DevClient) GetUserColumns(systemKey string) ([]interface{}, error) {
 }
 
 //CreateUserColumn creates a new column in the user table
-func (d *DevClient) CreateUserColumn(systemKey, columnName, columnType string) error {
+func (d *DevClient) CreateUserColumn(systemKey, columnName string, columnType string) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
