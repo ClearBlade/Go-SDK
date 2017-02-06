@@ -416,13 +416,15 @@ func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]inter
 	if userList, ok := permissions["users"]; ok {
 		changes["users"] = userList
 	}
+	if system_services, ok := permissions["system_services"]; ok {
+		changes["system_services"] = system_services
+	}
 	// Just to be safe, this is silly
 	data["changes"] = changes
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
-	// resp, err := post(d, d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
 	resp, err := put(d, d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
 	if err != nil {
 		return err
