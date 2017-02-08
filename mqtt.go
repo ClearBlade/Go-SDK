@@ -193,6 +193,8 @@ func publish(c *mqcli.Client, topic string, data []byte, qos int, mid uint16) er
 func subscribe(c *mqcli.Client, topic string, qos int) (<-chan *mqtt.Publish, error) {
 	if c == nil {
 		return nil, errors.New("MQTTClient is uninitialized")
+	} else if c.C == nil {
+		return nil, errors.New("Must successfully call ConnectMQTT first")
 	}
 	return mqcli.SubscribeFlow(c, topic, qos)
 }
