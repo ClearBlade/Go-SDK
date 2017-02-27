@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	_CODE_PREAMBLE = "/api/v/1/code"
+	_CODE_PREAMBLE      = "/api/v/1/code"
 	_CODE_USER_PREAMBLE = "/api/v/3/code"
 )
 
@@ -67,12 +67,12 @@ func updateService(c cbClient, sysKey, name, code string, extra map[string]inter
 		return err, nil
 	}
 	resp, err := put(c, _CODE_USER_PREAMBLE+"/"+sysKey+"/service/"+name, extra, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error updating service: %v\n", err), nil
+	}
 	body, ok := resp.Body.(map[string]interface{})
 	if !ok {
 		return fmt.Errorf("Service not created. First create service..."), nil
-	}
-	if err != nil {
-		return fmt.Errorf("Error updating service: %v\n", err), nil
 	}
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("Error updating service: %v\n", resp.Body), nil
@@ -126,7 +126,6 @@ func (u *UserClient) GetEventHandler(systemKey, name string) (map[string]interfa
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
-
 
 func (u *UserClient) GetTimer(systemKey, name string) (map[string]interface{}, error) {
 	creds, err := u.credentials()
