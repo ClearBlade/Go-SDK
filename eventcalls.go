@@ -225,12 +225,53 @@ func (d *DevClient) UpdateTimer(systemKey, name string, data map[string]interfac
 
 //MessageHistory allows the developer to retrieve the message history
 //Returns a slice of []map[string]interface{}{map[string]interface{}{"topicid":"/topic/path", "ip":"127.0.0.1", "time":123141244, "payloadsize":12,"payload":"hello world\n","userid":"8675309","qos":0 }}
-func (d *DevClient) MessageHistory(systemKey string) (interface{}, error) {
+func (d *DevClient) MessageHistory(systemKey string, data map[string]string) (interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(d, _MH_PREAMBLE+systemKey, nil, creds, nil)
+	resp, err := get(d, _MH_PREAMBLE+systemKey, data, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+//MessageHistory allows the user to retrieve the message history
+//Returns a slice of []map[string]interface{}{map[string]interface{}{"topicid":"/topic/path", "ip":"127.0.0.1", "time":123141244, "payloadsize":12,"payload":"hello world\n","userid":"8675309","qos":0 }}
+func (u *UserClient) MessageHistory(systemKey string, data map[string]string) (interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(u, _MH_PREAMBLE+systemKey, data, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (u *UserClient) DeleteMessageHistory(systemKey string, data map[string]string) (interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := delete(u, _MH_PREAMBLE+systemKey, data, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (d *DevClient) DeleteMessageHistory(systemKey string, data map[string]string) (interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := delete(d, _MH_PREAMBLE+systemKey, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
