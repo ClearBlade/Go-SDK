@@ -55,10 +55,8 @@ type Client interface {
 	GetColumns(string, string, string) ([]interface{}, error)
 
 	//mqtt calls
-	GetMqttClient() *MqttClient
-	SetMqttClient(*MqttClient)
-	InitializeMQTT(string, string, int) error
-	ConnectMQTT(*tls.Config, *LastWillPacket) error
+	SetMqttClient(MqttClient)
+	InitializeMQTT(string, string, int, *tls.Config, *LastWillPacket) error
 	Publish(string, []byte, int) error
 	Subscribe(string, int) (<-chan *mqttTypes.Publish, error)
 	Unsubscribe(string) error
@@ -177,18 +175,6 @@ func (d *DevClient) getEdgeProxy() *EdgeProxy {
 
 func (d *DeviceClient) getEdgeProxy() *EdgeProxy {
 	return d.edgeProxy
-}
-
-func (u *UserClient) GetMqttClient() MqttClient {
-	return u.MQTTClient
-}
-
-func (d *DevClient) GetMqttClient() MqttClient {
-	return d.MQTTClient
-}
-
-func (d *DeviceClient) GetMqttClient() MqttClient {
-	return d.MQTTClient
 }
 
 func (u *UserClient) SetMqttClient(c MqttClient) {
