@@ -5,6 +5,7 @@ import (
 	"errors"
 	mqttTypes "github.com/clearblade/mqtt_parsing"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"time"
 )
 
 const (
@@ -139,7 +140,7 @@ func newMqttClient(token, systemkey, systemsecret, clientid string, timeout int,
 	o.SetClientID(clientid)
 	o.SetUsername(token)
 	o.SetPassword(systemkey)
-	o.SetConnectTimeout(timeout)
+	o.SetConnectTimeout(time.Duration(timeout) * time.Second)
 	if ssl != nil {
 		o.SetTLSConfig(ssl)
 	}
