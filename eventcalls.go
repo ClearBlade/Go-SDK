@@ -129,7 +129,7 @@ func mapResponse(resp *CbResp, err error) (*CbResp, error) {
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf(resp.Body.(string))
+		return nil, fmt.Errorf("%+v", resp.Body)
 	}
 	return resp, nil
 }
