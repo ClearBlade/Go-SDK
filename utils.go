@@ -5,8 +5,8 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	mqtt "github.com/clearblade/mqtt_parsing"
-	"github.com/clearblade/mqttclient"
+	mqttTypes "github.com/clearblade/mqtt_parsing"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -55,12 +55,12 @@ type Client interface {
 	GetColumns(string, string, string) ([]interface{}, error)
 
 	//mqtt calls
-	GetMqttClient() *mqttclient.Client
-	SetMqttClient(*mqttclient.Client)
+	GetMqttClient() *MqttClient
+	SetMqttClient(*MqttClient)
 	InitializeMQTT(string, string, int) error
 	ConnectMQTT(*tls.Config, *LastWillPacket) error
 	Publish(string, []byte, int) error
-	Subscribe(string, int) (<-chan *mqtt.Publish, error)
+	Subscribe(string, int) (<-chan *mqttTypes.Publish, error)
 	Unsubscribe(string) error
 	Disconnect() error
 
@@ -70,6 +70,10 @@ type Client interface {
 	CreateDevice(string, string, map[string]interface{}) (map[string]interface{}, error)
 	UpdateDevice(string, string, map[string]interface{}) (map[string]interface{}, error)
 	DeleteDevice(string, string) error
+}
+
+type MqttClient interface {
+	mqtt.Client
 }
 
 //cbClient will supply various information that differs between privleged and unprivleged users
@@ -90,7 +94,7 @@ type cbClient interface {
 type UserClient struct {
 	UserToken    string
 	mrand        *rand.Rand
-	MQTTClient   *mqttclient.Client
+	MQTTClient   MqttClient
 	SystemKey    string
 	SystemSecret string
 	Email        string
@@ -105,7 +109,7 @@ type DeviceClient struct {
 	ActiveKey    string
 	DeviceToken  string
 	mrand        *rand.Rand
-	MQTTClient   *mqttclient.Client
+	MQTTClient   MqttClient
 	SystemKey    string
 	SystemSecret string
 	HttpAddr     string
@@ -117,7 +121,7 @@ type DeviceClient struct {
 type DevClient struct {
 	DevToken   string
 	mrand      *rand.Rand
-	MQTTClient *mqttclient.Client
+	MQTTClient MqttClient
 	Email      string
 	Password   string
 	HttpAddr   string
@@ -175,27 +179,27 @@ func (d *DeviceClient) getEdgeProxy() *EdgeProxy {
 	return d.edgeProxy
 }
 
-func (u *UserClient) GetMqttClient() *mqttclient.Client {
+func (u *UserClient) GetMqttClient() MqttClient {
 	return u.MQTTClient
 }
 
-func (d *DevClient) GetMqttClient() *mqttclient.Client {
+func (d *DevClient) GetMqttClient() MqttClient {
 	return d.MQTTClient
 }
 
-func (d *DeviceClient) GetMqttClient() *mqttclient.Client {
+func (d *DeviceClient) GetMqttClient() MqttClient {
 	return d.MQTTClient
 }
 
-func (u *UserClient) SetMqttClient(c *mqttclient.Client) {
+func (u *UserClient) SetMqttClient(c MqttClient) {
 	u.MQTTClient = c
 }
 
-func (d *DevClient) SetMqttClient(c *mqttclient.Client) {
+func (d *DevClient) SetMqttClient(c MqttClient) {
 	d.MQTTClient = c
 }
 
-func (d *DeviceClient) SetMqttClient(c *mqttclient.Client) {
+func (d *DeviceClient) SetMqttClient(c MqttClient) {
 	d.MQTTClient = c
 }
 
