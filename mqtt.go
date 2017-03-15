@@ -3,8 +3,8 @@ package GoSDK
 import (
 	"crypto/tls"
 	"errors"
-	mqtt "github.com/clearblade/mqtt_parsing"
-	mqcli "github.com/clearblade/mqttclient"
+	mqttTypes "github.com/clearblade/mqtt_parsing"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 const (
@@ -27,8 +27,8 @@ type LastWillPacket struct {
 //herein we use the same trick we used for http clients
 
 //InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
-func (u *UserClient) InitializeMQTT(clientid string, ignore string, timeout int) error {
-	mqc, err := initializeMqttClient(u.UserToken, u.SystemKey, u.SystemSecret, clientid, timeout)
+func (u *UserClient) InitializeMQTT(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
+	mqc, err := newMqttClient(u.UserToken, u.SystemKey, u.SystemSecret, clientid, timeout, u.MqttAddr, ssl, lastWill)
 	if err != nil {
 		return err
 	}
@@ -40,47 +40,23 @@ func (u *UserClient) InitializeMQTT(clientid string, ignore string, timeout int)
 //the systemkey you wish to use for authenticating with the message broker
 //topics are isolated across systems, so in order to communicate with a specific
 //system, you must supply the system key
-func (d *DevClient) InitializeMQTT(clientid, systemkey string, timeout int) error {
-	mqc, err := initializeMqttClient(d.DevToken, systemkey, "", clientid, timeout)
+func (d *DevClient) InitializeMQTT(clientid, systemkey string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
+	mqc, err := newMqttClient(d.DevToken, systemkey, "", clientid, timeout, d.MqttAddr, ssl, lastWill)
 	if err != nil {
 		return err
 	}
 	d.MQTTClient = mqc
 	return nil
 }
-
-//InitializeMQTT allocates the mqtt client for the device. the second argument is a
-//the systemkey you wish to use for authenticating with the message broker
-//topics are isolated across systems, so in order to communicate with a specific
-//system, you must supply the system key
 
 //InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
-func (d *DeviceClient) InitializeMQTT(clientid string, ignore string, timeout int) error {
-	mqc, err := initializeMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout)
+func (d *DeviceClient) InitializeMQTT(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
+	mqc, err := newMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill)
 	if err != nil {
 		return err
 	}
 	d.MQTTClient = mqc
 	return nil
-}
-
-//InitializeMQTT allocates the mqtt client for the developer. the second argument is a
-
-//ConnectMQTT allows the user to connect to the mqtt broker. If no TLS config is provided, a TCP socket will be used
-func (u *UserClient) ConnectMQTT(ssl *tls.Config, lastWill *LastWillPacket) error {
-	//a questionable pointer, mainly for ease of checking nil
-	//be more efficient to pass on the stack
-	return connectToBroker(u.MQTTClient, u.MqttAddr, ssl, lastWill)
-}
-
-//ConnectMQTT allows the user to connect to the mqtt broker. If no TLS config is provided, a TCP socket will be used
-func (d *DevClient) ConnectMQTT(ssl *tls.Config, lastWill *LastWillPacket) error {
-	return connectToBroker(d.MQTTClient, d.MqttAddr, ssl, lastWill)
-}
-
-//ConnectMQTT allows the user to connect to the mqtt broker. If no TLS config is provided, a TCP socket will be used
-func (d *DeviceClient) ConnectMQTT(ssl *tls.Config, lastWill *LastWillPacket) error {
-	return connectToBroker(d.MQTTClient, d.MqttAddr, ssl, lastWill)
 }
 
 //Publish publishes a message to the specified mqtt topic
@@ -99,17 +75,17 @@ func (d *DevClient) Publish(topic string, message []byte, qos int) error {
 }
 
 //Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
-func (u *UserClient) Subscribe(topic string, qos int) (<-chan *mqtt.Publish, error) {
+func (u *UserClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publish, error) {
 	return subscribe(u.MQTTClient, topic, qos)
 }
 
 //Subscribe subscribes a device to a topic. Incoming messages will be sent over the channel.
-func (d *DeviceClient) Subscribe(topic string, qos int) (<-chan *mqtt.Publish, error) {
+func (d *DeviceClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publish, error) {
 	return subscribe(d.MQTTClient, topic, qos)
 }
 
 //Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
-func (d *DevClient) Subscribe(topic string, qos int) (<-chan *mqtt.Publish, error) {
+func (d *DevClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publish, error) {
 	return subscribe(d.MQTTClient, topic, qos)
 }
 
@@ -145,72 +121,69 @@ func (d *DevClient) Disconnect() error {
 
 //Below are a series of convience functions to allow the user to only need to import
 //the clearblade go-sdk
+type mqttBaseClient struct {
+	mqtt.Client
+	address                                  string
+	token, systemKey, systemSecret, clientID string
+	timeout                                  int
+}
 
 //InitializeMqttClient allocates a mqtt client.
 //the values for initialization are drawn from the client struct
 //with the exception of the timeout and client id, which is mqtt specific.
-func initializeMqttClient(token, systemkey, systemsecret, clientid string, timeout int) (*mqcli.Client, error) {
-	cli := mqcli.NewClient(token,
-		systemkey,
-		systemsecret,
-		clientid,
-		timeout)
-	return cli, nil
+func newMqttClient(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket) (MqttClient, error) {
+	//TODO handle last will
+	o := mqtt.NewClientOptions()
+	o.SetAutoReconnect(true)
+	o.AddBroker("tcp://" + address)
+	o.SetClientID(clientid)
+	o.SetUsername(token)
+	o.SetPassword(systemkey)
+	if ssl != nil {
+		o.SetTLSConfig(ssl)
+	}
+	cli := mqtt.NewClient(o)
+	mqc := &mqttBaseClient{cli, address, token, systemkey, systemsecret, clientid, timeout}
+	ret := mqc.Connect()
+	ret.Wait()
+	return mqc, ret.Error()
 }
 
-//ConnectToBroker connects to the broker and sends the connect packet
-func connectToBroker(c *mqcli.Client, address string, ssl *tls.Config, lastWill *LastWillPacket) error {
+func publish(c MqttClient, topic string, data []byte, qos int, mid uint16) error {
 	if c == nil {
 		return errors.New("MQTTClient is uninitialized")
 	}
-	err := c.Start(address, ssl)
-	if err != nil {
-		return err
-	}
-	if lastWill == nil {
-		return mqcli.SendConnect(c, false, false, 0, "", "")
-	} else {
-		return mqcli.SendConnect(c, true, lastWill.Retain, lastWill.Qos, lastWill.Topic, lastWill.Body)
-	}
+	ret := c.Publish(topic, uint8(qos), false, data)
+	ret.Wait()
+	return ret.Error()
 }
 
-func publish(c *mqcli.Client, topic string, data []byte, qos int, mid uint16) error {
-	if c == nil {
-		return errors.New("MQTTClient is uninitialized")
-	}
-	if c.C == nil {
-		return errors.New("Must successfully call ConnectMQTT first")
-	}
-	pub, err := mqcli.MakeMeABytePublish(topic, data, mid)
-	pub.Header.QOS = uint8(qos)
-	if err != nil {
-		return err
-	}
-	return mqcli.PublishFlow(c, pub)
-}
-
-//Subscribe is a simple wrapper around the mqtt client library
-func subscribe(c *mqcli.Client, topic string, qos int) (<-chan *mqtt.Publish, error) {
+func subscribe(c MqttClient, topic string, qos int) (<-chan *mqttTypes.Publish, error) {
 	if c == nil {
 		return nil, errors.New("MQTTClient is uninitialized")
-	} else if c.C == nil {
-		return nil, errors.New("Must successfully call ConnectMQTT first")
 	}
-	return mqcli.SubscribeFlow(c, topic, qos)
+	pubs := make(chan *mqttTypes.Publish, 50)
+	ret := c.Subscribe(topic, uint8(qos), func(client mqtt.Client, msg mqtt.Message) {
+		path, _ := mqttTypes.NewTopicPath(msg.Topic())
+		pubs <- &mqttTypes.Publish{Topic: path, Payload: msg.Payload()}
+	})
+	ret.Wait()
+	return pubs, ret.Error()
 }
 
-//Unsubscribe is a simple wrapper around the mqtt client library
-func unsubscribe(c *mqcli.Client, topic string) error {
+func unsubscribe(c MqttClient, topic string) error {
 	if c == nil {
 		return errors.New("MQTTClient is uninitialized")
 	}
-	return mqcli.UnsubscribeFlow(c, topic)
+	ret := c.Unsubscribe(topic)
+	ret.Wait()
+	return ret.Error()
 }
 
-//Disconnect is a simple wrapper for sending mqtt disconnects
-func disconnect(c *mqcli.Client) error {
+func disconnect(c MqttClient) error {
 	if c == nil {
 		return errors.New("MQTTClient is uninitialized")
 	}
-	return mqcli.SendDisconnect(c)
+	c.Disconnect(0)
+	return nil
 }
