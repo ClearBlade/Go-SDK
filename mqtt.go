@@ -132,7 +132,6 @@ type mqttBaseClient struct {
 //the values for initialization are drawn from the client struct
 //with the exception of the timeout and client id, which is mqtt specific.
 func newMqttClient(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket) (MqttClient, error) {
-	//TODO handle last will
 	o := mqtt.NewClientOptions()
 	o.SetAutoReconnect(true)
 	o.AddBroker("tcp://" + address)
@@ -141,6 +140,9 @@ func newMqttClient(token, systemkey, systemsecret, clientid string, timeout int,
 	o.SetPassword(systemkey)
 	if ssl != nil {
 		o.SetTLSConfig(ssl)
+	}
+	if lastWill != nil {
+		o.SetWill(lastWill.Topic, lastWill.Body, uint8(lastWill.Qos), lastWill.Retain)
 	}
 	cli := mqtt.NewClient(o)
 	mqc := &mqttBaseClient{cli, address, token, systemkey, systemsecret, clientid, timeout}
