@@ -171,7 +171,7 @@ func subscribe(c MqttClient, topic string, qos int) (<-chan *mqttTypes.Publish, 
 		path, _ := mqttTypes.NewTopicPath(msg.Topic())
 		pubs <- &mqttTypes.Publish{Topic: path, Payload: msg.Payload()}
 	})
-	ret.Wait()
+	ret.WaitTimeout(1 * time.Second)
 	return pubs, ret.Error()
 }
 
@@ -180,7 +180,7 @@ func unsubscribe(c MqttClient, topic string) error {
 		return errors.New("MQTTClient is uninitialized")
 	}
 	ret := c.Unsubscribe(topic)
-	ret.Wait()
+	ret.WaitTimeout(1 * time.Second)
 	return ret.Error()
 }
 
