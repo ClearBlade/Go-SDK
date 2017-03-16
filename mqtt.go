@@ -159,7 +159,6 @@ func publish(c MqttClient, topic string, data []byte, qos int, mid uint16) error
 		return errors.New("MQTTClient is uninitialized")
 	}
 	ret := c.Publish(topic, uint8(qos), false, data)
-	ret.Wait()
 	return ret.Error()
 }
 
@@ -189,6 +188,6 @@ func disconnect(c MqttClient) error {
 	if c == nil {
 		return errors.New("MQTTClient is uninitialized")
 	}
-	c.Disconnect(0)
+	c.Disconnect(250)
 	return nil
 }
