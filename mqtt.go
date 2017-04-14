@@ -3,8 +3,10 @@ package GoSDK
 import (
 	"crypto/tls"
 	"errors"
+	"fmt"
 	mqttTypes "github.com/clearblade/mqtt_parsing"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"math/rand"
 	"time"
 )
 
@@ -23,6 +25,12 @@ type LastWillPacket struct {
 	Body   string
 	Qos    int
 	Retain bool
+}
+
+func (b *client) NewClientId() string {
+	buf := make([]byte, 10)
+	rand.Read(buf)
+	return fmt.Sprintf("%X", buf)
 }
 
 //herein we use the same trick we used for http clients

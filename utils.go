@@ -88,8 +88,12 @@ type cbClient interface {
 	getEdgeProxy() *EdgeProxy
 }
 
+// receiver for methods that can be shared between users/devs/devices
+type client struct{}
+
 //UserClient is the type for users
 type UserClient struct {
+	client
 	UserToken    string
 	mrand        *rand.Rand
 	MQTTClient   MqttClient
@@ -103,6 +107,7 @@ type UserClient struct {
 }
 
 type DeviceClient struct {
+	client
 	DeviceName   string
 	ActiveKey    string
 	DeviceToken  string
@@ -117,6 +122,7 @@ type DeviceClient struct {
 
 //DevClient is the type for developers
 type DevClient struct {
+	client
 	DevToken   string
 	mrand      *rand.Rand
 	MQTTClient MqttClient
