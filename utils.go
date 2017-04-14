@@ -762,6 +762,9 @@ func parseEdgeConfig(e EdgeConfig) *exec.Cmd {
 	if e.Cache {
 		cmd.Args = append(cmd.Args, "-local")
 	}
+	if p := e.LogLevel; p != "" {
+		cmd.Args = append(cmd.Args, "-log-level="+p)
+	}
 	if s := e.Stdout; s != nil {
 		cmd.Stdout = s
 	} else {
