@@ -27,7 +27,7 @@ type LastWillPacket struct {
 	Retain bool
 }
 
-func (b *client) NewClientId() string {
+func (b *client) NewClientID() string {
 	buf := make([]byte, 10)
 	rand.Read(buf)
 	return fmt.Sprintf("%X", buf)
