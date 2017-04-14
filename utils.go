@@ -189,7 +189,6 @@ func (d *DeviceClient) SetMqttClient(c MqttClient) {
 	d.MQTTClient = c
 }
 
-//NewUserClient allocates a new UserClient struct
 func NewDeviceClient(systemkey, systemsecret, deviceName, activeKey string) *DeviceClient {
 	return &DeviceClient{
 		DeviceName:   deviceName,
@@ -278,6 +277,20 @@ func NewDevClientWithTokenAndAddrs(httpAddr, mqttAddr, token, email string) *Dev
 		Password:   "",
 		HttpAddr:   httpAddr,
 		MqttAddr:   mqttAddr,
+	}
+}
+
+func NewDeviceClientWithAddrs(httpAddr, mqttAddr, systemkey, systemsecret, deviceName, activeKey string) *DeviceClient {
+	return &DeviceClient{
+		DeviceName:   deviceName,
+		DeviceToken:  "",
+		ActiveKey:    activeKey,
+		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient:   nil,
+		SystemKey:    systemkey,
+		SystemSecret: systemsecret,
+		HttpAddr:     httpAddr,
+		MqttAddr:     mqttAddr,
 	}
 }
 
