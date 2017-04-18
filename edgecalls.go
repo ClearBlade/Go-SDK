@@ -25,6 +25,7 @@ type EdgeConfig struct {
 	AuthWsPort   string
 	Lean         bool
 	Cache        bool
+	LogLevel     string
 	Stdout       *os.File
 	Stderr       *os.File
 }

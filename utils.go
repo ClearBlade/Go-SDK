@@ -102,8 +102,12 @@ type cbClient interface {
 	getEdgeProxy() *EdgeProxy
 }
 
+// receiver for methods that can be shared between users/devs/devices
+type client struct{}
+
 //UserClient is the type for users
 type UserClient struct {
+	client
 	UserToken    string
 	mrand        *rand.Rand
 	MQTTClient   MqttClient
@@ -117,6 +121,7 @@ type UserClient struct {
 }
 
 type DeviceClient struct {
+	client
 	DeviceName   string
 	ActiveKey    string
 	DeviceToken  string
@@ -131,6 +136,7 @@ type DeviceClient struct {
 
 //DevClient is the type for developers
 type DevClient struct {
+	client
 	DevToken   string
 	mrand      *rand.Rand
 	MQTTClient MqttClient
@@ -203,7 +209,6 @@ func (d *DeviceClient) SetMqttClient(c MqttClient) {
 	d.MQTTClient = c
 }
 
-//NewUserClient allocates a new UserClient struct
 func NewDeviceClient(systemkey, systemsecret, deviceName, activeKey string) *DeviceClient {
 	return &DeviceClient{
 		DeviceName:   deviceName,
@@ -292,6 +297,20 @@ func NewDevClientWithTokenAndAddrs(httpAddr, mqttAddr, token, email string) *Dev
 		Password:   "",
 		HttpAddr:   httpAddr,
 		MqttAddr:   mqttAddr,
+	}
+}
+
+func NewDeviceClientWithAddrs(httpAddr, mqttAddr, systemkey, systemsecret, deviceName, activeKey string) *DeviceClient {
+	return &DeviceClient{
+		DeviceName:   deviceName,
+		DeviceToken:  "",
+		ActiveKey:    activeKey,
+		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient:   nil,
+		SystemKey:    systemkey,
+		SystemSecret: systemsecret,
+		HttpAddr:     httpAddr,
+		MqttAddr:     mqttAddr,
 	}
 }
 
@@ -756,6 +775,9 @@ func parseEdgeConfig(e EdgeConfig) *exec.Cmd {
 	}
 	if e.Cache {
 		cmd.Args = append(cmd.Args, "-local")
+	}
+	if p := e.LogLevel; p != "" {
+		cmd.Args = append(cmd.Args, "-log-level="+p)
 	}
 	if s := e.Stdout; s != nil {
 		cmd.Stdout = s
