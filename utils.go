@@ -610,13 +610,12 @@ func do(c cbClient, r *CbReq, creds [][]string) (*CbResp, error) {
 		req, reqErr = http.NewRequest(r.Method, url, nil)
 	}
 	if reqErr != nil {
-		return nil, fmt.Errorf("Request Creation Error: %v", reqErr)
+		return nil, fmt.Errorf("Request Creation Error: %s", reqErr)
 	}
-	if r.Headers != nil {
-		for hed, val := range r.Headers {
-			for _, vv := range val {
-				req.Header.Add(hed, vv)
-			}
+	req.Close = true
+	for hed, val := range r.Headers {
+		for _, vv := range val {
+			req.Header.Add(hed, vv)
 		}
 	}
 	for _, c := range creds {
