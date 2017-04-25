@@ -588,7 +588,13 @@ func do(c cbClient, r *CbReq, creds [][]string) (*CbResp, error) {
 	if r.QueryString != "" {
 		url += "?" + r.QueryString
 	}
-	req, reqErr := http.NewRequest(r.Method, url, bodyToSend)
+	var req *http.Request
+	var reqErr error
+	if bodyToSend != nil {
+		req, reqErr = http.NewRequest(r.Method, url, bodyToSend)
+	} else {
+		req, reqErr = http.NewRequest(r.Method, url, nil)
+	}
 	if reqErr != nil {
 		return nil, fmt.Errorf("Request Creation Error: %s", reqErr)
 	}
