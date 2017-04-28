@@ -253,7 +253,16 @@ func (d *DeviceClient) UpdateData(collection_id string, query *Query, changes ma
 //UpdateData mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
 //changes should be a map of the names of the columns, and the value you want them updated to
 func (d *DevClient) UpdateData(collection_id string, query *Query, changes map[string]interface{}) error {
+
 	err := updatedata(d, collection_id, query, changes)
+	return err
+}
+
+//UpdateDataByName mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
+//changes should be a map of the names of the columns, and the value you want them updated to
+func (d *DevClient) UpdateDataByName(system_key string, collection_name string, query *Query, changes map[string]interface{}) error {
+
+	err := updatedatabyname(d, system_key, collection_name, query, changes)
 	return err
 }
 
@@ -268,6 +277,30 @@ func updatedata(c cbClient, collection_id string, query *Query, changes map[stri
 		return err
 	}
 	resp, err := put(c, _DATA_PREAMBLE+collection_id, body, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error updating data: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating data: %v", resp.Body)
+	}
+	return nil
+}
+
+func updatedatabyname(c cbClient, system_key string, collection_name string, query *Query, changes map[string]interface{}) error {
+	qry := query.serialize()
+	body := map[string]interface{}{
+		"query": qry,
+		"$set":  changes,
+	}
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+
+	// POST /api/v/1/collection/{systemKey}/{collectionName}
+	path := _DATA_NAME_PREAMBLE + system_key + "/" + collection_name
+	fmt.Println("Path: %s",path)
+	resp, err := put(c, path, body, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error updating data: %v", err)
 	}
