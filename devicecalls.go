@@ -1,8 +1,10 @@
 package GoSDK
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 )
 
 const (
@@ -11,12 +13,18 @@ const (
 	_DEVICES_USER_PREAMBLE = "/api/v/2/devices/"
 )
 
-func (d *DevClient) GetDevices(systemKey string) ([]interface{}, error) {
+func (d *DevClient) GetDevices(systemKey string, query *Query) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(d, _DEVICES_DEV_PREAMBLE+systemKey, nil, creds, nil)
+
+	qry, err := createQueryMap(query)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := get(d, _DEVICES_DEV_PREAMBLE+systemKey, qry, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -24,12 +32,18 @@ func (d *DevClient) GetDevices(systemKey string) ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
-func (u *UserClient) GetDevices(systemKey string) ([]interface{}, error) {
+func (u *UserClient) GetDevices(systemKey string, query *Query) ([]interface{}, error) {
 	creds, err := u.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(u, _DEVICES_USER_PREAMBLE+systemKey, nil, creds, nil)
+
+	qry, err := createQueryMap(query)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := get(u, _DEVICES_USER_PREAMBLE+systemKey, qry, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -350,4 +364,22 @@ func (dvc *DeviceClient) getHttpAddr() string {
 
 func (dvc *DeviceClient) getMqttAddr() string {
 	return dvc.MqttAddr
+}
+
+func createQueryMap(query *Query) (map[string]string, error) {
+	var qry map[string]string
+	if query != nil {
+		queryMap := query.serialize()
+		queryBytes, err := json.Marshal(queryMap)
+		if err != nil {
+			return nil, err
+		}
+		qry = map[string]string{
+			"query": url.QueryEscape(string(queryBytes)),
+		}
+	} else {
+		qry = nil
+	}
+
+	return qry, nil
 }
