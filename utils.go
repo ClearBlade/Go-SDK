@@ -75,13 +75,15 @@ type Client interface {
 	CreateAdaptor(string, string, map[string]interface{}) (map[string]interface{}, error)
 	UpdateAdaptor(string, string, map[string]interface{}) (map[string]interface{}, error)
 	DeleteAdaptor(string, string) error
+	DeployAdaptor(string, string, map[string]interface{}) (map[string]interface{}, error)
+	ControlAdaptor(string, string, map[string]interface{}) (map[string]interface{}, error)
 
 	// Adaptor File calls
-	GetAdaptorFiles(string) ([]interface{}, error)
-	GetAdaptorFile(string, string) (map[string]interface{}, error)
-	CreateAdaptorFile(string, string, map[string]interface{}) (map[string]interface{}, error)
-	UpdateAdaptorFile(string, string, map[string]interface{}) (map[string]interface{}, error)
-	DeleteAdaptorFile(string, string) error
+	GetAdaptorFiles(string, string) ([]interface{}, error)
+	GetAdaptorFile(string, string, string) (map[string]interface{}, error)
+	CreateAdaptorFile(string, string, string, map[string]interface{}) (map[string]interface{}, error)
+	UpdateAdaptorFile(string, string, string, map[string]interface{}) (map[string]interface{}, error)
+	DeleteAdaptorFile(string, string, string) error
 }
 
 type MqttClient interface {
