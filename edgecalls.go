@@ -1,14 +1,17 @@
 package GoSDK
 
 import (
+	"encoding/json"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 const (
-	_EDGES_PREAMBLE        = "/admin/edges/"
-	_EDGES_USER_PREAMBLE   = "/api/v/2/edges/"
-	_EDGES_SYNC_MANAGEMENT = "/admin/edges/sync/"
+	_EDGES_PREAMBLE          = "/admin/edges/"
+	_EDGES_USER_PREAMBLE     = "/api/v/2/edges/"
+	_EDGES_SYNC_MANAGEMENT   = "/admin/edges/sync/"
+	_EDGES_DEPLOY_MANAGEMENT = "/admin/edges/resources/{systemKey}/deploy"
 )
 
 type EdgeConfig struct {
@@ -120,7 +123,75 @@ const (
 	ServiceSync = "service"
 	LibrarySync = "library"
 	TriggerSync = "trigger"
+	TimerSync   = "timer"
 )
+
+func (d *DevClient) GetDeployResourcesForSystem(systemKey string) ([]map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, strings.Replace(_EDGES_DEPLOY_MANAGEMENT, "{systemKey}", systemKey, 1), nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.([]map[string]interface{}), nil
+}
+
+func (d *DevClient) CreateDeployResourcesForSystem(systemKey, resourceName, resourceType string, platform bool, edgeQuery *Query) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	queryString, err := json.Marshal(edgeQuery.serialize())
+	if err != nil {
+		return nil, err
+	}
+	deploySpec := map[string]interface{}{
+		"edge":                string(queryString[:]),
+		"platform":            platform,
+		"resource_identifier": resourceName,
+		"resource_type":       resourceType,
+	}
+	resp, err := post(d, strings.Replace(_EDGES_DEPLOY_MANAGEMENT, "{systemKey}", systemKey, 1), deploySpec, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) UpdateDeployResourcesForSystem(systemKey, resourceName, resourceType string, platform bool, edgeQuery *Query) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	queryString, err := json.Marshal(edgeQuery.serialize())
+	if err != nil {
+		return nil, err
+	}
+	updatedDeploySpec := map[string]interface{}{
+		"edge":                queryString,
+		"platform":            platform,
+		"resource_identifier": resourceName,
+		"resource_type":       resourceType,
+	}
+	resp, err := put(d, strings.Replace(_EDGES_DEPLOY_MANAGEMENT, "{systemKey}", systemKey, 1), updatedDeploySpec, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) DeleteDeployResourcesForSystem(systemKey, resourceName, resourceType string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	urlString := strings.Replace(_EDGES_DEPLOY_MANAGEMENT, "{systemKey}", systemKey, 1)
+	urlString += "?resource_type=" + resourceType + "&resource_identifier=" + resourceName
+	_, err = put(d, urlString, nil, creds, nil)
+	return err
+}
 
 func (d *DevClient) GetSyncResourcesForEdge(systemKey string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
