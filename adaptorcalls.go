@@ -216,6 +216,16 @@ func (d *DevClient) UpdateAdaptorFile(systemKey, adaptorName, fileName string, d
 	if err != nil {
 		return nil, err
 	}
+	contentsIF, exists := data["file"]
+	if !exists {
+		return nil, fmt.Errorf("'file' key/value pair missing in UpdateAdaptorFile")
+	}
+	byts, ok := contentsIF.([]byte)
+	if !ok {
+		return nil, fmt.Errorf("Bad type for 'file' k/v pair in CreateAdaptorFile: %T: (%+v)", contentsIF, contentsIF)
+	}
+	data["file"] = base64.StdEncoding.EncodeToString(byts)
+	data["name"] = fileName
 	resp, err := put(d, _ADAPTORS_DEV_PREAMBLE+systemKey+"/adaptors/"+adaptorName+"/files/"+fileName, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
