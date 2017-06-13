@@ -747,7 +747,8 @@ func parseEdgeConfig(e EdgeConfig) *exec.Cmd {
 		"-edge-ip=localhost",
 		"-edge-id="+e.EdgeName,
 		"-edge-cookie="+e.EdgeToken,
-		"-novi-ip="+e.NoviIp,
+		"-platform-ip="+e.PlatformIP,
+		"-platform-port="+e.PlatformPort,
 		"-parent-system="+e.ParentSystem,
 	)
 	if p := e.HttpPort; p != "" {

@@ -17,7 +17,8 @@ const (
 type EdgeConfig struct {
 	EdgeName     string
 	EdgeToken    string
-	NoviIp       string
+	PlatformIP   string
+	PlatformPort string
 	ParentSystem string
 	HttpPort     string
 	MqttPort     string
