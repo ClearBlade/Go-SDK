@@ -292,6 +292,61 @@ func (d *DevClient) DeleteKeyset(systemKey, name string) error {
 	return nil
 }
 
+func (d *DevClient) GetDeviceColumns(systemKey string) ([]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := get(d, _DEVICES_DEV_PREAMBLE+systemKey+"/columns", nil, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting device columns: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting device columns: %v", resp.Body)
+	}
+	return resp.Body.([]interface{}), nil
+}
+
+func (d *DevClient) CreateDeviceColumn(systemKey, columnName, columnType string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+
+	data := map[string]interface{}{
+		"column_name": columnName,
+		"type":        columnType,
+	}
+	resp, err := post(d, _DEVICES_DEV_PREAMBLE+systemKey+"/columns", data, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error creating device column: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error creating device column: %v", resp.Body)
+	}
+
+	return nil
+}
+
+func (d *DevClient) DeleteDeviceColumn(systemKey, columnName string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]string{"column_name": columnName}
+
+	resp, err := delete(d, _DEVICES_DEV_PREAMBLE+systemKey+"/columns", data, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error deleting device column: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error deleting device column: %v", resp.Body)
+	}
+
+	return nil
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 func (dvc *DeviceClient) credentials() ([][]string, error) {
