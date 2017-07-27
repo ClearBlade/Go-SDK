@@ -454,6 +454,32 @@ func (d *DevClient) Logout() error {
 	return logout(d)
 }
 
+//Check Auth of Developer
+func (d *DevClient) CheckAuth() error {
+	return checkAuth(d)
+}
+
+func checkAuth(c cbClient) error {
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	//log.Println("Checking user auth")
+	resp, err := post(c, c.preamble()+"/checkauth", nil, creds, nil)
+	if err != nil {
+		return err
+	}
+	//log.Printf("response body type: %T %v ", resp.Body, resp.Body)
+	body := resp.Body.(map[string]interface{})
+	if body["is_authenticated"]!=nil && body["is_authenticated"].(bool) {
+		return nil
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error in authenticating, Status Code: %d, %v\n", resp.StatusCode, resp.Body)
+	}
+	return nil
+}
+
 //Below are some shared functions
 
 func authenticate(c cbClient, username, password string) error {
