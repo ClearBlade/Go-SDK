@@ -2,6 +2,7 @@ package GoSDK
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -136,15 +137,32 @@ func (d *DevClient) GetDeployResourcesForSystem(systemKey string) ([]map[string]
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body.([]map[string]interface{}), nil
+	return makeSliceOfMaps(resp.Body)
 }
 
-func (d *DevClient) CreateDeployResourcesForSystem(systemKey, resourceName, resourceType string, platform bool, edgeQuery *Query) (map[string]interface{}, error) {
+func (d *DevClient) serializeQuery(qIF interface{}) (string, error) {
+	switch qIF.(type) {
+	case string:
+		return qIF.(string), nil
+	case *Query:
+		q := qIF.(*Query)
+		qs, err := json.Marshal(q.serialize())
+		if err != nil {
+			return "", err
+		}
+		return string(qs), nil
+	default:
+		return "", fmt.Errorf("Bad query type: %T", qIF)
+	}
+}
+
+func (d *DevClient) CreateDeployResourcesForSystem(systemKey, resourceName, resourceType string, platform bool, edgeQueryInfo interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	queryString, err := json.Marshal(edgeQuery.serialize())
+	queryString, err := d.serializeQuery(edgeQueryInfo)
+	//queryString, err := json.Marshal(edgeQuery.serialize())
 	if err != nil {
 		return nil, err
 	}

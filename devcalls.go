@@ -344,7 +344,7 @@ func (d *DevClient) GetAllRoles(SystemKey string) ([]interface{}, error) {
 
 	rval, ok := resp.Body.([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("Bad type returned by GetAllRoles")
+		return nil, fmt.Errorf("Bad type returned by GetAllRoles: %T, %s", resp.Body, resp.Body.(string))
 	}
 
 	return rval, nil
@@ -374,7 +374,6 @@ func (d *DevClient) CreateRole(systemKey, role_id string) (interface{}, error) {
 }
 
 func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]interface{}) error {
-	fmt.Printf("UpdateRole: %+v\n", role)
 	data := map[string]interface{}{
 		"name": roleName,
 		"changes": map[string]interface{}{

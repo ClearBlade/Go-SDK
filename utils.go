@@ -793,3 +793,23 @@ func parseEdgeConfig(e EdgeConfig) *exec.Cmd {
 	}
 	return cmd
 }
+
+func makeSliceOfMaps(inIF interface{}) ([]map[string]interface{}, error) {
+	switch inIF.(type) {
+	case []interface{}:
+		in := inIF.([]interface{})
+		rval := make([]map[string]interface{}, len(in))
+		for i, val := range in {
+			valMap, ok := val.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("expected item to be a map, got %T", val)
+			}
+			rval[i] = valMap
+		}
+		return rval, nil
+	case []map[string]interface{}:
+		return inIF.([]map[string]interface{}), nil
+	default:
+		return nil, fmt.Errorf("Expected list of maps, got %T", inIF)
+	}
+}
