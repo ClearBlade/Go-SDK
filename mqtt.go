@@ -27,6 +27,12 @@ type LastWillPacket struct {
 	Retain bool
 }
 
+
+type Callbacks struct {
+	OnConnectCallback mqtt.OnConnectHandler
+	OnConnectionLostCallback mqtt.ConnectionLostHandler
+}
+
 func (b *client) NewClientID() string {
 	buf := make([]byte, 10)
 	rand.Read(buf)
@@ -38,6 +44,15 @@ func (b *client) NewClientID() string {
 //InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
 func (u *UserClient) InitializeMQTT(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
 	mqc, err := newMqttClient(u.UserToken, u.SystemKey, u.SystemSecret, clientid, timeout, u.MqttAddr, ssl, lastWill)
+	if err != nil {
+		return err
+	}
+	u.MQTTClient = mqc
+	return nil
+}
+
+func (u *UserClient) InitializeMQTTWithCallback(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket, callbacks *Callbacks) error {
+	mqc, err := newMqttClientWithCallbacks(u.UserToken, u.SystemKey, u.SystemSecret, clientid, timeout, u.MqttAddr, ssl, lastWill, callbacks)
 	if err != nil {
 		return err
 	}
@@ -58,9 +73,27 @@ func (d *DevClient) InitializeMQTT(clientid, systemkey string, timeout int, ssl 
 	return nil
 }
 
+func (d *DevClient) InitializeMQTTWithCallback(clientid, systemkey string, timeout int, ssl *tls.Config, lastWill *LastWillPacket, callbacks *Callbacks) error {
+	mqc, err := newMqttClientWithCallbacks(d.DevToken, systemkey, "", clientid, timeout, d.MqttAddr, ssl, lastWill, callbacks)
+	if err != nil {
+		return err
+	}
+	d.MQTTClient = mqc
+	return nil
+}
+
 //InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
 func (d *DeviceClient) InitializeMQTT(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
 	mqc, err := newMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill)
+	if err != nil {
+		return err
+	}
+	d.MQTTClient = mqc
+	return nil
+}
+
+func (d *DeviceClient) InitializeMQTTWithCallback(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket, callbacks *Callbacks) error {
+	mqc, err := newMqttClientWithCallbacks(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill, callbacks)
 	if err != nil {
 		return err
 	}
@@ -154,6 +187,33 @@ func newMqttClient(token, systemkey, systemsecret, clientid string, timeout int,
 	}
 	if lastWill != nil {
 		o.SetWill(lastWill.Topic, lastWill.Body, uint8(lastWill.Qos), lastWill.Retain)
+	}
+	cli := mqtt.NewClient(o)
+	mqc := &mqttBaseClient{cli, address, token, systemkey, systemsecret, clientid, timeout}
+	ret := mqc.Connect()
+	ret.Wait()
+	return mqc, ret.Error()
+}
+
+func newMqttClientWithCallbacks(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket, callbacks *Callbacks) (MqttClient, error) {
+	o := mqtt.NewClientOptions()
+	o.SetAutoReconnect(true)
+	o.AddBroker("tcp://" + address)
+	o.SetClientID(clientid)
+	o.SetUsername(token)
+	o.SetPassword(systemkey)
+	o.SetConnectTimeout(time.Duration(timeout) * time.Second)
+	if ssl != nil {
+		o.SetTLSConfig(ssl)
+	}
+	if lastWill != nil {
+		o.SetWill(lastWill.Topic, lastWill.Body, uint8(lastWill.Qos), lastWill.Retain)
+	}
+	if callbacks.OnConnectionLostCallback != nil {
+		o.SetConnectionLostHandler(callbacks.OnConnectionLostCallback)
+	}
+	if callbacks.OnConnectCallback != nil {
+		o.SetOnConnectHandler(callbacks.OnConnectCallback)
 	}
 	cli := mqtt.NewClient(o)
 	mqc := &mqttBaseClient{cli, address, token, systemkey, systemsecret, clientid, timeout}
