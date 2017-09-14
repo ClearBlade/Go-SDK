@@ -151,6 +151,25 @@ func (d *DevClient) SetSystemDescription(system_key, system_description string) 
 	return nil
 }
 
+//SetSystemTokenTTL can change the value for the system's token TTL
+func (d *DevClient) SetSystemTokenTTL(system_key string, token_ttl int) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := put(d, d.preamble()+"/systemmanagement", map[string]interface{}{
+		"id":        system_key,
+		"token_ttl": token_ttl,
+	}, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error changing system token TTL: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error changing system token TTL: %v", resp.Body)
+	}
+	return nil
+}
+
 //SetSystemAuthOn is depreciated
 func (d *DevClient) SetSystemAuthOn(system_key string) error {
 	return fmt.Errorf("Auth is now mandatory")
