@@ -42,6 +42,7 @@ func (d *DevClient) CreatePortal(systemKey, name string, dash map[string]interfa
 	if err != nil {
 		return nil, err
 	}
+	return resp.Body.(map[string]interface{}), nil
 }
 
 func (d *DevClient) UpdatePortal(systemKey, name string, dash map[string]interface{}) (map[string]interface{}, error) {
