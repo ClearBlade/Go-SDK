@@ -37,13 +37,11 @@ func (d *DevClient) CreatePortal(systemKey, name string, dash map[string]interfa
 		return nil, err
 	}
 
-	resp, err := post(d, _PORTALS_USER_PREAMBLE+systemKey+"/"+name, make(map[string]interface{}), creds, nil)
+	resp, err := post(d, _PORTALS_USER_PREAMBLE+systemKey+"/"+name, dash, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
 	}
-	// An empty portal has now been created.. populate with provided data
-	return d.UpdatePortal(systemKey, name, dash)
 }
 
 func (d *DevClient) UpdatePortal(systemKey, name string, dash map[string]interface{}) (map[string]interface{}, error) {
