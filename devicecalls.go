@@ -1,10 +1,8 @@
 package GoSDK
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 )
 
 const (
@@ -419,22 +417,4 @@ func (dvc *DeviceClient) getHttpAddr() string {
 
 func (dvc *DeviceClient) getMqttAddr() string {
 	return dvc.MqttAddr
-}
-
-func createQueryMap(query *Query) (map[string]string, error) {
-	var qry map[string]string
-	if query != nil {
-		queryMap := query.serialize()
-		queryBytes, err := json.Marshal(queryMap)
-		if err != nil {
-			return nil, err
-		}
-		qry = map[string]string{
-			"query": url.QueryEscape(string(queryBytes)),
-		}
-	} else {
-		qry = nil
-	}
-
-	return qry, nil
 }

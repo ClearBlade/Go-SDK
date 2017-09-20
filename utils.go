@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"strings"
@@ -471,7 +472,7 @@ func checkAuth(c cbClient) error {
 	}
 	//log.Printf("response body type: %T %v ", resp.Body, resp.Body)
 	body := resp.Body.(map[string]interface{})
-	if body["is_authenticated"]!=nil && body["is_authenticated"].(bool) {
+	if body["is_authenticated"] != nil && body["is_authenticated"].(bool) {
 		return nil
 	}
 	if resp.StatusCode != 200 {
@@ -838,4 +839,22 @@ func makeSliceOfMaps(inIF interface{}) ([]map[string]interface{}, error) {
 	default:
 		return nil, fmt.Errorf("Expected list of maps, got %T", inIF)
 	}
+}
+
+func createQueryMap(query *Query) (map[string]string, error) {
+	var qry map[string]string
+	if query != nil {
+		queryMap := query.serialize()
+		queryBytes, err := json.Marshal(queryMap)
+		if err != nil {
+			return nil, err
+		}
+		qry = map[string]string{
+			"query": url.QueryEscape(string(queryBytes)),
+		}
+	} else {
+		qry = nil
+	}
+
+	return qry, nil
 }
