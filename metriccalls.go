@@ -20,14 +20,6 @@ func (d *DevClient) GetPlatformStatistics(systemKey string, query *Query) (map[s
 	return getStatistics(d, systemKey, query, nil)
 }
 
-func (u *UserClient) GetConnectedEdgeStatistics(edgeName, systemKey string, query *Query) (map[string]interface{}, error) {
-	return getStatistics(u, systemKey, query, map[string][]string{"ClearBlade-Edge": []string{edgeName}})
-}
-
-func (d *DevClient) GetConnectedEdgeStatistics(edgeName, systemKey string, query *Query) (map[string]interface{}, error) {
-	return getStatistics(d, systemKey, query, map[string][]string{"ClearBlade-Edge": []string{edgeName}})
-}
-
 func getStatistics(c cbClient, systemKey string, query *Query, headers map[string][]string) (map[string]interface{}, error) {
 	creds, err := c.credentials()
 	if err != nil {
@@ -37,7 +29,7 @@ func getStatistics(c cbClient, systemKey string, query *Query, headers map[strin
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(c, _StatsPreamble+"`"+systemKey, q, creds, headers)
+	resp, err := get(c, _StatsPreamble+"/"+systemKey, q, creds, headers)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to communicate with platform, got %s", err)
 	}
@@ -58,14 +50,6 @@ func (u *UserClient) GetPlatformDBConnections(systemKey string, query *Query) (m
 
 func (d *DevClient) GetPlatformDBConnections(systemKey string, query *Query) (map[string]interface{}, error) {
 	return getDBConnections(d, systemKey, query, nil)
-}
-
-func (u *UserClient) GetConnectedEdgeDBConnections(edgeName, systemKey string, query *Query) (map[string]interface{}, error) {
-	return getDBConnections(u, systemKey, query, map[string][]string{"ClearBlade-Edge": []string{edgeName}})
-}
-
-func (d *DevClient) GetConnectedEdgeDBConnections(edgeName, systemKey string, query *Query) (map[string]interface{}, error) {
-	return getDBConnections(d, systemKey, query, map[string][]string{"ClearBlade-Edge": []string{edgeName}})
 }
 
 func getDBConnections(c cbClient, systemKey string, query *Query, headers map[string][]string) (map[string]interface{}, error) {
@@ -98,14 +82,6 @@ func (u *UserClient) GetPlatformLogs(systemKey string, query *Query) (map[string
 
 func (d *DevClient) GetPlatformLogs(systemKey string, query *Query) (map[string]interface{}, error) {
 	return getLogs(d, systemKey, query, nil)
-}
-
-func (u *UserClient) GetConnectedEdgeLogs(edgeName, systemKey string, query *Query) (map[string]interface{}, error) {
-	return getLogs(u, systemKey, query, map[string][]string{"ClearBlade-Edge": []string{edgeName}})
-}
-
-func (d *DevClient) GetConnectedEdgeLogs(edgeName, systemKey string, query *Query) (map[string]interface{}, error) {
-	return getLogs(d, systemKey, query, map[string][]string{"ClearBlade-Edge": []string{edgeName}})
 }
 
 func getLogs(c cbClient, systemKey string, query *Query, headers map[string][]string) (map[string]interface{}, error) {
