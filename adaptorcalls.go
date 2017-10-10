@@ -163,17 +163,24 @@ func (d *DevClient) CreateAdaptorFile(systemKey, adaptorName, fileName string,
 		return nil, err
 	}
 
-	// the file member of 'data' could (and probably is) a binary executable file or library. Need to encode/decode this
-	// for transfer
 	contentsIF, exists := data["file"]
 	if !exists {
 		return nil, fmt.Errorf("'file' key/value pair missing in CreateAdaptorFile")
 	}
-	byts, ok := contentsIF.([]byte)
-	if !ok {
+
+	// if a user sends us a byte array (probably an executable file) we need to base64 encode it
+	// if a user sends us a string we assume it's base64 encoded
+	var fileContents string
+	switch contentsIF.(type) {
+	case []byte:
+		fileContents = base64.StdEncoding.EncodeToString(contentsIF.([]byte))
+	case string:
+		fileContents = contentsIF.(string)
+	default:
 		return nil, fmt.Errorf("Bad type for 'file' k/v pair in CreateAdaptorFile: %T: (%+v)", contentsIF, contentsIF)
 	}
-	data["file"] = base64.StdEncoding.EncodeToString(byts)
+
+	data["file"] = fileContents
 	data["name"] = fileName
 	data["adaptor_name"] = adaptorName
 
