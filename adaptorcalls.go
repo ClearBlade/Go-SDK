@@ -156,6 +156,21 @@ func (d *DeviceClient) GetAdaptorFile(systemKey, adaptorName, fileName string) (
 	return nil, fmt.Errorf("Device client cannot get adaptor file")
 }
 
+func getContentsForFile(fileValue interface{}) (string, error) {
+	// if a user sends us a byte array (probably an executable file) we need to base64 encode it
+	// if a user sends us a string we assume it's base64 encoded
+	var fileContents string
+	switch fileValue.(type) {
+	case []byte:
+		fileContents = base64.StdEncoding.EncodeToString(fileValue.([]byte))
+	case string:
+		fileContents = fileValue.(string)
+	default:
+		return "", fmt.Errorf("Bad type for 'file' k/v pair in CreateAdaptorFile: %T: (%+v)", fileValue, fileValue)
+	}
+	return fileContents, nil
+}
+
 func (d *DevClient) CreateAdaptorFile(systemKey, adaptorName, fileName string,
 	data map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
@@ -163,17 +178,17 @@ func (d *DevClient) CreateAdaptorFile(systemKey, adaptorName, fileName string,
 		return nil, err
 	}
 
-	// the file member of 'data' could (and probably is) a binary executable file or library. Need to encode/decode this
-	// for transfer
 	contentsIF, exists := data["file"]
 	if !exists {
 		return nil, fmt.Errorf("'file' key/value pair missing in CreateAdaptorFile")
 	}
-	byts, ok := contentsIF.([]byte)
-	if !ok {
-		return nil, fmt.Errorf("Bad type for 'file' k/v pair in CreateAdaptorFile: %T: (%+v)", contentsIF, contentsIF)
+
+	if fileContents, err := getContentsForFile(contentsIF); err != nil {
+		return nil, err
+	} else {
+		data["file"] = fileContents
 	}
-	data["file"] = base64.StdEncoding.EncodeToString(byts)
+
 	data["name"] = fileName
 	data["adaptor_name"] = adaptorName
 
@@ -220,11 +235,12 @@ func (d *DevClient) UpdateAdaptorFile(systemKey, adaptorName, fileName string, d
 	if !exists {
 		return nil, fmt.Errorf("'file' key/value pair missing in UpdateAdaptorFile")
 	}
-	byts, ok := contentsIF.([]byte)
-	if !ok {
-		return nil, fmt.Errorf("Bad type for 'file' k/v pair in CreateAdaptorFile: %T: (%+v)", contentsIF, contentsIF)
+
+	if fileContents, err := getContentsForFile(contentsIF); err != nil {
+		return nil, err
+	} else {
+		data["file"] = fileContents
 	}
-	data["file"] = base64.StdEncoding.EncodeToString(byts)
 	data["name"] = fileName
 	resp, err := put(d, _ADAPTORS_DEV_PREAMBLE+systemKey+"/adaptors/"+adaptorName+"/files/"+fileName, data, creds, nil)
 	resp, err = mapResponse(resp, err)
