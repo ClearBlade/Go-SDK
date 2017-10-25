@@ -470,7 +470,6 @@ func checkAuth(c cbClient) error {
 	if err != nil {
 		return err
 	}
-	//log.Printf("response body type: %T %v ", resp.Body, resp.Body)
 	body := resp.Body.(map[string]interface{})
 	if body["is_authenticated"] != nil && body["is_authenticated"].(bool) {
 		return nil

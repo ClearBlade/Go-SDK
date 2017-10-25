@@ -46,11 +46,21 @@ func CreateNewEdge(e EdgeConfig) (*os.Process, error) {
 }
 
 func (u *UserClient) GetEdges(systemKey string) ([]interface{}, error) {
+	return u.GetEdgesWithQuery(systemKey, nil)
+}
+
+func (u *UserClient) GetEdgesWithQuery(systemKey string, query *Query) ([]interface{}, error) {
 	creds, err := u.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(u, _EDGES_USER_PREAMBLE+systemKey, nil, creds, nil)
+
+	qry, err := createQueryMap(query)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := get(u, _EDGES_USER_PREAMBLE+systemKey, qry, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -58,12 +68,21 @@ func (u *UserClient) GetEdges(systemKey string) ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
-func (d *DevClient) GetEdges(systemKey string) ([]interface{}, error) {
+func (d *DevClient) GetEdgesy(systemKey string) ([]interface{}, error) {
+	return d.GetEdgesWithQuery(systemKey, nil)
+}
+
+func (d *DevClient) GetEdgesWithQuery(systemKey string, query *Query) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(d, _EDGES_PREAMBLE+systemKey, nil, creds, nil)
+
+	qry, err := createQueryMap(query)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, _EDGES_PREAMBLE+systemKey, qry, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
