@@ -68,7 +68,7 @@ func (u *UserClient) GetEdgesWithQuery(systemKey string, query *Query) ([]interf
 	return resp.Body.([]interface{}), nil
 }
 
-func (d *DevClient) GetEdgesy(systemKey string) ([]interface{}, error) {
+func (d *DevClient) GetEdges(systemKey string) ([]interface{}, error) {
 	return d.GetEdgesWithQuery(systemKey, nil)
 }
 
