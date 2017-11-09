@@ -5,8 +5,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	mqttTypes "github.com/clearblade/mqtt_parsing"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -15,6 +13,9 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
+	mqttTypes "github.com/clearblade/mqtt_parsing"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 var (
@@ -64,11 +65,13 @@ type Client interface {
 	Disconnect() error
 
 	// Device calls
-	GetDevices(string) ([]interface{}, error)
+	GetDevices(string, *Query) ([]interface{}, error)
 	GetDevice(string, string) (map[string]interface{}, error)
 	CreateDevice(string, string, map[string]interface{}) (map[string]interface{}, error)
 	UpdateDevice(string, string, map[string]interface{}) (map[string]interface{}, error)
 	DeleteDevice(string, string) error
+	UpdateDevices(string, *Query, map[string]interface{}) ([]interface{}, error)
+	DeleteDevices(string, *Query) error
 
 	// Adaptor calls
 	GetAdaptors(string) ([]interface{}, error)
