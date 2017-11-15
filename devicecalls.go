@@ -12,26 +12,19 @@ const (
 )
 
 func (d *DevClient) GetDevices(systemKey string, query *Query) ([]interface{}, error) {
-	creds, err := d.credentials()
-	if err != nil {
-		return nil, err
-	}
-
-	qry, err := createQueryMap(query)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := get(d, _DEVICES_DEV_PREAMBLE+systemKey, qry, creds, nil)
-	resp, err = mapResponse(resp, err)
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.([]interface{}), nil
+	return getDevices(d, systemKey, _DEVICES_DEV_PREAMBLE, query)
 }
 
 func (u *UserClient) GetDevices(systemKey string, query *Query) ([]interface{}, error) {
-	creds, err := u.credentials()
+	return getDevices(u, systemKey, _DEVICES_USER_PREAMBLE, query)
+}
+
+func (u *DeviceClient) GetDevices(systemKey string, query *Query) ([]interface{}, error) {
+	return getDevices(u, systemKey, _DEVICES_USER_PREAMBLE, query)
+}
+
+func getDevices(client cbClient, systemKey string, preamble string, query *Query) ([]interface{}, error) {
+	creds, err := client.credentials()
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +34,7 @@ func (u *UserClient) GetDevices(systemKey string, query *Query) ([]interface{}, 
 		return nil, err
 	}
 
-	resp, err := get(u, _DEVICES_USER_PREAMBLE+systemKey, qry, creds, nil)
+	resp, err := get(client, preamble+systemKey, qry, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -49,17 +42,69 @@ func (u *UserClient) GetDevices(systemKey string, query *Query) ([]interface{}, 
 	return resp.Body.([]interface{}), nil
 }
 
-func (u *DeviceClient) GetDevices(systemKey string) ([]interface{}, error) {
-	creds, err := u.credentials()
+func (d *DevClient) UpdateDevices(systemKey string, query *Query, changes map[string]interface{}) ([]interface{}, error) {
+	return updateDevices(d, systemKey, _DEVICES_DEV_PREAMBLE, query, changes)
+}
+
+func (u *UserClient) UpdateDevices(systemKey string, query *Query, changes map[string]interface{}) ([]interface{}, error) {
+	return updateDevices(u, systemKey, _DEVICES_USER_PREAMBLE, query, changes)
+}
+
+func (u *DeviceClient) UpdateDevices(systemKey string, query *Query, changes map[string]interface{}) ([]interface{}, error) {
+	return updateDevices(u, systemKey, _DEVICES_USER_PREAMBLE, query, changes)
+}
+
+func updateDevices(client cbClient, systemKey string, preamble string, query *Query, changes map[string]interface{}) ([]interface{}, error) {
+	creds, err := client.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(u, _DEVICES_USER_PREAMBLE+systemKey, nil, creds, nil)
+
+	qry := query.serialize()
+	body := map[string]interface{}{
+		"query": qry,
+		"$set":  changes,
+	}
+
+	resp, err := put(client, preamble+systemKey, body, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body.([]interface{}), nil
+
+	return resp.Body.(map[string]interface{})["DATA"].([]interface{}), nil
+}
+
+func (d *DevClient) DeleteDevices(systemKey string, query *Query) error {
+	return deleteDevices(d, systemKey, _DEVICES_DEV_PREAMBLE, query)
+}
+
+func (u *UserClient) DeleteDevices(systemKey string, query *Query) error {
+	return deleteDevices(u, systemKey, _DEVICES_USER_PREAMBLE, query)
+}
+
+func (u *DeviceClient) DeleteDevices(systemKey string, query *Query) error {
+	return deleteDevices(u, systemKey, _DEVICES_USER_PREAMBLE, query)
+}
+
+func deleteDevices(client cbClient, systemKey string, preamble string, query *Query) error {
+	creds, err := client.credentials()
+	if err != nil {
+		return err
+	}
+
+	qry, err := createQueryMap(query)
+	if err != nil {
+		return err
+	}
+
+	resp, err := delete(client, preamble+systemKey, qry, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (d *DevClient) GetDevice(systemKey, name string) (map[string]interface{}, error) {
@@ -388,8 +433,6 @@ func (dvc *DeviceClient) Logout() error {
 }
 
 // Device MQTT calls are mqtt.go
-
-//  Developer cbClient calls
 
 func (dvc *DeviceClient) preamble() string {
 	return _DEVICES_USER_PREAMBLE
