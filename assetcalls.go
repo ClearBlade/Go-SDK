@@ -160,26 +160,35 @@ func (d *DevClient) GetDeploymentByName(systemKey, name string) (map[string]inte
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) UpdateDeploymentByName(systemKey, name string) (map[string]interface{}, error) {
+func (d *DevClient) CreateDeploymentByName(systemKey, name string, info map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := put(d, "/admin/"+systemKey+"/deployments/"+name, nil, creds, nil)
+	resp, err := post(d, "/admin/"+systemKey+"/deployments/", info, creds, nil)
 	if err != nil {
 		return nil, err
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) DeleteDeploymentByName(systemKey, name string) (map[string]interface{}, error) {
+func (d *DevClient) UpdateDeploymentByName(systemKey, name string, changes map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := delete(d, "/admin/"+systemKey+"/deployments/"+name, nil, creds, nil)
+	resp, err := put(d, "/admin/"+systemKey+"/deployments/"+name, changes, creds, nil)
 	if err != nil {
 		return nil, err
 	}
 	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) DeleteDeploymentByName(systemKey, name string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	_, err = delete(d, "/admin/"+systemKey+"/deployments/"+name, nil, creds, nil)
+	return err
 }

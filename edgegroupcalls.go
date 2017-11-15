@@ -73,33 +73,3 @@ func (d *DevClient) UpdateEdgeGroup(systemKey, name string, data map[string]inte
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
-
-func mkE1() map[string]interface{} {
-	return map[string]interface{}{
-		"system_key":    "",
-		"system_secret": "Fred's system secret",
-		"token":         "Fred's Token",
-		"description":   "Fred makes widgets",
-		"location":      "123 4th Street",
-	}
-}
-
-func mkE2() map[string]interface{} {
-	return map[string]interface{}{
-		"system_key":    "Pat's system key",
-		"system_secret": "Pat's system secret",
-		"token":         "Pat's Token",
-		"description":   "Pat builds a biology lab",
-		"location":      "999 Caesar Chavez",
-	}
-}
-
-func mkE3() map[string]interface{} {
-	return map[string]interface{}{
-		"system_key":    "Adam's system key",
-		"system_secret": "Adam's system secret",
-		"token":         "Adam's Token",
-		"description":   "Adam creates design patterns",
-		"location":      "Somewhere on I35",
-	}
-}
