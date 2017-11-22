@@ -128,7 +128,7 @@ func (d *DevClient) UpdateAssetPlatformDeploymentStatus(systemKey, assetClass, a
 	}
 
 	reqBody := map[string]interface{}{"deploy": deploy}
-	resp, err := put(d, "/admin/"+systemKey+"/deploy_on_platform/"+assetClass+"/"+assetId, reqBody, creds, nil)
+	resp, err := mapResponse(put(d, "/admin/"+systemKey+"/deploy_on_platform/"+assetClass+"/"+assetId, reqBody, creds, nil))
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func (d *DevClient) GetAllDeployments(systemKey string) (map[string]interface{},
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(d, "/admin/"+systemKey+"/deployments", nil, creds, nil)
+	resp, err := mapResponse(get(d, "/admin/"+systemKey+"/deployments", nil, creds, nil))
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func (d *DevClient) GetDeploymentByName(systemKey, name string) (map[string]inte
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(d, "/admin/"+systemKey+"/deployments/"+name, nil, creds, nil)
+	resp, err := mapResponse(get(d, "/admin/"+systemKey+"/deployments/"+name, nil, creds, nil))
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func (d *DevClient) CreateDeploymentByName(systemKey, name string, info map[stri
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(d, "/admin/"+systemKey+"/deployments/", info, creds, nil)
+	resp, err := mapResponse(post(d, "/admin/"+systemKey+"/deployments", info, creds, nil))
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func (d *DevClient) UpdateDeploymentByName(systemKey, name string, changes map[s
 	if err != nil {
 		return nil, err
 	}
-	resp, err := put(d, "/admin/"+systemKey+"/deployments/"+name, changes, creds, nil)
+	resp, err := mapResponse(put(d, "/admin/"+systemKey+"/deployments/"+name, changes, creds, nil))
 	if err != nil {
 		return nil, err
 	}
@@ -189,6 +189,6 @@ func (d *DevClient) DeleteDeploymentByName(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	_, err = delete(d, "/admin/"+systemKey+"/deployments/"+name, nil, creds, nil)
+	_, err = mapResponse(delete(d, "/admin/"+systemKey+"/deployments/"+name, nil, creds, nil))
 	return err
 }
