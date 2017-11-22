@@ -128,7 +128,7 @@ func (d *DevClient) UpdateAssetPlatformDeploymentStatus(systemKey, assetClass, a
 	}
 
 	reqBody := map[string]interface{}{"deploy": deploy}
-	resp, err := put(d, "/admin/"+systemKey+"/deploy_on_platform/"+assetClass+"/"+assetId, reqBody, creds, nil)
+	resp, err := mapResponse(put(d, "/admin/"+systemKey+"/deploy_on_platform/"+assetClass+"/"+assetId, reqBody, creds, nil))
 	if err != nil {
 		return nil, err
 	}
@@ -136,86 +136,59 @@ func (d *DevClient) UpdateAssetPlatformDeploymentStatus(systemKey, assetClass, a
 	return resp.Body.(map[string]interface{}), nil
 }
 
-/* just using this as boilerplate example
-
-func (d *DevClient) GetEdgeGroup(systemKey, name string) (map[string]interface{}, error) {
+func (d *DevClient) GetAllDeployments(systemKey string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(d, "/admin/"+systemKey+"/edge_groups/"+name, nil, creds, nil)
-	resp, err = mapResponse(resp, err)
+	resp, err := mapResponse(get(d, "/admin/"+systemKey+"/deployments", nil, creds, nil))
 	if err != nil {
 		return nil, err
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) CreateEdgeGroup(systemKey, name string,
-	data map[string]interface{}) (map[string]interface{}, error) {
+func (d *DevClient) GetDeploymentByName(systemKey, name string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	data["name"] = name
-	resp, err := post(d, "/admin/"+systemKey+"/edge_groups", data, creds, nil)
-	resp, err = mapResponse(resp, err)
+	resp, err := mapResponse(get(d, "/admin/"+systemKey+"/deployments/"+name, nil, creds, nil))
 	if err != nil {
 		return nil, err
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) DeleteEdgeGroup(systemKey, name string) error {
+func (d *DevClient) CreateDeploymentByName(systemKey, name string, info map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := mapResponse(post(d, "/admin/"+systemKey+"/deployments", info, creds, nil))
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) UpdateDeploymentByName(systemKey, name string, changes map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := mapResponse(put(d, "/admin/"+systemKey+"/deployments/"+name, changes, creds, nil))
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) DeleteDeploymentByName(systemKey, name string) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
-	resp, err := delete(d, "/admin/"+systemKey+"/edge_groups/"+name, nil, creds, nil)
-	_, err = mapResponse(resp, err)
+	_, err = mapResponse(delete(d, "/admin/"+systemKey+"/deployments/"+name, nil, creds, nil))
 	return err
 }
-
-func (d *DevClient) UpdateEdgeGroup(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
-	creds, err := d.credentials()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := put(d, "/admin/"+systemKey+"/edge_groups/"+name, data, creds, nil)
-	resp, err = mapResponse(resp, err)
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.(map[string]interface{}), nil
-}
-
-func mkE1() map[string]interface{} {
-	return map[string]interface{}{
-		"system_key":    "",
-		"system_secret": "Fred's system secret",
-		"token":         "Fred's Token",
-		"description":   "Fred makes widgets",
-		"location":      "123 4th Street",
-	}
-}
-
-func mkE2() map[string]interface{} {
-	return map[string]interface{}{
-		"system_key":    "Pat's system key",
-		"system_secret": "Pat's system secret",
-		"token":         "Pat's Token",
-		"description":   "Pat builds a biology lab",
-		"location":      "999 Caesar Chavez",
-	}
-}
-
-func mkE3() map[string]interface{} {
-	return map[string]interface{}{
-		"system_key":    "Adam's system key",
-		"system_secret": "Adam's system secret",
-		"token":         "Adam's Token",
-		"description":   "Adam creates design patterns",
-		"location":      "Somewhere on I35",
-	}
-}
-*/
