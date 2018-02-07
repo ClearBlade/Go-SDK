@@ -148,12 +148,36 @@ func (d *DevClient) GetAllDeployments(systemKey string) (map[string]interface{},
 	return resp.Body.(map[string]interface{}), nil
 }
 
+func (u *UserClient) GetAllDeployments(systemKey string) (map[string]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := mapResponse(get(u, "/api/v/3/"+systemKey+"/deployments", nil, creds, nil))
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
 func (d *DevClient) GetDeploymentByName(systemKey, name string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
 	resp, err := mapResponse(get(d, "/admin/"+systemKey+"/deployments/"+name, nil, creds, nil))
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (u *UserClient) GetDeploymentByName(systemKey, name string) (map[string]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := mapResponse(get(u, "/api/v/3/"+systemKey+"/deployments/"+name, nil, creds, nil))
 	if err != nil {
 		return nil, err
 	}
@@ -172,6 +196,18 @@ func (d *DevClient) CreateDeploymentByName(systemKey, name string, info map[stri
 	return resp.Body.(map[string]interface{}), nil
 }
 
+func (u *UserClient) CreateDeploymentByName(systemKey, name string, info map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := mapResponse(post(u, "/api/v/3/"+systemKey+"/deployments", info, creds, nil))
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
 func (d *DevClient) UpdateDeploymentByName(systemKey, name string, changes map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -184,11 +220,32 @@ func (d *DevClient) UpdateDeploymentByName(systemKey, name string, changes map[s
 	return resp.Body.(map[string]interface{}), nil
 }
 
+func (u *UserClient) UpdateDeploymentByName(systemKey, name string, changes map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := mapResponse(put(u, "/api/v/3/"+systemKey+"/deployments/"+name, changes, creds, nil))
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
 func (d *DevClient) DeleteDeploymentByName(systemKey, name string) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
 	_, err = mapResponse(delete(d, "/admin/"+systemKey+"/deployments/"+name, nil, creds, nil))
+	return err
+}
+
+func (u *UserClient) DeleteDeploymentByName(systemKey, name string) error {
+	creds, err := u.credentials()
+	if err != nil {
+		return err
+	}
+	_, err = mapResponse(delete(u, "/api/v/3/"+systemKey+"/deployments/"+name, nil, creds, nil))
 	return err
 }
