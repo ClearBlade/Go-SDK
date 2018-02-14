@@ -136,7 +136,7 @@ func (d *DevClient) UpdateAssetPlatformDeploymentStatus(systemKey, assetClass, a
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) GetAllDeployments(systemKey string) (map[string]interface{}, error) {
+func (d *DevClient) GetAllDeployments(systemKey string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
@@ -145,7 +145,7 @@ func (d *DevClient) GetAllDeployments(systemKey string) (map[string]interface{},
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body.(map[string]interface{}), nil
+	return resp.Body.([]interface{}), nil
 }
 
 func (d *DevClient) GetDeploymentByName(systemKey, name string) (map[string]interface{}, error) {
