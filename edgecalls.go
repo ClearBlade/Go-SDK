@@ -104,13 +104,20 @@ func (d *DevClient) GetEdge(systemKey, name string) (map[string]interface{}, err
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) CreateEdge(systemKey, name string,
-	data map[string]interface{}) (map[string]interface{}, error) {
-	creds, err := d.credentials()
+func (d *DevClient) CreateEdge(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	return createEdge(d, systemKey, _EDGES_PREAMBLE, name, data)
+}
+
+func (u *UserClient) CreateEdge(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	return createEdge(u, systemKey, _EDGES_USER_V3, name, data)
+}
+
+func createEdge(client cbClient, systemKey, preamble string, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := client.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(d, _EDGES_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := post(client, preamble+systemKey+"/"+name, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
