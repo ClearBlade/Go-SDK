@@ -9,6 +9,7 @@ import (
 const (
 	_DATA_PREAMBLE      = "/api/v/1/data/"
 	_DATA_NAME_PREAMBLE = "/api/v/1/collection/"
+	_DATA_V3_PREAMBLE   = "/api/v/3/"
 )
 
 //Inserts data into the platform. The interface is either a map[string]interface{} representing a row, or a []map[string]interface{} representing many rows.
@@ -360,6 +361,24 @@ func getColumns(c cbClient, collection_id, systemKey, systemSecret string) ([]in
 		return nil, fmt.Errorf("Error getting collection columns: %v", resp.Body)
 	}
 	return resp.Body.([]interface{}), nil
+}
+
+func (u *UserClient) NewCollectionUser(systemKey, name string) (string, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return "", err
+	}
+	resp, err := post(u, _DATA_V3_PREAMBLE+"collectionmanagement/"+systemKey, map[string]interface{}{
+		"name":  name,
+		"appID": systemKey,
+	}, creds, nil)
+	if err != nil {
+		return "", fmt.Errorf("Error creating collection: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("Error creating collection %v", resp.Body)
+	}
+	return resp.Body.(map[string]interface{})["collectionID"].(string), nil
 }
 
 //GetDataByKeyAndName is unimplemented
