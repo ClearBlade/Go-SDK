@@ -363,6 +363,23 @@ func getColumns(c cbClient, collection_id, systemKey, systemSecret string) ([]in
 	return resp.Body.([]interface{}), nil
 }
 
+func (u *UserClient) GetAllCollections(systemKey string) ([]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(u, _DATA_V3_PREAMBLE+"allcollections/"+systemKey, map[string]string{
+		"appid": systemKey,
+	}, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error fetchings all collections: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error fetchings all collections %v", resp.Body)
+	}
+	return resp.Body.([]interface{}), nil
+}
+
 func (u *UserClient) NewCollectionUser(systemKey, name string) (string, error) {
 	creds, err := u.credentials()
 	if err != nil {
