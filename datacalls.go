@@ -398,6 +398,79 @@ func (u *UserClient) NewCollectionUser(systemKey, name string) (string, error) {
 	return resp.Body.(map[string]interface{})["collectionID"].(string), nil
 }
 
+func (u *UserClient) GetCollectionInfoUser(systemKey, collection_id string) (map[string]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return map[string]interface{}{}, err
+	}
+	resp, err := get(u, _DATA_V3_PREAMBLE+"/collectionmanagement/"+systemKey, map[string]string{
+		"id": collection_id,
+	}, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting collection info: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting collection info: %v", resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (u *UserClient) AddColumnUser(systemKey, collection_id, column_name, column_type string) error {
+	creds, err := u.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := put(u, _DATA_V3_PREAMBLE+"/collectionmanagement/"+systemKey, map[string]interface{}{
+		"id": collection_id,
+		"addColumn": map[string]interface{}{
+			"name": column_name,
+			"type": column_type,
+		},
+	}, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error adding column: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error adding column: %v", resp.Body)
+	}
+	return nil
+}
+
+func (u *UserClient) DeleteColumnUser(systemKey, collection_id, column_name string) error {
+	creds, err := u.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := put(u, _DATA_V3_PREAMBLE+"/collectionmanagement/"+systemKey, map[string]interface{}{
+		"id":           collection_id,
+		"deleteColumn": column_name,
+	}, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error deleting column: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error deleting column: %v", resp.Body)
+	}
+	return nil
+}
+
+func (u *UserClient) DeleteCollectionUser(systemKey, colId string) error {
+	creds, err := u.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(u, _DATA_V3_PREAMBLE+"/collectionmanagement/"+systemKey, map[string]string{
+		"id": colId,
+	}, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error deleting collection %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error deleting collection %v", resp.Body)
+	}
+	return nil
+}
+
 //GetDataByKeyAndName is unimplemented
 func (d *DevClient) GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error) {
 	return nil, fmt.Errorf("Unimplemented")
