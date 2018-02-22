@@ -9,7 +9,7 @@ import (
 const (
 	_DATA_PREAMBLE      = "/api/v/1/data/"
 	_DATA_NAME_PREAMBLE = "/api/v/1/collection/"
-	_DATA_V3_PREAMBLE   = "/api/v/3/"
+	_DATA_V3_PREAMBLE   = "/api/v/3"
 )
 
 //Inserts data into the platform. The interface is either a map[string]interface{} representing a row, or a []map[string]interface{} representing many rows.
@@ -363,12 +363,22 @@ func getColumns(c cbClient, collection_id, systemKey, systemSecret string) ([]in
 	return resp.Body.([]interface{}), nil
 }
 
+//GetAllCollections retrieves a list of every collection in the system
+//The return value is a slice of strings
+func (d *DevClient) GetAllCollections(systemKey string) ([]interface{}, error) {
+	return getAllCollections(d, d.preamble(), systemKey)
+}
+
 func (u *UserClient) GetAllCollections(systemKey string) ([]interface{}, error) {
-	creds, err := u.credentials()
+	return getAllCollections(u, _DATA_V3_PREAMBLE, systemKey)
+}
+
+func getAllCollections(c cbClient, preamble, systemKey string) ([]interface{}, error) {
+	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(u, _DATA_V3_PREAMBLE+"allcollections/"+systemKey, map[string]string{
+	resp, err := get(c, preamble+"/allcollections", map[string]string{
 		"appid": systemKey,
 	}, creds, nil)
 	if err != nil {
@@ -380,12 +390,21 @@ func (u *UserClient) GetAllCollections(systemKey string) ([]interface{}, error) 
 	return resp.Body.([]interface{}), nil
 }
 
-func (u *UserClient) NewCollectionUser(systemKey, name string) (string, error) {
-	creds, err := u.credentials()
+func (d *DevClient) NewCollection(systemKey, name string) (string, error) {
+	return createNewCollection(d, d.preamble(), name, systemKey)
+}
+
+func (u *UserClient) NewCollection(systemKey, name string) (string, error) {
+	return createNewCollection(u, _DATA_V3_PREAMBLE, name, systemKey)
+}
+
+//CreateCollection creates a new collection
+func createNewCollection(c cbClient, preamble, name, systemKey string) (string, error) {
+	creds, err := c.credentials()
 	if err != nil {
 		return "", err
 	}
-	resp, err := post(u, _DATA_V3_PREAMBLE+"collectionmanagement/"+systemKey, map[string]interface{}{
+	resp, err := post(c, preamble+"/collectionmanagement", map[string]interface{}{
 		"name":  name,
 		"appID": systemKey,
 	}, creds, nil)
@@ -398,12 +417,22 @@ func (u *UserClient) NewCollectionUser(systemKey, name string) (string, error) {
 	return resp.Body.(map[string]interface{})["collectionID"].(string), nil
 }
 
-func (u *UserClient) GetCollectionInfoUser(systemKey, collection_id string) (map[string]interface{}, error) {
-	creds, err := u.credentials()
+//GetCollectionInfo retrieves some describing information on the specified collection
+//Keys "name","collectoinID","appID", and much, much more!
+func (d *DevClient) GetCollectionInfo(collection_id string) (map[string]interface{}, error) {
+	return getCollectionInfo(d, d.preamble(), collection_id)
+}
+
+func (u *UserClient) GetCollectionInfo(collection_id string) (map[string]interface{}, error) {
+	return getCollectionInfo(u, _DATA_V3_PREAMBLE, collection_id)
+}
+
+func getCollectionInfo(c cbClient, preamble, collection_id string) (map[string]interface{}, error) {
+	creds, err := c.credentials()
 	if err != nil {
 		return map[string]interface{}{}, err
 	}
-	resp, err := get(u, _DATA_V3_PREAMBLE+"/collectionmanagement/"+systemKey, map[string]string{
+	resp, err := get(c, preamble+"/collectionmanagement", map[string]string{
 		"id": collection_id,
 	}, creds, nil)
 	if err != nil {
@@ -415,12 +444,21 @@ func (u *UserClient) GetCollectionInfoUser(systemKey, collection_id string) (map
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (u *UserClient) AddColumnUser(systemKey, collection_id, column_name, column_type string) error {
-	creds, err := u.credentials()
+//AddColumn adds a column to a collection. Note that this does not apply to collections backed by a non-default datastore.
+func (d *DevClient) AddColumn(collection_id, column_name, column_type string) error {
+	return addColumn(d, d.preamble(), collection_id, column_name, column_type)
+}
+
+func (u *UserClient) AddColumn(collection_id, column_name, column_type string) error {
+	return addColumn(u, _DATA_V3_PREAMBLE, collection_id, column_name, column_type)
+}
+
+func addColumn(c cbClient, preamble, collection_id, column_name, column_type string) error {
+	creds, err := c.credentials()
 	if err != nil {
 		return err
 	}
-	resp, err := put(u, _DATA_V3_PREAMBLE+"/collectionmanagement/"+systemKey, map[string]interface{}{
+	resp, err := put(c, preamble+"/collectionmanagement", map[string]interface{}{
 		"id": collection_id,
 		"addColumn": map[string]interface{}{
 			"name": column_name,
@@ -436,12 +474,21 @@ func (u *UserClient) AddColumnUser(systemKey, collection_id, column_name, column
 	return nil
 }
 
-func (u *UserClient) DeleteColumnUser(systemKey, collection_id, column_name string) error {
-	creds, err := u.credentials()
+//DeleteColumn removes a column from a collection. Note that this does not apply to collections backed by a non-default datastore.
+func (d *DevClient) DeleteColumn(collection_id, column_name string) error {
+	return deleteColumn(d, d.preamble(), collection_id, column_name)
+}
+
+func (u *UserClient) DeleteColumn(collection_id, column_name string) error {
+	return deleteColumn(u, _DATA_V3_PREAMBLE, collection_id, column_name)
+}
+
+func deleteColumn(c cbClient, preamble, collection_id, column_name string) error {
+	creds, err := c.credentials()
 	if err != nil {
 		return err
 	}
-	resp, err := put(u, _DATA_V3_PREAMBLE+"/collectionmanagement/"+systemKey, map[string]interface{}{
+	resp, err := put(c, preamble+"/collectionmanagement", map[string]interface{}{
 		"id":           collection_id,
 		"deleteColumn": column_name,
 	}, creds, nil)
@@ -454,13 +501,22 @@ func (u *UserClient) DeleteColumnUser(systemKey, collection_id, column_name stri
 	return nil
 }
 
-func (u *UserClient) DeleteCollectionUser(systemKey, colId string) error {
-	creds, err := u.credentials()
+//DeleteCollection deletes the collection. Note that this does not apply to collections backed by a non-default datastore.
+func (d *DevClient) DeleteCollection(colID string) error {
+	return deleteCollection(d, d.preamble(), colID)
+}
+
+func (u *UserClient) DeleteCollection(colID string) error {
+	return deleteCollection(u, _DATA_V3_PREAMBLE, colID)
+}
+
+func deleteCollection(c cbClient, preamble, colID string) error {
+	creds, err := c.credentials()
 	if err != nil {
 		return err
 	}
-	resp, err := delete(u, _DATA_V3_PREAMBLE+"/collectionmanagement/"+systemKey, map[string]string{
-		"id": colId,
+	resp, err := delete(c, preamble+"/collectionmanagement", map[string]string{
+		"id": colID,
 	}, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error deleting collection %v", err)
