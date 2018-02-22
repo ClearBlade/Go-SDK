@@ -366,19 +366,19 @@ func getColumns(c cbClient, collection_id, systemKey, systemSecret string) ([]in
 //GetAllCollections retrieves a list of every collection in the system
 //The return value is a slice of strings
 func (d *DevClient) GetAllCollections(systemKey string) ([]interface{}, error) {
-	return getAllCollections(d, d.preamble(), systemKey)
+	return getAllCollections(d, d.preamble()+"/allcollections", systemKey)
 }
 
 func (u *UserClient) GetAllCollections(systemKey string) ([]interface{}, error) {
-	return getAllCollections(u, _DATA_V3_PREAMBLE, systemKey)
+	return getAllCollections(u, _DATA_V3_PREAMBLE+"/allcollections/"+systemKey, systemKey)
 }
 
-func getAllCollections(c cbClient, preamble, systemKey string) ([]interface{}, error) {
+func getAllCollections(c cbClient, endpoint, systemKey string) ([]interface{}, error) {
 	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(c, preamble+"/allcollections", map[string]string{
+	resp, err := get(c, endpoint, map[string]string{
 		"appid": systemKey,
 	}, creds, nil)
 	if err != nil {
