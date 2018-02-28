@@ -80,18 +80,18 @@ func updateService(c cbClient, sysKey, name, code string, extra map[string]inter
 	return nil, body
 }
 
-func (u *UserClient) CreateEventHandler(systemKey, name string,
-	data map[string]interface{}) (map[string]interface{}, error) {
-	creds, err := u.credentials()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := mapResponse(post(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, data, creds, nil))
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.(map[string]interface{}), nil
-}
+// func (u *UserClient) CreateEventHandler(systemKey, name string,
+// 	data map[string]interface{}) (map[string]interface{}, error) {
+// 	creds, err := u.credentials()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	resp, err := mapResponse(post(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, data, creds, nil))
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return resp.Body.(map[string]interface{}), nil
+// }
 
 //DeleteEventHandler removes the event handler
 func (u *UserClient) DeleteEventHandler(systemKey, name string) error {
@@ -115,17 +115,17 @@ func (u *UserClient) UpdateEventHandler(systemKey, name string, data map[string]
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (u *UserClient) GetEventHandler(systemKey, name string) (map[string]interface{}, error) {
-	creds, err := u.credentials()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := mapResponse(get(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, nil, creds, nil))
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.(map[string]interface{}), nil
-}
+// func (u *UserClient) GetEventHandler(systemKey, name string) (map[string]interface{}, error) {
+// 	creds, err := u.credentials()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	resp, err := mapResponse(get(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, nil, creds, nil))
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return resp.Body.(map[string]interface{}), nil
+// }
 
 func (u *UserClient) GetTimer(systemKey, name string) (map[string]interface{}, error) {
 	creds, err := u.credentials()
