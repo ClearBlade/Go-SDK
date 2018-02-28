@@ -29,11 +29,19 @@ func (d *DevClient) GetEventDefinitions() ([]interface{}, error) {
 
 //GetEventHandlers returns a slice of the event handlers for a system
 func (d *DevClient) GetEventHandlers(systemKey string) ([]interface{}, error) {
-	creds, err := d.credentials()
+	return getEventHandlers(d, _EVENTS_HDLRS_PREAMBLE+systemKey)
+}
+
+func (u *UserClient) GetEventHandlers(systemKey string) ([]interface{}, error) {
+	return getEventHandlers(u, _EVENTS_V3_PREAMBLE+systemKey+"/triggers")
+}
+
+func getEventHandlers(c cbClient, endpoint string) ([]interface{}, error) {
+	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(d, _EVENTS_HDLRS_PREAMBLE+systemKey, nil, creds, nil)
+	resp, err := get(c, endpoint, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -49,11 +57,19 @@ func (d *DevClient) GetTriggers(systemKey string) ([]interface{}, error) {
 //GetEventHandler reuturns a single event handler
 //Returns an object shaped map[string]interface{}{"system_key":"associated system key","system_secret":"secret","name":"event name","event_definition":map[string]interface{}{"def_module":"module","def_name":"definition name","event_keys":[]string{"event","keys"},"visibility":false|true}, KeyVals:map[string]interface{}{"keys":"values"},"service_name":"corresponding service name"}
 func (d *DevClient) GetEventHandler(systemKey, name string) (map[string]interface{}, error) {
-	creds, err := d.credentials()
+	return getEventHandler(d, _EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name)
+}
+
+func (u *UserClient) GetEventHandler(systemKey, name string) (map[string]interface{}, error) {
+	return getEventHandler(u, _EVENTS_V3_PREAMBLE+systemKey+"/trigger/"+name)
+}
+
+func getEventHandler(c cbClient, endpoint string) (map[string]interface{}, error) {
+	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(d, _EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := get(c, endpoint, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -68,13 +84,20 @@ func (d *DevClient) GetTrigger(systemKey, name string) (map[string]interface{}, 
 
 //CreateEventHandler creates an event handler, otherwise known as a trigger
 //Returns the same object as GetEventHandler corresponding to the created event
-func (d *DevClient) CreateEventHandler(systemKey, name string,
-	data map[string]interface{}) (map[string]interface{}, error) {
-	creds, err := d.credentials()
+func (d *DevClient) CreateEventHandler(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	return createEventHandler(d, _EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, data)
+}
+
+func (u *UserClient) CreateEventHandler(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	return createEventHandler(u, _EVENTS_V3_PREAMBLE+systemKey+"/trigger/"+name, data)
+}
+
+func createEventHandler(c cbClient, endpoint string, data map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(d, _EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := post(c, endpoint, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
