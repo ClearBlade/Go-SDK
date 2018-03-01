@@ -94,26 +94,26 @@ func updateService(c cbClient, sysKey, name, code string, extra map[string]inter
 // }
 
 //DeleteEventHandler removes the event handler
-func (u *UserClient) DeleteEventHandler(systemKey, name string) error {
-	creds, err := u.credentials()
-	if err != nil {
-		return err
-	}
-	_, err = mapResponse(delete(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, nil, creds, nil))
-	return err
-}
+// func (u *UserClient) DeleteEventHandler(systemKey, name string) error {
+// 	creds, err := u.credentials()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	_, err = mapResponse(delete(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, nil, creds, nil))
+// 	return err
+// }
 
-func (u *UserClient) UpdateEventHandler(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
-	creds, err := u.credentials()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := (put(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, data, creds, nil))
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.(map[string]interface{}), nil
-}
+// func (u *UserClient) UpdateEventHandler(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
+// 	creds, err := u.credentials()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	resp, err := (put(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, data, creds, nil))
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return resp.Body.(map[string]interface{}), nil
+// }
 
 // func (u *UserClient) GetEventHandler(systemKey, name string) (map[string]interface{}, error) {
 // 	creds, err := u.credentials()

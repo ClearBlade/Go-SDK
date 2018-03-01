@@ -114,11 +114,19 @@ func (d *DevClient) CreateTrigger(systemKey, name string,
 
 //DeleteEventHandler removes the event handler
 func (d *DevClient) DeleteEventHandler(systemKey, name string) error {
-	creds, err := d.credentials()
+	return deleteEventHandler(d, _EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name)
+}
+
+func (u *UserClient) DeleteEventHandler(systemKey, name string) error {
+	return deleteEventHandler(u, _EVENTS_V3_PREAMBLE+systemKey+"/trigger/"+name)
+}
+
+func deleteEventHandler(c cbClient, endpoint string) error {
+	creds, err := c.credentials()
 	if err != nil {
 		return err
 	}
-	resp, err := delete(d, _EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := delete(c, endpoint, nil, creds, nil)
 	_, err = mapResponse(resp, err)
 	return err
 }
@@ -131,11 +139,19 @@ func (d *DevClient) DeleteTrigger(systemKey, name string) error {
 //UpdateEventHandler allows the developer to alter the code executed by the event handler
 //Returns an object corresponding to GetEventHandler with the altered values
 func (d *DevClient) UpdateEventHandler(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
-	creds, err := d.credentials()
+	return updateEventHandler(d, _EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, data)
+}
+
+func (u *UserClient) UpdateEventHandler(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	return updateEventHandler(u, _EVENTS_V3_PREAMBLE+systemKey+"/trigger/"+name, data)
+}
+
+func updateEventHandler(c cbClient, endpoint string, data map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := put(d, _EVENTS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := put(c, endpoint, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
