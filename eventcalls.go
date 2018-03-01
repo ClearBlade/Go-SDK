@@ -9,6 +9,7 @@ const (
 	_EVENTS_HDLRS_PREAMBLE = "/admin/triggers/handlers/"
 	_TIMERS_HDLRS_PREAMBLE = "/admin/triggers/timers/"
 	_MH_PREAMBLE           = "/api/v/1/message/"
+	_EVENTS_V3_PREAMBLE    = "/api/v/3/code/"
 )
 
 //GetEventDefinitions returns a slice of the different kinds of events that can be handled.
@@ -154,11 +155,19 @@ func mapSyncChanges(resources map[string][]string) []map[string]interface{} {
 //Returns a slice of timer descriptions
 //Return value looks like []interface{}[map[string]interface{}{"timer_key":"clearblade generated timer identifier","name":"the name of the timer","start_time":"rfc3339 formatted date string","repeats":0,"frequency":5,"service_name":"name of service executed","system_key":"system key associated with timer","user_id":"userid associated with timer","user_token":"a token the timer runs with"},...]
 func (d *DevClient) GetTimers(systemKey string) ([]interface{}, error) {
-	creds, err := d.credentials()
+	return getTimers(d, _TIMERS_HDLRS_PREAMBLE+systemKey)
+}
+
+func (u *UserClient) GetTimers(systemKey string) ([]interface{}, error) {
+	return getTimers(u, _EVENTS_V3_PREAMBLE+systemKey+"/timers")
+}
+
+func getTimers(c cbClient, endpoint string) ([]interface{}, error) {
+	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(d, _TIMERS_HDLRS_PREAMBLE+systemKey, nil, creds, nil)
+	resp, err := get(c, endpoint, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -169,11 +178,19 @@ func (d *DevClient) GetTimers(systemKey string) ([]interface{}, error) {
 //GetTimer returns the definition of a single timer
 //Returns a single instance of the object described in GetTimers
 func (d *DevClient) GetTimer(systemKey, name string) (map[string]interface{}, error) {
-	creds, err := d.credentials()
+	return getTimer(d, _TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name)
+}
+
+func (u *UserClient) GetTimer(systemKey, name string) (map[string]interface{}, error) {
+	return getTimer(u, _EVENTS_V3_PREAMBLE+systemKey+"/timer/"+name)
+}
+
+func getTimer(c cbClient, endpoint string) (map[string]interface{}, error) {
+	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(d, _TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := get(c, endpoint, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -183,13 +200,20 @@ func (d *DevClient) GetTimer(systemKey, name string) (map[string]interface{}, er
 
 //CreateTimer allows the user to create the timer with code
 //Returns a single instance of the object described in GetTimers for the newly created timer
-func (d *DevClient) CreateTimer(systemKey, name string,
-	data map[string]interface{}) (map[string]interface{}, error) {
-	creds, err := d.credentials()
+func (d *DevClient) CreateTimer(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	return createTimer(d, _TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name, data)
+}
+
+func (u *UserClient) CreateTimer(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	return createTimer(u, _EVENTS_V3_PREAMBLE+systemKey+"/timer/"+name, data)
+}
+
+func createTimer(c cbClient, endpoint string, data map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(d, _TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := post(c, endpoint, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -199,11 +223,19 @@ func (d *DevClient) CreateTimer(systemKey, name string,
 
 //DeleteTimer removes the timer
 func (d *DevClient) DeleteTimer(systemKey, name string) error {
-	creds, err := d.credentials()
+	return deleteTimer(d, _TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name)
+}
+
+func (u *UserClient) DeleteTimer(systemKey, name string) error {
+	return deleteTimer(u, _EVENTS_V3_PREAMBLE+systemKey+"/timer/"+name)
+}
+
+func deleteTimer(c cbClient, endpoint string) error {
+	creds, err := c.credentials()
 	if err != nil {
 		return err
 	}
-	resp, err := delete(d, _TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := delete(c, endpoint, nil, creds, nil)
 	_, err = mapResponse(resp, err)
 	return err
 }
@@ -211,11 +243,19 @@ func (d *DevClient) DeleteTimer(systemKey, name string) error {
 //UpdateTimer allows the developer to change the code executed with the timer
 //Returns an updated version of the timer as described in GetTimer
 func (d *DevClient) UpdateTimer(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
-	creds, err := d.credentials()
+	return updateTimer(d, _TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name, data)
+}
+
+func (u *UserClient) UpdateTimer(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	return updateTimer(u, _EVENTS_V3_PREAMBLE+systemKey+"/timer/"+name, data)
+}
+
+func updateTimer(c cbClient, endpoint string, data map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := put(d, _TIMERS_HDLRS_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := put(c, endpoint, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
