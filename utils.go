@@ -404,7 +404,7 @@ func (u *UserClient) Register(username, password string) error {
 	if u.UserToken == "" {
 		return fmt.Errorf("Must be logged in to create users")
 	}
-	_, err := register(u, createUser, username, password, u.SystemKey, u.SystemSecret, "", "", "")
+	_, err := register(u, createUser, username, password, u.SystemKey, u.SystemSecret, "", "", "", "")
 	return err
 }
 
@@ -413,7 +413,7 @@ func (u *UserClient) RegisterUser(username, password string) (map[string]interfa
 	if u.UserToken == "" {
 		return nil, fmt.Errorf("Must be logged in to create users")
 	}
-	resp, err := register(u, createUser, username, password, u.SystemKey, u.SystemSecret, "", "", "")
+	resp, err := register(u, createUser, username, password, u.SystemKey, u.SystemSecret, "", "", "", "")
 	if err != nil {
 		return nil, err
 	}
@@ -422,7 +422,7 @@ func (u *UserClient) RegisterUser(username, password string) (map[string]interfa
 
 //Registers a new developer
 func (d *DevClient) Register(username, password, fname, lname, org string) error {
-	resp, err := register(d, createDevUser, username, password, "", "", fname, lname, org)
+	resp, err := register(d, createDevUser, username, password, "", "", fname, lname, org, "")
 	if err != nil {
 		return err
 	} else {
@@ -435,13 +435,22 @@ func (d *DevClient) RegisterNewUser(username, password, systemkey, systemsecret 
 	if d.DevToken == "" {
 		return nil, fmt.Errorf("Must authenticate first")
 	}
-	return register(d, createUser, username, password, systemkey, systemsecret, "", "", "")
+	return register(d, createUser, username, password, systemkey, systemsecret, "", "", "", "")
 
 }
 
 //Register creates a new developer user
 func (d *DevClient) RegisterDevUser(username, password, fname, lname, org string) (map[string]interface{}, error) {
-	resp, err := register(d, createDevUser, username, password, "", "", fname, lname, org)
+	resp, err := register(d, createDevUser, username, password, "", "", fname, lname, org, "")
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+//Register creates a new developer user
+func (d *DevClient) RegisterDevUserWithKey(username, password, fname, lname, org, key string) (map[string]interface{}, error) {
+	resp, err := register(d, createDevUser, username, password, "", "", fname, lname, org, key)
 	if err != nil {
 		return nil, err
 	}
@@ -538,7 +547,7 @@ func authAnon(c cbClient) error {
 	return nil
 }
 
-func register(c cbClient, kind int, username, password, syskey, syssec, fname, lname, org string) (map[string]interface{}, error) {
+func register(c cbClient, kind int, username, password, syskey, syssec, fname, lname, org, key string) (map[string]interface{}, error) {
 	payload := map[string]interface{}{
 		"email":    username,
 		"password": password,
@@ -552,6 +561,9 @@ func register(c cbClient, kind int, username, password, syskey, syssec, fname, l
 		payload["fname"] = fname
 		payload["lname"] = lname
 		payload["org"] = org
+		if key != "" {
+			payload["key"] = key
+		}
 	case createUser:
 		switch c.(type) {
 		case *DevClient:

@@ -9,6 +9,58 @@ const (
 	_CODE_USER_PREAMBLE = "/api/v/3/code"
 )
 
+func GetServiceNames(c cbClient, systemKey string) ([]string, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(c, _CODE_USER_PREAMBLE+"/"+systemKey, nil, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting services: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting services: %v", resp.Body)
+	}
+	code := resp.Body.(map[string]interface{})["code"]
+	sliceBody, isSlice := code.([]interface{})
+	if !isSlice && code != nil {
+		return nil, fmt.Errorf("Error getting services: server returned unexpected response")
+	}
+	services := make([]string, len(sliceBody))
+	for i, service := range sliceBody {
+		services[i] = service.(string)
+	}
+	return services, nil
+}
+
+func getService(c cbClient, systemKey, name string) (*Service, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(c, _CODE_USER_PREAMBLE+"/"+systemKey+"/service/"+name, nil, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting service: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting service: %v", resp.Body)
+	}
+	mapBody := resp.Body.(map[string]interface{})
+	paramsSlice := mapBody["params"].([]interface{})
+	params := make([]string, len(paramsSlice))
+	for i, param := range paramsSlice {
+		params[i] = param.(string)
+	}
+	svc := &Service{
+		Name:    name,
+		System:  systemKey,
+		Code:    mapBody["code"].(string),
+		Version: int(mapBody["current_version"].(float64)),
+		Params:  params,
+	}
+	return svc, nil
+}
+
 func callService(c cbClient, systemKey, name string, params map[string]interface{}, log bool) (map[string]interface{}, error) {
 	creds, err := c.credentials()
 	if err != nil {
@@ -80,104 +132,6 @@ func updateService(c cbClient, sysKey, name, code string, extra map[string]inter
 	return nil, body
 }
 
-func (u *UserClient) CreateEventHandler(systemKey, name string,
-	data map[string]interface{}) (map[string]interface{}, error) {
-	creds, err := u.credentials()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := mapResponse(post(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, data, creds, nil))
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.(map[string]interface{}), nil
-}
-
-//DeleteEventHandler removes the event handler
-func (u *UserClient) DeleteEventHandler(systemKey, name string) error {
-	creds, err := u.credentials()
-	if err != nil {
-		return err
-	}
-	_, err = mapResponse(delete(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, nil, creds, nil))
-	return err
-}
-
-func (u *UserClient) UpdateEventHandler(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
-	creds, err := u.credentials()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := (put(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, data, creds, nil))
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.(map[string]interface{}), nil
-}
-
-func (u *UserClient) GetEventHandler(systemKey, name string) (map[string]interface{}, error) {
-	creds, err := u.credentials()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := mapResponse(get(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/trigger/"+name, nil, creds, nil))
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.(map[string]interface{}), nil
-}
-
-func (u *UserClient) GetTimer(systemKey, name string) (map[string]interface{}, error) {
-	creds, err := u.credentials()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := mapResponse(get(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/timer/"+name, nil, creds, nil))
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.(map[string]interface{}), nil
-}
-
-//CreateTimer allows the user to create the timer with code
-//Returns a single instance of the object described in GetTimers for the newly created timer
-func (u *UserClient) CreateTimer(systemKey, name string,
-	data map[string]interface{}) (map[string]interface{}, error) {
-	creds, err := u.credentials()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := mapResponse(post(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/timer/"+name, data, creds, nil))
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.(map[string]interface{}), nil
-}
-
-//DeleteTimer removes the timer
-func (u *UserClient) DeleteTimer(systemKey, name string) error {
-	creds, err := u.credentials()
-	if err != nil {
-		return err
-	}
-	_, err = mapResponse(delete(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/timer/"+name, nil, creds, nil))
-	return err
-}
-
-//UpdateTimer allows the developer to change the code executed with the timer
-//Returns an updated version of the timer as described in GetTimer
-func (u *UserClient) UpdateTimer(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
-	creds, err := u.credentials()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := mapResponse(put(u, _CODE_USER_PREAMBLE+"/"+systemKey+"/timer/"+name, data, creds, nil))
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.(map[string]interface{}), nil
-}
-
 //CallService performs a call against the specific service with the specified parameters. The logging argument will allow the developer to call the service with logging enabled for just that run.
 //The return value is a map[string]interface{} where the results will be stored in the key "results". If logs were enabled, they'll be in "log".
 func (d *DevClient) CallService(systemKey, name string, params map[string]interface{}, log bool) (map[string]interface{}, error) {
@@ -188,6 +142,21 @@ func (d *DevClient) CallService(systemKey, name string, params map[string]interf
 //The return value is a map[string]interface{} where the results will be stored in the key "results". If logs were enabled, they'll be in "log".
 func (u *UserClient) CallService(systemKey, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return callService(u, systemKey, name, params, false)
+}
+
+//GetServiceNames retrieves the service names for a particular system
+func (u *UserClient) GetServiceNames(systemKey string) ([]string, error) {
+	return GetServiceNames(u, systemKey)
+}
+
+//GetService returns information about a specified service
+func (u *UserClient) GetService(systemKey, name string) (*Service, error) {
+	return getService(u, systemKey, name)
+}
+
+func (u *DevClient) CreateService(systemKey, name, code string, params []string) error {
+	extra := map[string]interface{}{"parameters": params}
+	return createService(u, systemKey, name, code, extra)
 }
 
 func (u *UserClient) CreateService(systemKey, name, code string, params []string) error {

@@ -13,6 +13,7 @@ const (
 	_EDGES_USER_PREAMBLE     = "/api/v/2/edges/"
 	_EDGES_SYNC_MANAGEMENT   = "/admin/edges/sync/"
 	_EDGES_DEPLOY_MANAGEMENT = "/admin/edges/resources/{systemKey}/deploy"
+	_EDGES_USER_V3           = "/api/v/3/edges/"
 )
 
 type EdgeConfig struct {
@@ -103,13 +104,20 @@ func (d *DevClient) GetEdge(systemKey, name string) (map[string]interface{}, err
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) CreateEdge(systemKey, name string,
-	data map[string]interface{}) (map[string]interface{}, error) {
-	creds, err := d.credentials()
+func (d *DevClient) CreateEdge(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	return createEdge(d, systemKey, _EDGES_PREAMBLE, name, data)
+}
+
+func (u *UserClient) CreateEdge(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	return createEdge(u, systemKey, _EDGES_USER_V3, name, data)
+}
+
+func createEdge(client cbClient, systemKey, preamble string, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := client.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(d, _EDGES_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := post(client, preamble+systemKey+"/"+name, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -118,21 +126,37 @@ func (d *DevClient) CreateEdge(systemKey, name string,
 }
 
 func (d *DevClient) DeleteEdge(systemKey, name string) error {
-	creds, err := d.credentials()
+	return deleteEdge(d, systemKey, _EDGES_PREAMBLE, name)
+}
+
+func (u *UserClient) DeleteEdge(systemKey, name string) error {
+	return deleteEdge(u, systemKey, _EDGES_USER_V3, name)
+}
+
+func deleteEdge(client cbClient, systemKey, preamble string, name string) error {
+	creds, err := client.credentials()
 	if err != nil {
 		return err
 	}
-	resp, err := delete(d, _EDGES_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err := delete(client, preamble+systemKey+"/"+name, nil, creds, nil)
 	_, err = mapResponse(resp, err)
 	return err
 }
 
-func (d *DevClient) UpdateEdge(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
-	creds, err := d.credentials()
+func (d *DevClient) UpdateEdge(systemKey string, name string, changes map[string]interface{}) (map[string]interface{}, error) {
+	return updateEdge(d, systemKey, _EDGES_PREAMBLE, name, changes)
+}
+
+func (u *UserClient) UpdateEdge(systemKey string, name string, changes map[string]interface{}) (map[string]interface{}, error) {
+	return updateEdge(u, systemKey, _EDGES_USER_V3, name, changes)
+}
+
+func updateEdge(client cbClient, systemKey, preamble string, name string, data map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := client.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := put(d, _EDGES_PREAMBLE+systemKey+"/"+name, data, creds, nil)
+	resp, err := put(client, preamble+systemKey+"/"+name, data, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err

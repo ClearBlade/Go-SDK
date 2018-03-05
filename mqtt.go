@@ -4,10 +4,11 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	mqttTypes "github.com/clearblade/mqtt_parsing"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"math/rand"
 	"time"
+
+	mqttTypes "github.com/clearblade/mqtt_parsing"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 const (
@@ -27,9 +28,8 @@ type LastWillPacket struct {
 	Retain bool
 }
 
-
 type Callbacks struct {
-	OnConnectCallback mqtt.OnConnectHandler
+	OnConnectCallback        mqtt.OnConnectHandler
 	OnConnectionLostCallback mqtt.ConnectionLostHandler
 }
 
@@ -161,6 +161,16 @@ func (d *DevClient) Disconnect() error {
 	return disconnect(d.MQTTClient)
 }
 
+//Disconnect stops the TCP connection and unsubscribes the client from any remaining topics
+func (u *UserClient) GetCurrentTopics(systemKey string) ([]string, error) {
+	return getMqttTopics(u, systemKey)
+}
+
+//Disconnect stops the TCP connection and unsubscribes the client from any remaining topics
+func (d *DevClient) GetCurrentTopics(systemKey string) ([]string, error) {
+	return getMqttTopics(d, systemKey)
+}
+
 //Below are a series of convience functions to allow the user to only need to import
 //the clearblade go-sdk
 type mqttBaseClient struct {
@@ -258,4 +268,26 @@ func disconnect(c MqttClient) error {
 	}
 	c.Disconnect(250)
 	return nil
+}
+
+func getMqttTopics(c cbClient, systemKey string) ([]string, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := get(c, _MH_PREAMBLE+systemKey+"/currentTopics", nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	//parse the contents of the response body and return the topics in an array
+	//Convert the array of interfaces to an array of strings
+	topics := make([]string, len(resp.Body.([]interface{})))
+
+	for i, topic := range resp.Body.([]interface{}) {
+		topics[i] = topic.(string)
+	}
+
+	return topics, err
 }
