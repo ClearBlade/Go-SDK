@@ -317,21 +317,26 @@ func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]inter
 	if userList, ok := permissions["users"]; ok {
 		changes["users"] = userList
 	}
-	if system_services, ok := permissions["system_services"]; ok {
-		changes["system_services"] = system_services
+	if allservices, ok := permissions["allservices"]; ok {
+		changes["allservices"] = allservices
 	}
+	if allcollections, ok := permissions["allcollections"]; ok {
+		changes["allcollections"] = allcollections
+	}
+
 	// Just to be safe, this is silly
 	data["changes"] = changes
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
+
 	resp, err := put(d, d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
 	if err != nil {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error updating role %s", roleName)
+		return fmt.Errorf("Error updating role %s: %d", roleName, resp.StatusCode)
 	}
 	return nil
 }
