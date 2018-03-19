@@ -32,6 +32,7 @@ type EdgeConfig struct {
 	Lean         bool
 	Cache        bool
 	LogLevel     string
+	Insecure		 bool
 	Stdout       *os.File
 	Stderr       *os.File
 }

@@ -822,6 +822,9 @@ func parseEdgeConfig(e EdgeConfig) *exec.Cmd {
 	if p := e.LogLevel; p != "" {
 		cmd.Args = append(cmd.Args, "-log-level="+p)
 	}
+	if e.Insecure {
+		cmd.Args = append(cmd.Args, "-insecure=true")
+	}
 	if s := e.Stdout; s != nil {
 		cmd.Stdout = s
 	} else {
