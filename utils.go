@@ -175,6 +175,18 @@ type CbResp struct {
 	StatusCode int
 }
 
+type PlatformError struct {
+	msg interface{}
+}
+
+func (e PlatformError) Error() string {
+	marsha, err := json.Marshal(e.msg)
+	if err != nil {
+		return fmt.Sprintf("%+v", e.msg)
+	}
+	return string(marsha)
+}
+
 func (u *UserClient) getHttpAddr() string {
 	return u.HttpAddr
 }
@@ -487,7 +499,9 @@ func checkAuth(c cbClient) error {
 		return nil
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error in authenticating, Status Code: %d, %v\n", resp.StatusCode, resp.Body)
+		return PlatformError{
+			msg: resp.Body,
+		}
 	}
 	return nil
 }
@@ -513,7 +527,9 @@ func authenticate(c cbClient, username, password string) error {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error in authenticating, Status Code: %d, %v\n", resp.StatusCode, resp.Body)
+		return PlatformError{
+			msg: resp.Body,
+		}
 	}
 
 	var token string = ""
@@ -538,6 +554,11 @@ func authAnon(c cbClient) error {
 	resp, err := post(c, c.preamble()+"/anon", nil, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error retrieving anon user token: %s", err.Error())
+	}
+	if resp.StatusCode != 200 {
+		return PlatformError{
+			msg: resp.Body,
+		}
 	}
 	token := resp.Body.(map[string]interface{})["user_token"].(string)
 	if token == "" {
@@ -598,7 +619,9 @@ func register(c cbClient, kind int, username, password, syskey, syssec, fname, l
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Status code: %d, Error in authenticating, %v\n", resp.StatusCode, resp.Body)
+		return nil, PlatformError{
+			msg: resp.Body,
+		}
 	}
 	var token string = ""
 	switch kind {
@@ -624,7 +647,9 @@ func logout(c cbClient) error {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error in authenticating %v\n", resp.Body)
+		return PlatformError{
+			msg: resp.Body,
+		}
 	}
 	return nil
 }
