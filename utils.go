@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
+	cbErr "github.com/clearblade/go-utils/errors"
 	mqttTypes "github.com/clearblade/mqtt_parsing"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	cbErr "github.com/clearblade/Go-SDK/cberr"
 )
 
 var (
