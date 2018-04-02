@@ -488,9 +488,7 @@ func checkAuth(c cbClient) error {
 		return nil
 	}
 	if resp.StatusCode != 200 {
-		var errResp cbErr.Response
-		return errResp.FromNet(resp.Body)
-		// return (*cbErr.Response).FromNet(resp.Body)
+		return cbErr.CreateResponseFromNet(resp.Body)
 	}
 	return nil
 }
