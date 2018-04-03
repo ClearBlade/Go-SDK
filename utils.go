@@ -488,7 +488,7 @@ func checkAuth(c cbClient) error {
 		return nil
 	}
 	if resp.StatusCode != 200 {
-		return cbErr.CreateResponseFromNet(resp.Body)
+		return cbErr.CreateResponseFromMap(resp.Body)
 	}
 	return nil
 }
@@ -514,7 +514,7 @@ func authenticate(c cbClient, username, password string) error {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return cbErr.CreateResponseFromNet(resp.Body)
+		return cbErr.CreateResponseFromMap(resp.Body)
 	}
 
 	var token string = ""
@@ -541,7 +541,7 @@ func authAnon(c cbClient) error {
 		return fmt.Errorf("Error retrieving anon user token: %s", err.Error())
 	}
 	if resp.StatusCode != 200 {
-		return cbErr.CreateResponseFromNet(resp.Body)
+		return cbErr.CreateResponseFromMap(resp.Body)
 	}
 	token := resp.Body.(map[string]interface{})["user_token"].(string)
 	if token == "" {
@@ -602,7 +602,7 @@ func register(c cbClient, kind int, username, password, syskey, syssec, fname, l
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return nil, cbErr.CreateResponseFromNet(resp.Body)
+		return nil, cbErr.CreateResponseFromMap(resp.Body)
 	}
 	var token string = ""
 	switch kind {
@@ -628,7 +628,7 @@ func logout(c cbClient) error {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return cbErr.CreateResponseFromNet(resp.Body)
+		return cbErr.CreateResponseFromMap(resp.Body)
 	}
 	return nil
 }
