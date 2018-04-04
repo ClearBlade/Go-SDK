@@ -829,6 +829,9 @@ func parseEdgeConfig(e EdgeConfig) *exec.Cmd {
 	if e.Insecure {
 		cmd.Args = append(cmd.Args, "-insecure=true")
 	}
+	if e.DevMode {
+		cmd.Args = append(cmd.Args, "-development-mode=true")
+	}
 	if s := e.Stdout; s != nil {
 		cmd.Stdout = s
 	} else {
