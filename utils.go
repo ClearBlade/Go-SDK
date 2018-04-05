@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	cbErr "github.com/clearblade/go-utils/errors"
 	mqttTypes "github.com/clearblade/mqtt_parsing"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
@@ -173,18 +174,6 @@ type CbReq struct {
 type CbResp struct {
 	Body       interface{}
 	StatusCode int
-}
-
-type PlatformError struct {
-	msg interface{}
-}
-
-func (e PlatformError) Error() string {
-	marsha, err := json.Marshal(e.msg)
-	if err != nil {
-		return fmt.Sprintf("%+v", e.msg)
-	}
-	return string(marsha)
 }
 
 func (u *UserClient) getHttpAddr() string {
@@ -499,9 +488,7 @@ func checkAuth(c cbClient) error {
 		return nil
 	}
 	if resp.StatusCode != 200 {
-		return PlatformError{
-			msg: resp.Body,
-		}
+		return cbErr.CreateResponseFromMap(resp.Body)
 	}
 	return nil
 }
@@ -527,9 +514,7 @@ func authenticate(c cbClient, username, password string) error {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return PlatformError{
-			msg: resp.Body,
-		}
+		return cbErr.CreateResponseFromMap(resp.Body)
 	}
 
 	var token string = ""
@@ -556,9 +541,7 @@ func authAnon(c cbClient) error {
 		return fmt.Errorf("Error retrieving anon user token: %s", err.Error())
 	}
 	if resp.StatusCode != 200 {
-		return PlatformError{
-			msg: resp.Body,
-		}
+		return cbErr.CreateResponseFromMap(resp.Body)
 	}
 	token := resp.Body.(map[string]interface{})["user_token"].(string)
 	if token == "" {
@@ -619,9 +602,7 @@ func register(c cbClient, kind int, username, password, syskey, syssec, fname, l
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return nil, PlatformError{
-			msg: resp.Body,
-		}
+		return nil, cbErr.CreateResponseFromMap(resp.Body)
 	}
 	var token string = ""
 	switch kind {
@@ -647,9 +628,7 @@ func logout(c cbClient) error {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return PlatformError{
-			msg: resp.Body,
-		}
+		return cbErr.CreateResponseFromMap(resp.Body)
 	}
 	return nil
 }
@@ -849,6 +828,9 @@ func parseEdgeConfig(e EdgeConfig) *exec.Cmd {
 	}
 	if e.Insecure {
 		cmd.Args = append(cmd.Args, "-insecure=true")
+	}
+	if e.DevMode {
+		cmd.Args = append(cmd.Args, "-development-mode=true")
 	}
 	if s := e.Stdout; s != nil {
 		cmd.Stdout = s
