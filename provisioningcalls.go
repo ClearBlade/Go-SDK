@@ -1,6 +1,6 @@
 package GoSDK
 
-func (d *DevClient) EnterProvisioningMode(systemKey string) ([]interface{}, error) {
+func (d *DevClient) EnterProvisioningMode(systemKey string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
@@ -12,7 +12,7 @@ func (d *DevClient) EnterProvisioningMode(systemKey string) ([]interface{}, erro
 		return nil, err
 	}
 
-	return resp.Body.([]interface{}), nil
+	return resp.Body.(map[string]interface{}), nil
 }
 
 func (d *DevClient) EnterRuntimeMode(systemKey string, info map[string]interface{}) (map[string]interface{}, error) {
