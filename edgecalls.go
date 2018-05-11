@@ -32,8 +32,8 @@ type EdgeConfig struct {
 	Lean         bool
 	Cache        bool
 	LogLevel     string
-	Insecure		 bool
-	DevMode			 bool
+	Insecure     bool
+	DevMode      bool
 	Stdout       *os.File
 	Stderr       *os.File
 }
@@ -99,6 +99,19 @@ func (d *DevClient) GetEdge(systemKey, name string) (map[string]interface{}, err
 		return nil, err
 	}
 	resp, err := get(d, _EDGES_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (u *UserClient) GetEdge(systemKey, name string) (map[string]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(u, _EDGES_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
