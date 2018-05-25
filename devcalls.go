@@ -1,11 +1,11 @@
 package GoSDK
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
-	"encoding/json"
 	"net/url"
+	"strings"
 )
 
 const (
@@ -610,6 +610,35 @@ func (d *DevClient) AddServiceToRole(systemKey, service, roleId string, level in
 	}
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("Error updating a role to have a service: %v", resp.Body)
+	}
+	return nil
+}
+
+//AddTopicToRole associates some kind of permission dealing with the specified topic to the role
+func (d *DevClient) AddTopicToRole(systemKey, topic, roleId string, level int) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{
+		"id": roleId,
+		"changes": map[string]interface{}{
+			"topics": []map[string]interface{}{
+				map[string]interface{}{
+					"itemInfo": map[string]interface{}{
+						"name": topic,
+					},
+					"permissions": level,
+				},
+			},
+		},
+	}
+	resp, err := put(d, d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating a role to have a topic: %v", resp.Body)
 	}
 	return nil
 }
