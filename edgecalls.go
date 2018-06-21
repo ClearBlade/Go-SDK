@@ -38,6 +38,16 @@ type EdgeConfig struct {
 	Stderr       *os.File
 }
 
+func CreateNewEdgeWithCmd(e EdgeConfig) (*exec.Cmd, *os.Process, error) {
+	_, err := exec.LookPath("edge")
+	if err != nil {
+		println("edge not found in $PATH")
+		return nil, nil, err
+	}
+	cmd := parseEdgeConfig(e)
+	return cmd, cmd.Process, cmd.Start()
+}
+
 func CreateNewEdge(e EdgeConfig) (*os.Process, error) {
 	_, err := exec.LookPath("edge")
 	if err != nil {
