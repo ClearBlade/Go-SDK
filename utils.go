@@ -817,6 +817,9 @@ func parseEdgeConfig(e EdgeConfig) *exec.Cmd {
 	if p := e.AuthWsPort; p != "" {
 		cmd.Args = append(cmd.Args, "-mqtt-ws-auth-port="+p)
 	}
+	if p := e.AdapterRootDir; p != "" {
+		cmd.Args = append(cmd.Args, "-adaptors-root-dir="+p)
+	}
 	if e.Lean {
 		cmd.Args = append(cmd.Args, "-lean-mode")
 	}

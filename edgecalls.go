@@ -17,25 +17,26 @@ const (
 )
 
 type EdgeConfig struct {
-	EdgeName     string
-	EdgeToken    string
-	PlatformIP   string
-	PlatformPort string
-	ParentSystem string
-	HttpPort     string
-	MqttPort     string
-	MqttTlsPort  string
-	WsPort       string
-	WssPort      string
-	AuthPort     string
-	AuthWsPort   string
-	Lean         bool
-	Cache        bool
-	LogLevel     string
-	Insecure     bool
-	DevMode      bool
-	Stdout       *os.File
-	Stderr       *os.File
+	EdgeName       string
+	EdgeToken      string
+	PlatformIP     string
+	PlatformPort   string
+	ParentSystem   string
+	HttpPort       string
+	MqttPort       string
+	MqttTlsPort    string
+	WsPort         string
+	WssPort        string
+	AuthPort       string
+	AuthWsPort     string
+	AdapterRootDir string
+	Lean           bool
+	Cache          bool
+	LogLevel       string
+	Insecure       bool
+	DevMode        bool
+	Stdout         *os.File
+	Stderr         *os.File
 }
 
 func CreateNewEdgeWithCmd(e EdgeConfig) (*exec.Cmd, *os.Process, error) {
