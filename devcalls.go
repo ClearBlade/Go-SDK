@@ -489,6 +489,31 @@ func (d *DevClient) AddUserToRoles(systemKey, userId string, roles []string) err
 	return nil
 }
 
+func (d *DevClient) UpdateUserRoles(systemKey, userId string, rolesAdd, rolesRemove []string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{
+		"user": userId,
+		"changes": map[string]interface{}{
+			"roles": map[string]interface{}{
+				"add":    rolesAdd,
+				"delete": rolesRemove,
+			},
+		},
+	}
+	resp, err := put(d, d.preamble()+"/user/"+systemKey, data, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error adding roles to a user: %v", resp.Body)
+	}
+
+	return nil
+}
+
 //AddDeviceToRoles assigns a role to a device
 func (d *DevClient) AddDeviceToRoles(systemKey, deviceName string, roles []string) error {
 	creds, err := d.credentials()
@@ -505,6 +530,44 @@ func (d *DevClient) AddDeviceToRoles(systemKey, deviceName string, roles []strin
 	}
 
 	return nil
+}
+
+func (d *DevClient) UpdateDeviceRoles(systemKey, deviceName string, rolesAdd, rolesRemove []string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{"add": rolesAdd, "delete": rolesRemove}
+	resp, err := put(d, d.preamble()+"/devices/roles/"+systemKey+"/"+deviceName, data, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating roles for a device: %v", resp.Body)
+	}
+
+	return nil
+}
+
+func (d *DevClient) GetDeviceRoles(systemKey, deviceName string) ([]string, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, d.preamble()+"/devices/roles/"+systemKey+"/"+deviceName, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting roles for a user: %v", resp.Body)
+	}
+	rawBody := resp.Body.([]interface{})
+	rval := make([]string, len(rawBody))
+	for idx, oneBody := range rawBody {
+		oneMap := oneBody.(map[string]interface{})
+		rval[idx] = oneMap["Name"].(string)
+	}
+	return rval, nil
 }
 
 func (d *DevClient) GetUserRoles(systemKey, userId string) ([]string, error) {
