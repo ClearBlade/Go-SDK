@@ -561,9 +561,10 @@ func (d *DevClient) GetDeviceRoles(systemKey, deviceName string) ([]string, erro
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Error getting roles for a user: %v", resp.Body)
 	}
-	rawBody := resp.Body.([]interface{})
-	rval := make([]string, len(rawBody))
-	for idx, oneBody := range rawBody {
+	rawBody := resp.Body.(map[string]interface{})
+	roles := rawBody["roles"].([]interface{})
+	rval := make([]string, len(roles))
+	for idx, oneBody := range roles {
 		oneMap := oneBody.(map[string]interface{})
 		rval[idx] = oneMap["Name"].(string)
 	}
