@@ -465,7 +465,7 @@ func (d *DevClient) UpdateUser(systemKey, userId string, info map[string]interfa
 }
 
 //update the parameters of AutoDelete using the endpoint
-func (d *DevClient) UpdateAutoDelete(systemKey string,preamble string, size_limit int,expiry_messages int64, time_interval int, truncateStat int) (bool, error) {
+func (d *DevClient) UpdateAutoDelete(systemKey string,preamble string, size_limit int,expiry_messages int64, time_interval int, truncateStat int, panic_truncate int) (bool, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return false, err
@@ -477,6 +477,7 @@ func (d *DevClient) UpdateAutoDelete(systemKey string,preamble string, size_limi
 		"expirytime":expiry_messages,
 		"timeperiod":time_interval,
 		"truncate":truncateStat,
+		"panic_truncate": panic_truncate,
 	}
 	systemKey =""
 
