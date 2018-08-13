@@ -161,7 +161,7 @@ func updateUser(c cbClient, userQuery *Query, changes map[string]interface{}) er
 }
 
 //update the parameters of AutoDelete using the endpoint
-func (d *UserClient) UpdateAutoDelete(systemKey string,preamble string, size_limit int,expiry_messages int, time_interval int, truncateStat int,panic_truncate int) (bool, error) {
+func (d *UserClient) UpdateAutoDelete(systemKey string,preamble string, size_limit int,expiry_messages int, time_interval int, truncateStat int,panic_truncate int, autoDelete int) (bool, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return false, err
@@ -174,6 +174,7 @@ func (d *UserClient) UpdateAutoDelete(systemKey string,preamble string, size_lim
 		"timeperiod":time_interval,
 		"truncate":truncateStat,
 		"panic_truncate": panic_truncate,
+		"autoDelete": autoDelete,
 	}
 	systemKey =""
 
