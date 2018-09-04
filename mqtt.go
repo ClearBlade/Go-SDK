@@ -205,14 +205,16 @@ type mqttBaseClient struct {
 func newMqttClient(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket) (MqttClient, error) {
 	o := mqtt.NewClientOptions()
 	o.SetAutoReconnect(true)
-	o.AddBroker("tcp://" + address)
+	if ssl != nil {
+		o.AddBroker("tls://" + address)
+		o.SetTLSConfig(ssl)
+	} else {
+		o.AddBroker("tcp://" + address)
+	}
 	o.SetClientID(clientid)
 	o.SetUsername(token)
 	o.SetPassword(systemkey)
 	o.SetConnectTimeout(time.Duration(timeout) * time.Second)
-	if ssl != nil {
-		o.SetTLSConfig(ssl)
-	}
 	if lastWill != nil {
 		o.SetWill(lastWill.Topic, lastWill.Body, uint8(lastWill.Qos), lastWill.Retain)
 	}
@@ -226,14 +228,16 @@ func newMqttClient(token, systemkey, systemsecret, clientid string, timeout int,
 func newMqttClientWithCallbacks(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket, callbacks *Callbacks) (MqttClient, error) {
 	o := mqtt.NewClientOptions()
 	o.SetAutoReconnect(true)
-	o.AddBroker("tcp://" + address)
+	if ssl != nil {
+		o.AddBroker("tls://" + address)
+		o.SetTLSConfig(ssl)
+	} else {
+		o.AddBroker("tcp://" + address)
+	}
 	o.SetClientID(clientid)
 	o.SetUsername(token)
 	o.SetPassword(systemkey)
 	o.SetConnectTimeout(time.Duration(timeout) * time.Second)
-	if ssl != nil {
-		o.SetTLSConfig(ssl)
-	}
 	if lastWill != nil {
 		o.SetWill(lastWill.Topic, lastWill.Body, uint8(lastWill.Qos), lastWill.Retain)
 	}

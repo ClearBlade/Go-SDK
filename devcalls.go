@@ -465,7 +465,7 @@ func (d *DevClient) UpdateUser(systemKey, userId string, info map[string]interfa
 }
 
 //update the parameters of AutoDelete using the endpoint
-func (d *DevClient) UpdateAutoDelete(systemKey string,preamble string, size_limit int,expiry_messages int64, time_interval int, truncateStat int, panic_truncate int, autoDelete int) (bool, error) {
+func (d *DevClient) UpdateAutoDelete(systemKey string, preamble string, size_limit int, expiry_messages int64, time_interval int, truncateStat int, panic_truncate int, autoDelete int) (bool, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return false, err
@@ -473,32 +473,29 @@ func (d *DevClient) UpdateAutoDelete(systemKey string,preamble string, size_limi
 
 	//qry := query.serialize()
 	body := map[string]interface{}{
-		"sizelimit": size_limit,
-		"expirytime":expiry_messages,
-		"timeperiod":time_interval,
-		"truncate":truncateStat,
+		"sizelimit":      size_limit,
+		"expirytime":     expiry_messages,
+		"timeperiod":     time_interval,
+		"truncate":       truncateStat,
 		"panic_truncate": panic_truncate,
-		"autoDelete":autoDelete,
+		"autoDelete":     autoDelete,
 	}
-	systemKey =""
+	systemKey = ""
 
 	resp, err := post(d, preamble+systemKey, body, creds, nil)
 	if err != nil {
-		return false,fmt.Errorf("Error updating data: %s", err)
+		return false, fmt.Errorf("Error updating data: %s", err)
 	}
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return false, err
 	}
 	if resp.StatusCode != 200 {
-		return false,fmt.Errorf("Error updating data: %v", resp.Body)
+		return false, fmt.Errorf("Error updating data: %v", resp.Body)
 	}
 
 	return true, nil
 }
-
-
-
 
 //AddUserToRoles assigns a role to a user
 func (d *DevClient) AddUserToRoles(systemKey, userId string, roles []string) error {
