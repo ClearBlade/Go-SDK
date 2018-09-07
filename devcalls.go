@@ -765,48 +765,6 @@ func (d *DevClient) AddGenericPermissionToRole(systemKey, roleId, permission str
 	return nil
 }
 
-// DevClient must already be platform admin to use this endpoint
-func (d *DevClient) PromoteDevToPlatformAdmin(email string) error {
-	creds, err := d.credentials()
-	if err != nil {
-		return err
-	}
-
-	data := map[string]interface{}{
-		"email": email,
-	}
-
-	resp, err := post(d, d.preamble()+"/promotedev", data, creds, nil)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error promoting %s to admin: %v", email, resp.Body)
-	}
-	return nil
-}
-
-// DevClient must already be platform admin to use this endpoint
-func (d *DevClient) DemoteDevFromPlatformAdmin(email string) error {
-	creds, err := d.credentials()
-	if err != nil {
-		return err
-	}
-
-	data := map[string]interface{}{
-		"email": email,
-	}
-
-	resp, err := post(d, d.preamble()+"/demotedev", data, creds, nil)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error demoting %s to admin: %v", email, resp.Body)
-	}
-	return nil
-}
-
 func (d *DevClient) credentials() ([][]string, error) {
 	if d.DevToken != "" {
 		return [][]string{
