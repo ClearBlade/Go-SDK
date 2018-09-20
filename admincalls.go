@@ -68,3 +68,43 @@ func (d *DevClient) ResetDevelopersPassword(email, newPassword string) error {
 	}
 	return nil
 }
+
+func (d *DevClient) GetSystemAnalytics(systemKey string) (interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	analyticsEndpoint := d.preamble() + "/platform/system/" + systemKey
+	resp, err := get(d, analyticsEndpoint, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting %s's analytics: %v", systemKey, resp.Body)
+	}
+	return resp.Body, nil
+}
+
+func (d *DevClient) GetAllSystemsAnalytics(query string) ([]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	analyticsEndpoint := d.preamble() + "/platform/systems"
+	q := make(map[string]string)
+	if len(query) != 0 {
+		q["query"] = query
+	} else {
+		q = nil
+	}
+	resp, err := get(d, analyticsEndpoint, q, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting analytics: %v", resp.Body)
+	}
+	return resp.Body.([]interface{}), nil
+}
