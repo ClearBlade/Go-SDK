@@ -19,6 +19,7 @@ const (
 	//Mqtt QOS 2
 	QOS_PreciselyOnce
 	PUBLISH_HTTP_PREAMBLE = "/api/v/1/message/"
+	_NEW_MH_PREAMBLE      = "/api/v/4/message/"
 )
 
 //LastWillPacket is a type to represent the Last Will and Testament packet
@@ -179,12 +180,18 @@ func (d *DevClient) Disconnect() error {
 	return disconnect(d.MQTTClient)
 }
 
-//Disconnect stops the TCP connection and unsubscribes the client from any remaining topics
+func (u *UserClient) GetCurrentTopicsWithQuery(systemKey string, columns []string, pageSize, pageNum int, descending bool) ([]map[string]interface{}, error) {
+	return getMqttTopicsWithQuery(u, systemKey, columns, pageSize, pageNum, descending)
+}
+
+func (d *DevClient) GetCurrentTopicsWithQuery(systemKey string, columns []string, pageSize, pageNum int, descending bool) ([]map[string]interface{}, error) {
+	return getMqttTopicsWithQuery(d, systemKey, columns, pageSize, pageNum, descending)
+}
+
 func (u *UserClient) GetCurrentTopics(systemKey string) ([]string, error) {
 	return getMqttTopics(u, systemKey)
 }
 
-//Disconnect stops the TCP connection and unsubscribes the client from any remaining topics
 func (d *DevClient) GetCurrentTopics(systemKey string) ([]string, error) {
 	return getMqttTopics(d, systemKey)
 }
@@ -290,6 +297,56 @@ func disconnect(c MqttClient) error {
 	}
 	c.Disconnect(250)
 	return nil
+}
+
+func getMqttTopicsWithQuery(c cbClient, systemKey string, columns []string, pageSize, pageNum int, descending bool) ([]map[string]interface{}, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	tmpQ := &Query{
+		Columns:    columns,
+		PageSize:   pageSize,
+		PageNumber: pageNum,
+		Order: []Ordering{
+			Ordering{
+				SortOrder: descending,
+				OrderKey:  "topicid",
+			},
+		},
+	}
+	qry, err := createQueryMap(tmpQ)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := get(c, _NEW_MH_PREAMBLE+systemKey+"/topics", qry, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("RESP IS %+v\n", resp)
+
+	results, err := convertToMapStringInterface(resp.Body.([]interface{}))
+	if err != nil {
+		return nil, err
+	}
+	return results, nil
+}
+
+func convertToMapStringInterface(thing []interface{}) ([]map[string]interface{}, error) {
+	rval := make([]map[string]interface{}, len(thing))
+	for idx, vIF := range thing {
+		switch vIF.(type) {
+		case map[string]interface{}:
+			rval[idx] = vIF.(map[string]interface{})
+		default:
+			return nil, fmt.Errorf("Bad type returned. Expecting a map, got %T", vIF)
+		}
+	}
+	return rval, nil
 }
 
 func getMqttTopics(c cbClient, systemKey string) ([]string, error) {
