@@ -108,3 +108,37 @@ func (d *DevClient) GetAllSystemsAnalytics(query string) ([]interface{}, error) 
 	}
 	return resp.Body.([]interface{}), nil
 }
+
+func (d *DevClient) DisableSystem(systemKey string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	disableSystemEndpoint := d.preamble() + "/platform/" + systemKey
+	resp, err := delete(d, disableSystemEndpoint, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error disabling system %s: %v", systemKey, resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) EnableSystem(systemKey string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	disableSystemEndpoint := d.preamble() + "/platform/" + systemKey
+	resp, err := post(d, disableSystemEndpoint, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error disabling system %s: %v", systemKey, resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
