@@ -568,6 +568,7 @@ func (d *DevClient) AddDeviceToRoles(systemKey, deviceName string, roles []strin
 		return err
 	}
 	data := map[string]interface{}{"add": roles}
+	fmt.Printf("ROLES_ADD %+v\n", data)
 	resp, err := put(d, d.preamble()+"/devices/roles/"+systemKey+"/"+deviceName, data, creds, nil)
 	if err != nil {
 		return err
