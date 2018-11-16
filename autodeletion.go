@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	autodeletion_preamble = "api/v/4/message"
+	autodeletion_preamble = "/api/v/4/message"
 )
 
 type AutodeletionSettings struct {
@@ -19,33 +19,33 @@ type AutodeletionSettings struct {
 	MaxAgeSeconds int64 `json:"max_rows"`
 }
 
-func unpackMapToAutodeletionSettings(m interface{}) (*AutodeletionSettings, error) {
+func unpackMapToAutodeletionSettings(m interface{}) (AutodeletionSettings, error) {
 	switch m := m.(type) {
 	case map[string]interface{}:
-		return &AutodeletionSettings{
+		return AutodeletionSettings{
 			Enabled:       m["enabled"].(bool),
-			MaxSizeKb:     m["max_size_kb"].(int),
-			MaxRows:       m["max_rows"].(int),
-			MaxAgeSeconds: m["expiration_age_seconds"].(int64),
+			MaxSizeKb:     int(m["max_size_kb"].(float64)),
+			MaxRows:       int(m["max_rows"].(float64)),
+			MaxAgeSeconds: int64(m["expiration_age_seconds"].(float64)),
 		}, nil
 	default:
-		return nil, fmt.Errorf("Unexpected response from Autodeletion Settings Endpoint: %+v", m)
+		return AutodeletionSettings{}, fmt.Errorf("Unexpected response from Autodeletion Settings Endpoint: %+v", m)
 	}
 
 }
 
-func GetAutodeletionSettings(c cbClient, systemkey string) (*AutodeletionSettings, error) {
+func GetAutodeletionSettings(c cbClient, systemkey string) (AutodeletionSettings, error) {
 	creds, err := c.credentials()
 	if err != nil {
-		return nil, errors.Wrap(err, "Error with credentials")
+		return AutodeletionSettings{}, errors.Wrap(err, "Error with credentials")
 	}
 
-	resp, err := get(c, path.Join(autodeletion_preamble, systemkey, "autodeletion"), nil, creds, nil)
+	resp, err := get(c, path.Join(autodeletion_preamble, systemkey, "autodelete"), nil, creds, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Error getting autodeletion settings: %s", err)
+		return AutodeletionSettings{}, fmt.Errorf("Error getting autodeletion settings: %s", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Error getting autodeletion settings: %s", resp.Body)
+		return AutodeletionSettings{}, fmt.Errorf("Error getting autodeletion settings: %s", resp.Body)
 	}
 
 	fmt.Println(resp.Body)
@@ -53,18 +53,19 @@ func GetAutodeletionSettings(c cbClient, systemkey string) (*AutodeletionSetting
 	return unpackMapToAutodeletionSettings(resp.Body)
 }
 
-func SetAutodeletionSettings(c cbClient, systemkey string, newSettings AutodeletionSettings) (*AutodeletionSettings, error) {
+func SetAutodeletionSettings(c cbClient, systemkey string, newSettings AutodeletionSettings) (AutodeletionSettings, error) {
 	creds, err := c.credentials()
 	if err != nil {
-		return nil, errors.Wrap(err, "Error with credentials")
+		return AutodeletionSettings{}, errors.Wrap(err, "Error with credentials")
 	}
 
-	resp, err := post(c, path.Join(autodeletion_preamble, systemkey, "autodeletion"), newSettings, creds, nil)
+	p := path.Join(autodeletion_preamble, systemkey, "autodelete")
+	resp, err := post(c, p, newSettings, creds, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error setting autodeletion settings")
+		return AutodeletionSettings{}, errors.Wrap(err, "Error setting autodeletion settings ("+p+")")
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Error setting autodeletion settings: %d: %s", resp.StatusCode, resp.Body)
+		return AutodeletionSettings{}, fmt.Errorf("Error setting autodeletion settings: %s: %d: %s", p, resp.StatusCode, resp.Body)
 	}
 	return unpackMapToAutodeletionSettings(resp.Body)
 }

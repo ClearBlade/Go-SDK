@@ -324,7 +324,21 @@ func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]inter
 	if allcollections, ok := permissions["allcollections"]; ok {
 		changes["allcollections"] = allcollections
 	}
-
+	if edgesList, ok := permissions["edges"]; ok {
+		changes["edges"] = edgesList
+	}
+	if triggers, ok := permissions["triggers"]; ok {
+		changes["triggers"] = triggers
+	}
+	if timers, ok := permissions["timers"]; ok {
+		changes["timers"] = timers
+	}
+	if deployments, ok := permissions["deployments"]; ok {
+		changes["deployments"] = deployments
+	}
+	if roles, ok := permissions["roles"]; ok {
+		changes["roles"] = roles
+	}
 	// Just to be safe, this is silly
 	data["changes"] = changes
 	creds, err := d.credentials()
@@ -337,7 +351,7 @@ func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]inter
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error updating role %s: %d", roleName, resp.StatusCode)
+		return fmt.Errorf("Error updating role %s: %+v", roleName, resp)
 	}
 	return nil
 }

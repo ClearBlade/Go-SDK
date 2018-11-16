@@ -188,6 +188,14 @@ func (d *DevClient) GetCurrentTopicsWithQuery(systemKey string, columns []string
 	return getMqttTopicsWithQuery(d, systemKey, columns, pageSize, pageNum, descending)
 }
 
+func (u *UserClient) GetCurrentTopicsCount(systemKey string) (map[string]interface{}, error) {
+	return getMqttTopicsCount(u, systemKey)
+}
+
+func (d *DevClient) GetCurrentTopicsCount(systemKey string) (map[string]interface{}, error) {
+	return getMqttTopicsCount(d, systemKey)
+}
+
 func (u *UserClient) GetCurrentTopics(systemKey string) ([]string, error) {
 	return getMqttTopics(u, systemKey)
 }
@@ -334,6 +342,23 @@ func getMqttTopicsWithQuery(c cbClient, systemKey string, columns []string, page
 		return nil, err
 	}
 	return results, nil
+}
+
+func getMqttTopicsCount(c cbClient, systemKey string) (map[string]interface{}, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(c, _NEW_MH_PREAMBLE+systemKey+"/topics/count", nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	result, ok := resp.Body.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("getMqttTopicsCount returns %T, expecting a map", resp.Body)
+	}
+	return result, nil
 }
 
 func convertToMapStringInterface(thing []interface{}) ([]map[string]interface{}, error) {
