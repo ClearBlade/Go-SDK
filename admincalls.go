@@ -142,3 +142,78 @@ func (d *DevClient) EnableSystem(systemKey string) (map[string]interface{}, erro
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
+
+func (d *DevClient) GetDeveloper(devEmail string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	q := make(map[string]string)
+	q["developer"] = devEmail
+
+	developerEndpoint := d.preamble() + "/platform/developer"
+	resp, err := get(d, developerEndpoint, q, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting developer %s: %v", devEmail, resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) GetAllDevelopers() (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	allDevelopersEndpoint := d.preamble() + "/platform/developers"
+	resp, err := get(d, allDevelopersEndpoint, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting all developers: %v", resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) SetDeveloper(email string, admin, disabled bool) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	data := map[string]interface{}{
+		"email":    email,
+		"admin":    admin,
+		"disabled": disabled,
+	}
+
+	developerEndpoint := d.preamble() + "/platform/developer"
+	resp, err := post(d, developerEndpoint, data, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error setting developer %s: %v", email, resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) GetMetrics(metricType string) (interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	metricsEndpoint := d.preamble() + "/platform/" + metricType
+	resp, err := get(d, metricsEndpoint, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting metric %s: %v", metricType, resp.Body)
+	}
+	return resp.Body, nil
+}
