@@ -83,9 +83,10 @@ func SetAllAutodeletionSettings(c cbClient, newSettings AutodeletionSettings) (s
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Error Setting All Autodeletion Settings: %d: %s", resp.StatusCode, resp.Body)
 	}
+	fmt.Println(resp.Body)
 	switch body := resp.Body.(type) {
-	case []interface{}:
-		for _, sys := range body {
+	case map[string]interface{}:
+		for _, sys := range body["systems"].([]interface{}) {
 			systems = append(systems, sys.(string))
 		}
 	default:
