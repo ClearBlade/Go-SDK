@@ -207,7 +207,9 @@ func getTimers(c cbClient, endpoint string) ([]interface{}, error) {
 		return nil, err
 	}
 	resp, err := get(c, endpoint, nil, creds, nil)
+	fmt.Printf("GO-SDK RESPONSE IS %+v\n", resp)
 	resp, err = mapResponse(resp, err)
+	fmt.Printf("GO-SDK MAPPED RESPONSE IS %+v\n", resp)
 	if err != nil {
 		return nil, err
 	}
