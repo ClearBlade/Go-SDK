@@ -68,7 +68,6 @@ func callService(c cbClient, systemKey, name string, params map[string]interface
 	}
 	var resp *CbResp
 	if log {
-
 		resp, err = post(c, _CODE_PREAMBLE+"/"+systemKey+"/"+name, params, creds, map[string][]string{"Logging-enabled": []string{"true"}})
 	} else {
 		resp, err = post(c, _CODE_PREAMBLE+"/"+systemKey+"/"+name, params, creds, nil)
@@ -79,7 +78,12 @@ func callService(c cbClient, systemKey, name string, params map[string]interface
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Error calling %s service: %v", name, resp.Body)
 	}
-	return resp.Body.(map[string]interface{}), nil
+
+	body, ok := resp.Body.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Error parsing the body for %s service: %v", name, resp.Body)
+	}
+	return body, nil
 }
 
 func createService(c cbClient, systemKey, name, code string, extra map[string]interface{}) error {
