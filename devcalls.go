@@ -309,7 +309,6 @@ func (d *DevClient) GetAllRoles(SystemKey string) ([]interface{}, error) {
 		pageQuery := NewQuery()
 		pageQuery.PageNumber = i + 1
 		pageQuery.PageSize = pageSize
-		fmt.Printf("fetch this page: %d", pageQuery.PageNumber)
 		roles, err := d.GetRolesWithQuery(SystemKey, pageQuery)
 		if err != nil {
 			return nil, err
