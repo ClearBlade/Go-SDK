@@ -277,18 +277,15 @@ func (d *DevClient) UpdateDataByName(system_key, collection_name string, query *
 }
 
 func (u *UserClient) CreateDataByName(system_key, collection_name string, item map[string]interface{}) error {
-	err := createDataByName(u, system_key, collection_name, item)
-	return err
+	return createDataByName(u, system_key, collection_name, item)
 }
 
 func (d *DeviceClient) CreateDataByName(system_key, collection_name string, item map[string]interface{}) error {
-	err := createDataByName(d, system_key, collection_name, item)
-	return err
+	return createDataByName(d, system_key, collection_name, item)
 }
 
 func (d *DevClient) CreateDataByName(system_key, collection_name string, item map[string]interface{}) error {
-	err := createDataByName(d, system_key, collection_name, item)
-	return err
+	return createDataByName(d, system_key, collection_name, item)
 }
 
 func updatedata(c cbClient, collection_id string, query *Query, changes map[string]interface{}) error {
