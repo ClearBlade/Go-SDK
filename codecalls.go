@@ -221,7 +221,7 @@ func (d *DevClient) UpdateServiceCacheMeta(systemKey, name string, changes map[s
 	return nil
 }
 
-func (d *DevClient) DeleteCodeCacheMeta(systemKey, name string) error {
+func (d *DevClient) DeleteServiceCacheMeta(systemKey, name string) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
