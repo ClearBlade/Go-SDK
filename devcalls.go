@@ -860,6 +860,35 @@ func (d *DevClient) AddTopicToRole(systemKey, topic, roleId string, level int) e
 	return nil
 }
 
+//AddServiceCacheMetaToRole associates some kind of permission dealing with the specified code cache meta to the role
+func (d *DevClient) AddServiceCacheMetaToRole(systemKey, cacheName, roleId string, level int) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{
+		"id": roleId,
+		"changes": map[string]interface{}{
+			"servicecaches": []map[string]interface{}{
+				map[string]interface{}{
+					"itemInfo": map[string]interface{}{
+						"name": cacheName,
+					},
+					"permissions": level,
+				},
+			},
+		},
+	}
+	resp, err := put(d, d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating a role to have a service cache: %v", resp.Body)
+	}
+	return nil
+}
+
 func (d *DevClient) AddGenericPermissionToRole(systemKey, roleId, permission string, level int) error {
 	creds, err := d.credentials()
 	if err != nil {

@@ -5,8 +5,9 @@ import (
 )
 
 const (
-	_CODE_PREAMBLE      = "/api/v/1/code"
-	_CODE_USER_PREAMBLE = "/api/v/3/code"
+	_CODE_PREAMBLE            = "/api/v/1/code"
+	_CODE_USER_PREAMBLE       = "/api/v/3/code"
+	_CODE_CACHE_META_PREAMBLE = "/admin/v/4/service_caches"
 )
 
 func GetServiceNames(c cbClient, systemKey string) ([]string, error) {
@@ -188,4 +189,87 @@ func (u *UserClient) UpdateTrigger(systemKey, name string, data map[string]inter
 
 func (u *UserClient) GetTrigger(systemKey, name string) (map[string]interface{}, error) {
 	return u.GetEventHandler(systemKey, name)
+}
+
+func (d *DevClient) CreateServiceCacheMeta(systemKey, name string, meta map[string]interface{}) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := post(d, _CODE_CACHE_META_PREAMBLE+"/"+systemKey+"/"+name, meta, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error creating new code cache meta: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error creating new code cache meta: %v", resp.Body)
+	}
+	return nil
+}
+
+func (d *DevClient) UpdateServiceCacheMeta(systemKey, name string, changes map[string]interface{}) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := put(d, _CODE_CACHE_META_PREAMBLE+"/"+systemKey+"/"+name, changes, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error updating code cache meta: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating code cache meta: %v", resp.Body)
+	}
+	return nil
+}
+
+func (d *DevClient) DeleteCodeCacheMeta(systemKey, name string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(d, _CODE_CACHE_META_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error deleting code cache meta: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error deleting code cache meta: %v", resp.Body)
+	}
+	return nil
+}
+
+func (d *DevClient) GetServiceCacheMeta(systemKey, name string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, _CODE_CACHE_META_PREAMBLE+"/"+systemKey+"/"+name, nil, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting code cache meta: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting code cache meta: %v", resp.Body)
+	}
+	mapBody, ok := resp.Body.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Invalid response received for getting code cache meta: %+v", resp.Body)
+	}
+	return mapBody, nil
+}
+
+func (d *DevClient) GetAllServiceCacheMeta(systemKey string) ([]map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, _CODE_CACHE_META_PREAMBLE+"/"+systemKey, nil, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting all code cache meta for system: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting all code cache meta for system: %v", resp.Body)
+	}
+	mapBody, ok := resp.Body.([]map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Invalid response received for getting all code cache meta for system: %+v", resp.Body)
+	}
+	return mapBody, nil
 }
