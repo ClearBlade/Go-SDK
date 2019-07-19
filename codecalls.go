@@ -267,9 +267,17 @@ func (d *DevClient) GetAllServiceCacheMeta(systemKey string) ([]map[string]inter
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Error getting all code cache meta for system: %v", resp.Body)
 	}
-	mapBody, ok := resp.Body.([]map[string]interface{})
+	tmp, ok := resp.Body.([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("Invalid response received for getting all code cache meta for system: %+v", resp.Body)
+		return nil, fmt.Errorf("Invalid response received for getting all code cache meta for system: %T", resp.Body)
 	}
-	return mapBody, nil
+	allCaches := []map[string]interface{}{}
+	for _, data := range tmp {
+		t, ok := data.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("Failed to parse response body")
+		}
+		allCaches = append(allCaches, t)
+	}
+	return allCaches, nil
 }
