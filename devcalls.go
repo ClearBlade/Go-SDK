@@ -367,10 +367,11 @@ func (d *DevClient) CreateRole(systemKey, role_id string) (interface{}, error) {
 		return nil, err
 	}
 	data := map[string]interface{}{
-		"name":        role_id,
-		"collections": []map[string]interface{}{},
-		"topics":      []map[string]interface{}{},
-		"services":    []map[string]interface{}{},
+		"name":          role_id,
+		"collections":   []map[string]interface{}{},
+		"topics":        []map[string]interface{}{},
+		"services":      []map[string]interface{}{},
+		"servicecaches": []map[string]interface{}{},
 	}
 	resp, err := post(d, d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
 	if err != nil {
@@ -386,10 +387,11 @@ func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]inter
 	data := map[string]interface{}{
 		"name": roleName,
 		"changes": map[string]interface{}{
-			"collections": []map[string]interface{}{},
-			"topics":      []map[string]interface{}{},
-			"services":    []map[string]interface{}{},
-			"portals":     []map[string]interface{}{},
+			"collections":   []map[string]interface{}{},
+			"topics":        []map[string]interface{}{},
+			"services":      []map[string]interface{}{},
+			"portals":       []map[string]interface{}{},
+			"servicecaches": []map[string]interface{}{},
 		},
 	}
 	changes := data["changes"].(map[string]interface{})
@@ -444,6 +446,9 @@ func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]inter
 	}
 	if roles, ok := permissions["roles"]; ok {
 		changes["roles"] = roles
+	}
+	if servicecaches, ok := permissions["servicecaches"]; ok {
+		changes["servicecaches"] = servicecaches
 	}
 	// Just to be safe, this is silly
 	data["changes"] = changes
