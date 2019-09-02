@@ -47,8 +47,10 @@ type Client interface {
 
 	//data calls
 	CreateData(string, interface{}) ([]interface{}, error)
+	CreateDataByName(string, string, interface{}) ([]interface{}, error)
 	InsertData(string, interface{}) error
 	UpdateData(string, *Query, map[string]interface{}) error
+	UpdateDataByName(string, string, *Query, map[string]interface{}) (UpdateResponse, error)
 	GetData(string, *Query) (map[string]interface{}, error)
 	GetDataByName(string, *Query) (map[string]interface{}, error)
 	GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error)
@@ -672,7 +674,10 @@ func do(c cbClient, r *CbReq, creds [][]string) (*CbResp, error) {
 		req.Header.Add(c[0], c[1])
 	}
 
-	cli := &http.Client{Transport: tr}
+	cli := &http.Client{
+		Transport: tr,
+		Timeout:   time.Second * 30,
+	}
 	resp, err := cli.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Error Making Request: %v", err)
