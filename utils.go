@@ -676,7 +676,7 @@ func do(c cbClient, r *CbReq, creds [][]string) (*CbResp, error) {
 
 	cli := &http.Client{
 		Transport: tr,
-		Timeout:   time.Second * 30,
+		Timeout:   time.Minute * 5,
 	}
 	resp, err := cli.Do(req)
 	if err != nil {
