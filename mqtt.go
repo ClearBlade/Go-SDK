@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"runtime/debug"
 	"time"
 
 	mqttTypes "github.com/clearblade/mqtt_parsing"
@@ -46,7 +45,6 @@ func (b *client) NewClientID() string {
 
 //InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
 func (u *UserClient) InitializeMQTT(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
-	fmt.Printf("InitializeMQTT: %s\n", string(debug.Stack()))
 	mqc, err := newMqttClient(u.UserToken, u.SystemKey, u.SystemSecret, clientid, timeout, u.MqttAddr, ssl, lastWill)
 	if err != nil {
 		return err
