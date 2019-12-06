@@ -11,6 +11,7 @@ const (
 	_USER_HEADER_KEY = "ClearBlade-UserToken"
 	_USER_PREAMBLE   = "/api/v/1/user"
 	_USER_V2         = "/api/v/2/user"
+	_USER_V4         = "/api/v/4/user"
 	_USER_ADMIN      = "/admin/user"
 	_USER_SESSION    = "/admin/v/4/session"
 )
@@ -261,5 +262,56 @@ func (d *DevClient) DeleteUserSession(systemKey string, query *Query) error {
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("Error deleting user session data: %v", resp.Body)
 	}
+	return nil
+}
+
+func (u *UserClient) UpdateUserPassword(userID, newPassword string) error {
+	creds, err := u.credentials()
+	if err != nil {
+		return err
+	}
+	body := map[string]interface{}{
+		"user": userID,
+		"changes": map[string]interface{}{
+			"password": newPassword,
+		},
+	}
+
+	resp, err := put(u, _USER_V4+"/manage", body, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error updating password: %s", err.Error())
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating password: %v", resp.Body)
+	}
+
+	return nil
+}
+
+type RoleChanges struct {
+	Add    []string `json:"add"`
+	Delete []string `json:"delete"`
+}
+
+func (u *UserClient) UpdateUserRoles(userID string, changes RoleChanges) error {
+	creds, err := u.credentials()
+	if err != nil {
+		return err
+	}
+	body := map[string]interface{}{
+		"user": userID,
+		"changes": map[string]interface{}{
+			"roles": changes,
+		},
+	}
+
+	resp, err := put(u, _USER_V4+"/manage", body, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error updating roles: %s", err.Error())
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating roles: %v", resp.Body)
+	}
+
 	return nil
 }
