@@ -537,7 +537,7 @@ func (dvc *DeviceClient) preamble() string {
 }
 
 func (dvc *DeviceClient) setToken(tok string) {
-	dvc.DeviceName = tok
+	dvc.DeviceToken = tok
 }
 
 func (dvc *DeviceClient) getToken() string {
