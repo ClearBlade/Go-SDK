@@ -526,11 +526,6 @@ func (d *DevClient) GetAllUsers(systemKey string) ([]map[string]interface{}, err
 		return nil, err
 	}
 
-	/*
-		allQuery := NewQuery()
-		queryMap := allQuery.serialize()
-		queryBytes, err := json.Marshal(queryMap)
-	*/
 	if err != nil {
 		return nil, err
 	}

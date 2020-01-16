@@ -332,7 +332,7 @@ func (u *UserClient) GetUserInfo(systemKey, email string) (map[string]interface{
 	qry = map[string]string{
 		"query": url.QueryEscape(string(query_bytes)),
 	}
-	resp, err := get(u, u.preamble()+"/user/"+systemKey, qry, creds, nil)
+	resp, err := get(u, u.preamble()+"/"+systemKey, qry, creds, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +362,7 @@ func (u *UserClient) GetAllUsers(systemKey string) ([]map[string]interface{}, er
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(u, u.preamble()+"/user/"+systemKey, nil, creds, nil)
+	resp, err := get(u, u.preamble()+"/"+systemKey, nil, creds, nil)
 
 	if err != nil {
 		return nil, err
