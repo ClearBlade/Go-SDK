@@ -362,6 +362,7 @@ func (u *UserClient) GetAllUsers(systemKey string) ([]map[string]interface{}, er
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("GET ALL USERS: %s\n", u.preamble()+"/"+systemKey)
 	resp, err := get(u, u.preamble()+"/"+systemKey, nil, creds, nil)
 
 	if err != nil {
