@@ -114,6 +114,21 @@ func (d *DevClient) DeleteSystem(s string) error {
 	return nil
 }
 
+func (d *DevClient) UpdateDevInfo(changes map[string]interface{}) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := put(d, d.preamble()+"/userinfo", changes, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error updating developer info: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating developer info: %v", resp.Body)
+	}
+	return nil
+}
+
 //SetSystemName can change the name of the system
 func (d *DevClient) SetSystemName(system_key, system_name string) error {
 	creds, err := d.credentials()
