@@ -16,7 +16,7 @@ func (u *UserClient) AddExternalDBConnection(systemKey, name string, data map[st
 	return addExternalDBConnection(u, systemKey, name, data)
 }
 
-func (d *DevClient) GetAllExternalDBConnections(systemKey string) ([]string, error) {
+func (d *DevClient) GetAllExternalDBConnections(systemKey string) ([]interface{}, error) {
 	return getAllExternalDBConnections(d, systemKey)
 }
 
@@ -94,7 +94,7 @@ func getAllExternalDBConnections(c cbClient, systemKey string) ([]interface{}, e
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Error getting all external db connections: %v", resp.Body)
 	}
-	return resp.Body, nil
+	return resp.Body.([]interface{}), nil
 }
 
 func updateExternalDBConnection(c cbClient, systemKey, name string, changes map[string]interface{}) error {
