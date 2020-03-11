@@ -82,7 +82,7 @@ func getExternalDBConnection(c cbClient, systemKey, name string) (map[string]int
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func getAllExternalDBConnections(c cbClient, systemKey string) ([]string, error) {
+func getAllExternalDBConnections(c cbClient, systemKey string) ([]interface{}, error) {
 	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func getAllExternalDBConnections(c cbClient, systemKey string) ([]string, error)
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Error getting all external db connections: %v", resp.Body)
 	}
-	return resp.Body.([]string), nil
+	return resp.Body, nil
 }
 
 func updateExternalDBConnection(c cbClient, systemKey, name string, changes map[string]interface{}) error {
