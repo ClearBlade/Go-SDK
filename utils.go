@@ -42,7 +42,7 @@ const (
 //Client is a convience interface for API consumers, if they want to use the same functions for both developer users and unprivleged users
 type Client interface {
 	//session bookkeeping calls
-	Authenticate() error
+	Authenticate() (DevAuthResponse, error)
 	Logout() error
 
 	//data calls
