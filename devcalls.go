@@ -825,34 +825,6 @@ func (d *DevClient) AddExternalDBToRole(systemKey, name, role_id string, level i
 	return nil
 }
 
-func (d *DevClient) AddExternalDBDataToRole(systemKey, name, role_id string, level int) error {
-	creds, err := d.credentials()
-	if err != nil {
-		return err
-	}
-	data := map[string]interface{}{
-		"id": role_id,
-		"changes": map[string]interface{}{
-			"externaldatabasedata": []map[string]interface{}{
-				map[string]interface{}{
-					"itemInfo": map[string]interface{}{
-						"name": name,
-					},
-					"permissions": level,
-				},
-			},
-		},
-	}
-	resp, err := put(d, d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error updating a role to have an external database data: %v", resp.Body)
-	}
-	return nil
-}
-
 func (d *DevClient) AddPortalToRole(systemKey, portalName, roleId string, level int) error {
 	creds, err := d.credentials()
 	if err != nil {
