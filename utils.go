@@ -42,7 +42,7 @@ const (
 //Client is a convience interface for API consumers, if they want to use the same functions for both developer users and unprivleged users
 type Client interface {
 	//session bookkeeping calls
-	Authenticate() error
+	Authenticate() (*AuthResponse, error)
 	Logout() error
 
 	//data calls
@@ -180,6 +180,20 @@ type CbReq struct {
 type CbResp struct {
 	Body       interface{}
 	StatusCode int
+}
+
+type AuthResponse struct {
+	DevResponse *DevAuthResponse
+}
+
+type DevAuthResponse struct {
+	DevToken          string `json:"dev_token"`
+	IsTwoFactor       bool   `json:"is_two_factor"`
+	NextStepURL       string `json:"next_step_url"`
+	IntermediateToken string `json:"intermediate_token"`
+	TwoFactorMethod   string `json:"two_factor_method"`
+	OtpID             string `json:"otp_id"`
+	OtpIssued         string `json:"otp_issued"`
 }
 
 func (u *UserClient) getHttpAddr() string {
@@ -401,8 +415,11 @@ func (d *DeviceClient) stopProxyToEdge() error {
 }
 
 //Authenticate retrieves a token from the specified Clearblade Platform
-func (u *UserClient) Authenticate() error {
-	return authenticate(u, u.Email, u.Password)
+func (u *UserClient) Authenticate() (*AuthResponse, error) {
+	if err := authenticate(u, u.Email, u.Password); err != nil {
+		return nil, err
+	}
+	return nil, nil
 }
 
 func (u *UserClient) AuthAnon() error {
@@ -410,8 +427,88 @@ func (u *UserClient) AuthAnon() error {
 }
 
 //Authenticate retrieves a token from the specified Clearblade Platform
-func (d *DevClient) Authenticate() error {
-	return authenticate(d, d.Email, d.Password)
+func (d *DevClient) Authenticate() (*AuthResponse, error) {
+	var creds [][]string
+	resp, err := post(d, d.preamble()+"/auth", map[string]interface{}{
+		"email":    d.Email,
+		"password": d.Password,
+	}, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, cbErr.CreateResponseFromMap(resp.Body)
+	}
+
+	body := resp.Body.(map[string]interface{})
+	var devAuthResp *DevAuthResponse
+
+	if val, ok := body["is_two_factor"]; ok && val.(bool) {
+		devAuthResp = &DevAuthResponse{
+			DevToken:          body["dev_token"].(string),
+			IsTwoFactor:       body["is_two_factor"].(bool),
+			NextStepURL:       body["next_step_url"].(string),
+			IntermediateToken: body["intermediate_token"].(string),
+			TwoFactorMethod:   body["two_factor_method"].(string),
+			OtpID:             body["otp_id"].(string),
+			OtpIssued:         body["otp_issued"].(string),
+		}
+	} else {
+		devAuthResp = &DevAuthResponse{
+			DevToken:          body["dev_token"].(string),
+			IsTwoFactor:       false,
+			NextStepURL:       "",
+			IntermediateToken: "",
+			TwoFactorMethod:   "",
+			OtpID:             "",
+			OtpIssued:         "",
+		}
+	}
+
+	var token string
+	if devAuthResp.IsTwoFactor {
+		token = devAuthResp.IntermediateToken
+	} else {
+		token = devAuthResp.DevToken
+	}
+
+	if token == "" {
+		return nil, fmt.Errorf("Token not present in response from platform %+v", resp.Body)
+	}
+	d.setToken(token)
+	return &AuthResponse{
+		DevResponse: devAuthResp,
+	}, nil
+}
+
+type VerifyAuthenticationParams struct {
+	Code            string `json:"code"`
+	TwoFactorMethod string `json:"two_factor_method"`
+	OtpID           string `json:"otp_id"`
+	OtpIssued       string `json: "otp_issued"`
+}
+
+func (d *DevClient) VerifyAuthentication(verifyParams VerifyAuthenticationParams) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := post(d, d.preamble()+"/auth/verify", map[string]interface{}{
+		"code":              verifyParams.Code,
+		"two_factor_method": verifyParams.TwoFactorMethod,
+		"otp_id":            verifyParams.OtpID,
+		"otp_issued":        verifyParams.OtpIssued,
+	}, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return cbErr.CreateResponseFromMap(resp.Body)
+	}
+
+	body := resp.Body.(map[string]interface{})
+	d.setToken(body["dev_token"].(string))
+	return nil
 }
 
 //Register creates a new user
