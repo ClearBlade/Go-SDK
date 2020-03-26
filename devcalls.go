@@ -941,6 +941,9 @@ func (d *DevClient) setToken(t string) {
 func (d *DevClient) getToken() string {
 	return d.DevToken
 }
+func (d *DevClient) getRefreshToken() string {
+	return d.RefreshToken
+}
 
 func (d *DevClient) getMessageId() uint16 {
 	return uint16(d.mrand.Int())
