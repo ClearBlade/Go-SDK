@@ -23,7 +23,8 @@ var (
 	//CB_ADDR is the address of the ClearBlade Platform you are speaking with
 	CB_ADDR = "https://platform.clearblade.com"
 	//CB_MSG_ADDR is the messaging address you wish to speak to
-	CB_MSG_ADDR = "platform.clearblade.com:1883"
+	CB_MSG_ADDR      = "platform.clearblade.com:1883"
+	CB_MSG_AUTH_ADDR = "platform.clearblade.com:8905"
 
 	_HEADER_KEY_KEY    = "ClearBlade-SystemKey"
 	_HEADER_SECRET_KEY = "ClearBlade-SystemSecret"
@@ -128,6 +129,7 @@ type UserClient struct {
 	Password     string
 	HttpAddr     string
 	MqttAddr     string
+	MqttAuthAddr string
 	edgeProxy    *EdgeProxy
 }
 
@@ -143,6 +145,7 @@ type DeviceClient struct {
 	SystemSecret string
 	HttpAddr     string
 	MqttAddr     string
+	MqttAuthAddr string
 	edgeProxy    *EdgeProxy
 }
 
@@ -157,6 +160,7 @@ type DevClient struct {
 	Password     string
 	HttpAddr     string
 	MqttAddr     string
+	MqttAuthAddr string
 	edgeProxy    *EdgeProxy
 }
 
@@ -248,6 +252,7 @@ func NewDeviceClient(systemkey, systemsecret, deviceName, activeKey string) *Dev
 		SystemSecret: systemsecret,
 		HttpAddr:     CB_ADDR,
 		MqttAddr:     CB_MSG_ADDR,
+		MqttAuthAddr: CB_MSG_AUTH_ADDR,
 	}
 }
 
@@ -264,6 +269,7 @@ func NewUserClient(systemkey, systemsecret, email, password string) *UserClient 
 		Password:     password,
 		HttpAddr:     CB_ADDR,
 		MqttAddr:     CB_MSG_ADDR,
+		MqttAuthAddr: CB_MSG_AUTH_ADDR,
 	}
 }
 
@@ -278,6 +284,7 @@ func NewDevClient(email, password string) *DevClient {
 		Password:     password,
 		HttpAddr:     CB_ADDR,
 		MqttAddr:     CB_MSG_ADDR,
+		MqttAuthAddr: CB_MSG_AUTH_ADDR,
 	}
 }
 
@@ -291,6 +298,7 @@ func NewDevClientWithToken(token, email string) *DevClient {
 		Password:     "",
 		HttpAddr:     CB_ADDR,
 		MqttAddr:     CB_MSG_ADDR,
+		MqttAuthAddr: CB_MSG_AUTH_ADDR,
 	}
 }
 
@@ -306,6 +314,7 @@ func NewUserClientWithAddrs(httpAddr, mqttAddr, systemKey, systemSecret, email, 
 		Password:     password,
 		HttpAddr:     httpAddr,
 		MqttAddr:     mqttAddr,
+		MqttAuthAddr: CB_MSG_AUTH_ADDR,
 	}
 }
 func NewDevClientWithAddrs(httpAddr, mqttAddr, email, password string) *DevClient {
@@ -318,6 +327,7 @@ func NewDevClientWithAddrs(httpAddr, mqttAddr, email, password string) *DevClien
 		Password:     password,
 		HttpAddr:     httpAddr,
 		MqttAddr:     mqttAddr,
+		MqttAuthAddr: CB_MSG_AUTH_ADDR,
 	}
 }
 
@@ -331,6 +341,7 @@ func NewDevClientWithTokenAndAddrs(httpAddr, mqttAddr, token, email string) *Dev
 		Password:     "",
 		HttpAddr:     httpAddr,
 		MqttAddr:     mqttAddr,
+		MqttAuthAddr: CB_MSG_AUTH_ADDR,
 	}
 }
 
@@ -346,6 +357,7 @@ func NewDeviceClientWithAddrs(httpAddr, mqttAddr, systemkey, systemsecret, devic
 		SystemSecret: systemsecret,
 		HttpAddr:     httpAddr,
 		MqttAddr:     mqttAddr,
+		MqttAuthAddr: CB_MSG_AUTH_ADDR,
 	}
 }
 
