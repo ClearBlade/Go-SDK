@@ -361,6 +361,34 @@ func NewDeviceClientWithAddrs(httpAddr, mqttAddr, systemkey, systemsecret, devic
 	}
 }
 
+func NewDeviceClientWithServiceAccountAndAddrs(httpAddr, mqttAddr, systemkey, systemsecret, deviceName, token string) *DeviceClient {
+	return &DeviceClient{
+		DeviceName:   deviceName,
+		DeviceToken:  token,
+		ActiveKey:    "",
+		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient:   nil,
+		SystemKey:    systemkey,
+		SystemSecret: systemsecret,
+		HttpAddr:     httpAddr,
+		MqttAddr:     mqttAddr,
+	}
+}
+
+func NewUserClientWithServiceAccountAndAddrs(httpAddr, mqttAddr, systemkey, systemsecret, email, token string) *UserClient {
+	return &UserClient{
+		UserToken:    token,
+		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient:   nil,
+		SystemSecret: systemsecret,
+		SystemKey:    systemkey,
+		Email:        email,
+		Password:     "",
+		HttpAddr:     httpAddr,
+		MqttAddr:     mqttAddr,
+	}
+}
+
 func NewEdgeProxyDevClient(email, password, systemKey, edgeName string) (*DevClient, error) {
 	d := NewDevClient(email, password)
 	if err := d.startProxyToEdge(systemKey, edgeName); err != nil {
