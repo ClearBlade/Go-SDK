@@ -645,6 +645,11 @@ func (d *DevClient) Logout() error {
 	return logout(d)
 }
 
+//Check Auth of User
+func (d *UserClient) CheckAuth() error {
+	return checkAuth(d)
+}
+
 //Check Auth of Developer
 func (d *DevClient) CheckAuth() error {
 	return checkAuth(d)

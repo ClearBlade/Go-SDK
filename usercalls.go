@@ -351,7 +351,7 @@ func (u *UserClient) GetUserInfo(systemKey, email string) (map[string]interface{
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Error getting user %s: %v", email, resp.Body)
 	}
-	rawData, ok := resp.Body.([]interface{})
+	rawData, ok := resp.Body.(map[string]interface{})["Data"].([]interface{})
 	if !ok {
 		return nil, fmt.Errorf("Error parsing response")
 	}
@@ -391,4 +391,21 @@ func (u *UserClient) GetAllUsers(systemKey string) ([]map[string]interface{}, er
 	}
 
 	return rval, nil
+}
+
+func (u *UserClient) GetUserRoles(systemKey, userId string) ([]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := get(u, fmt.Sprintf("/api/v/3/user/roles/%s?user=%s", systemKey, userId), nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting user roles: %v", resp.Body)
+	}
+
+	return resp.Body.([]interface{}), nil
 }
