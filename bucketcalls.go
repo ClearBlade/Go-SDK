@@ -91,19 +91,19 @@ func getBucketSetFiles(c cbClient, endpoint string) ([]interface{}, error) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (d *DevClient) CreateBucketSetFile(systemKey, deploymentName, box, relPath string, contents []byte) (map[string]interface{}, error) {
+func (d *DevClient) CreateBucketSetFile(systemKey, deploymentName, box, relPath, contents string) (map[string]interface{}, error) {
 	return createBucketSetFile(d, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/file/create", box, relPath, contents)
 }
 
-func (u *UserClient) CreateBucketSetFile(systemKey, deploymentName, box, relPath string, contents []byte) (map[string]interface{}, error) {
+func (u *UserClient) CreateBucketSetFile(systemKey, deploymentName, box, relPath, contents string) (map[string]interface{}, error) {
 	return createBucketSetFile(u, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/file/create", box, relPath, contents)
 }
 
-func (dv *DeviceClient) CreateBucketSetFile(systemKey, deploymentName, box, relPath string, contents []byte) (map[string]interface{}, error) {
+func (dv *DeviceClient) CreateBucketSetFile(systemKey, deploymentName, box, relPath, contents string) (map[string]interface{}, error) {
 	return createBucketSetFile(dv, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/file/create", box, relPath, contents)
 }
 
-func createBucketSetFile(c cbClient, endpoint, box, relPath string, contents []byte) (map[string]interface{}, error) {
+func createBucketSetFile(c cbClient, endpoint, box, relPath, contents string) (map[string]interface{}, error) {
 
 	creds, err := c.credentials()
 	if err != nil {
