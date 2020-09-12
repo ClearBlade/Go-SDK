@@ -126,15 +126,15 @@ func createBucketSetFile(c cbClient, endpoint, box, relPath, contents string) (m
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (d *DevClient) GetBucketSetFile(systemKey, deploymentName, box, relPath string, contents []byte) (map[string]interface{}, error) {
+func (d *DevClient) GetBucketSetFile(systemKey, deploymentName, box, relPath string) (map[string]interface{}, error) {
 	return getBucketSetFile(d, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/file/meta", box, relPath)
 }
 
-func (u *UserClient) GetBucketSetFile(systemKey, deploymentName, box, relPath string, contents []byte) (map[string]interface{}, error) {
+func (u *UserClient) GetBucketSetFile(systemKey, deploymentName, box, relPath string) (map[string]interface{}, error) {
 	return getBucketSetFile(u, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/file/meta", box, relPath)
 }
 
-func (dv *DeviceClient) GetBucketSetFile(systemKey, deploymentName, box, relPath string, contents []byte) (map[string]interface{}, error) {
+func (dv *DeviceClient) GetBucketSetFile(systemKey, deploymentName, box, relPath string) (map[string]interface{}, error) {
 	return getBucketSetFile(dv, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/file/meta", box, relPath)
 }
 
