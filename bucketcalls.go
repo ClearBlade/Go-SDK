@@ -64,19 +64,19 @@ func getBucketSet(c cbClient, endpoint string) (map[string]interface{}, error) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (d *DevClient) GetBucketSetFiles(systemKey, deploymentName string) ([]interface{}, error) {
+func (d *DevClient) GetBucketSetFiles(systemKey, deploymentName string) (map[string]interface{}, error) {
 	return getBucketSetFiles(d, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/files")
 }
 
-func (u *UserClient) GetBucketSetFiles(systemKey, deploymentName string) ([]interface{}, error) {
+func (u *UserClient) GetBucketSetFiles(systemKey, deploymentName string) (map[string]interface{}, error) {
 	return getBucketSetFiles(u, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/files")
 }
 
-func (dv *DeviceClient) GetBucketSetFiles(systemKey, deploymentName string) ([]interface{}, error) {
+func (dv *DeviceClient) GetBucketSetFiles(systemKey, deploymentName string) (map[string]interface{}, error) {
 	return getBucketSetFiles(dv, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/files")
 }
 
-func getBucketSetFiles(c cbClient, endpoint string) ([]interface{}, error) {
+func getBucketSetFiles(c cbClient, endpoint string) (map[string]interface{}, error) {
 	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func getBucketSetFiles(c cbClient, endpoint string) ([]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body.([]interface{}), nil
+	return resp.Body.(map[string]interface{}), nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
