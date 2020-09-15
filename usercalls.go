@@ -328,6 +328,26 @@ func (u *UserClient) UpdateUserRoles(userID string, changes RoleChanges) error {
 	return nil
 }
 
+func (u *UserClient) GetOwnUserInfo() (map[string]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := get(u, u.preamble()+"/info", nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting own user info: %v", resp.Body)
+	}
+	rawData, ok := resp.Body.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Error parsing response")
+	}
+	return rawData, nil
+}
+
 func (u *UserClient) GetUserInfo(systemKey, email string) (map[string]interface{}, error) {
 	creds, err := u.credentials()
 	if err != nil {
