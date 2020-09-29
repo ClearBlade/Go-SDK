@@ -105,7 +105,7 @@ type cbClient interface {
 	preamble() string
 	setToken(string)
 	getToken() string
-	setRefreshToken(string)
+	setRefreshToken(map[string]interface{})
 	getRefreshToken() string
 	setExpiresAt(float64)
 	getExpiresAt() float64
@@ -712,7 +712,7 @@ func authenticate(c cbClient, username, password string) error {
 	}
 	c.setToken(token)
 	if _, ok := respBody["refresh_token"]; ok {
-		c.setRefreshToken(respBody["refresh_token"].(string))
+		c.setRefreshToken(respBody)
 	}
 	if _, ok := respBody["expires_at"]; ok {
 		c.setExpiresAt(respBody["expires_at"].(float64))
@@ -742,7 +742,7 @@ func refreshAuthentication(c *UserClient) error {
 
 	respBody := resp.Body.(map[string]interface{})
 	c.setToken(respBody["user_token"].(string))
-	c.setRefreshToken(respBody["refresh_token"].(string))
+	c.setRefreshToken(respBody)
 	c.setExpiresAt(respBody["expires_at"].(float64))
 	return nil
 }
@@ -828,7 +828,7 @@ func register(c cbClient, kind int, username, password, syskey, syssec, fname, l
 		token = resp.Body.(map[string]interface{})["user_id"].(string)
 	}
 	c.setExpiresAt(resp.Body.(map[string]interface{})["expires_at"].(float64))
-	c.setRefreshToken(resp.Body.(map[string]interface{})["refresh_token"].(string))
+	c.setRefreshToken(resp.Body.(map[string]interface{}))
 
 	if token == "" {
 		return nil, fmt.Errorf("Token not present in response from platform %+v", resp.Body)
@@ -1105,4 +1105,11 @@ func createQueryMap(query *Query) (map[string]string, error) {
 	}
 
 	return qry, nil
+}
+
+func nicelySetRefreshToken(body map[string]interface{}) string {
+	if tok, ok := body["refresh_token"].(string); ok {
+		return tok
+	}
+	return ""
 }

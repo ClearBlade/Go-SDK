@@ -60,8 +60,8 @@ func (u *UserClient) getToken() string {
 func (u *UserClient) getRefreshToken() string {
 	return u.RefreshToken
 }
-func (u *UserClient) setRefreshToken(t string) {
-	u.RefreshToken = t
+func (u *UserClient) setRefreshToken(body map[string]interface{}) {
+	u.RefreshToken = nicelySetRefreshToken(body)
 }
 func (u *UserClient) setExpiresAt(t float64) {
 	u.ExpiresAt = t

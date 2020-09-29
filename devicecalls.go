@@ -548,8 +548,8 @@ func (dvc *DeviceClient) getToken() string {
 func (dvc *DeviceClient) getRefreshToken() string {
 	return dvc.RefreshToken
 }
-func (dvc *DeviceClient) setRefreshToken(t string) {
-	dvc.RefreshToken = t
+func (dvc *DeviceClient) setRefreshToken(body map[string]interface{}) {
+	dvc.RefreshToken = nicelySetRefreshToken(body)
 }
 func (dvc *DeviceClient) setExpiresAt(t float64) {
 	dvc.ExpiresAt = t
