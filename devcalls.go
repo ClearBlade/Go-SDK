@@ -971,7 +971,7 @@ func (d *DevClient) AddGenericPermissionToRole(systemKey, roleId, permission str
 	return nil
 }
 
-func (d *DevClient) GetDeploymentSyncStatus(systemKey, deployment string) (map[string]map[string]map[string]interface{}, error) {
+func (d *DevClient) GetDeploymentSyncStatus(systemKey, deployment string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
@@ -986,7 +986,7 @@ func (d *DevClient) GetDeploymentSyncStatus(systemKey, deployment string) (map[s
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Error getting deployment status: %v", resp.Body)
 	}
-	rval := resp.Body.(map[string]map[string]map[string]interface{})
+	rval := resp.Body.(map[string]interface{})
 	return rval, nil
 }
 
