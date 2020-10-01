@@ -551,7 +551,7 @@ type VerifyAuthenticationParams struct {
 	Code            string `json:"code"`
 	TwoFactorMethod string `json:"two_factor_method"`
 	OtpID           string `json:"otp_id"`
-	OtpIssued       string `json: "otp_issued"`
+	OtpIssued       string `json:"otp_issued"`
 }
 
 func (d *DevClient) VerifyAuthentication(verifyParams VerifyAuthenticationParams) error {

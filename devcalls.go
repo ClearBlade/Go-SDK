@@ -990,7 +990,7 @@ func (d *DevClient) GetDeploymentSyncStatus(systemKey, deployment string) (map[s
 	return rval, nil
 }
 
-func (d *DevClient) GetEdgeSyncStatus(systemKey, edge string) (map[string]map[string]map[string]interface{}, error) {
+func (d *DevClient) GetEdgeSyncStatus(systemKey, edge string) ([]map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
@@ -1043,8 +1043,8 @@ func (d *DevClient) getToken() string {
 func (d *DevClient) getRefreshToken() string {
 	return d.RefreshToken
 }
-func (d *DevClient) setRefreshToken(t string) {
-	d.RefreshToken = t
+func (d *DevClient) setRefreshToken(body map[string]interface{}) {
+	d.RefreshToken = nicelySetRefreshToken(body)
 }
 func (d *DevClient) setExpiresAt(t float64) {
 	d.ExpiresAt = t
