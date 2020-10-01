@@ -971,6 +971,48 @@ func (d *DevClient) AddGenericPermissionToRole(systemKey, roleId, permission str
 	return nil
 }
 
+func (d *DevClient) GetDeploymentSyncStatus(systemKey, deployment string) (map[string]map[string]map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, d.preamble()+"/"+systemKey+"/sync/deployment/status/"+deployment, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting deployment status: %v", resp.Body)
+	}
+	rval := resp.Body.(map[string]map[string]map[string]interface{})
+	return rval, nil
+}
+
+func (d *DevClient) GetEdgeSyncStatus(systemKey, edge string) (map[string]map[string]map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, d.preamble()+"/"+systemKey+"/sync/edge/status/"+edge, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting deployment status: %v", resp.Body)
+	}
+	rawData := resp.Body.([]interface{})
+	rval := make([]map[string]interface{}, len(rawData))
+	for idx, oneRsp := range rawData {
+		rval[idx] = oneRsp.(map[string]interface{})
+	}
+	return rval, nil
+}
+
 func (d *DevClient) credentials() ([][]string, error) {
 	if d.DevToken != "" {
 		return [][]string{
@@ -1001,8 +1043,8 @@ func (d *DevClient) getToken() string {
 func (d *DevClient) getRefreshToken() string {
 	return d.RefreshToken
 }
-func (d *DevClient) setRefreshToken(body map[string]interface{}) {
-	d.RefreshToken = nicelySetRefreshToken(body)
+func (d *DevClient) setRefreshToken(t string) {
+	d.RefreshToken = t
 }
 func (d *DevClient) setExpiresAt(t float64) {
 	d.ExpiresAt = t
