@@ -1005,9 +1005,10 @@ func (d *DevClient) GetEdgeSyncStatus(systemKey, edge string) ([]map[string]inte
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Error getting deployment status: %v", resp.Body)
 	}
-	var rval []map[string]interface{}
-	if err := json.Unmarshal([]byte(resp.Body.(string)), &rval); err != nil {
-		return nil, err
+	rawData := resp.Body.([]interface{})
+	rval := make([]map[string]interface{}, len(rawData))
+	for idx, oneRsp := range rawData {
+		rval[idx] = oneRsp.(map[string]interface{})
 	}
 	return rval, nil
 }
