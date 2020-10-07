@@ -736,3 +736,63 @@ func (u *UserClient) GetDataByKeyAndName(string, string, *Query) (map[string]int
 func (d *DeviceClient) GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error) {
 	return nil, fmt.Errorf("Unimplemented")
 }
+
+func (u *UserClient) CreateIndex(systemKey, collectionName, columnToIndex string) error {
+	return createIndex(u, systemKey, collectionName, columnToIndex)
+}
+
+func (d *DeviceClient) CreateIndex(systemKey, collectionName, columnToIndex string) error {
+	return createIndex(d, systemKey, collectionName, columnToIndex)
+}
+
+func (d *DevClient) CreateIndex(systemKey, collectionName, columnToIndex string) error {
+	return createIndex(d, systemKey, collectionName, columnToIndex)
+}
+
+func createIndex(c cbClient, systemKey, collectionName, columnToIndex string) error {
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	url := fmt.Sprintf("%scollection/%s/%s/createindex", _DATA_V4_PREAMBLE, systemKey, collectionName)
+	resp, err := put(c, url, map[string]interface{}{
+		"columnName": columnToIndex,
+	}, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error sending request for creating index: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error creating index: %v", resp.Body)
+	}
+	return nil
+}
+
+func (u *UserClient) CreateUniqueIndex(systemKey, collectionName, columnToIndex string) error {
+	return createUniqueIndex(u, systemKey, collectionName, columnToIndex)
+}
+
+func (d *DeviceClient) CreateUniqueIndex(systemKey, collectionName, columnToIndex string) error {
+	return createUniqueIndex(d, systemKey, collectionName, columnToIndex)
+}
+
+func (d *DevClient) CreateUniqueIndex(systemKey, collectionName, columnToIndex string) error {
+	return createUniqueIndex(d, systemKey, collectionName, columnToIndex)
+}
+
+func createUniqueIndex(c cbClient, systemKey, collectionName, columnToIndex string) error {
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	url := fmt.Sprintf("%scollection/%s/%s/createuniqueindex", _DATA_V4_PREAMBLE, systemKey, collectionName)
+	resp, err := put(c, url, map[string]interface{}{
+		"columnName": columnToIndex,
+	}, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error sending request for creating unique index: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error creating unique index: %v", resp.Body)
+	}
+	return nil
+}
