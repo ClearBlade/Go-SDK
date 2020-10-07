@@ -11,6 +11,7 @@ const (
 	_DATA_NAME_PREAMBLE = "/api/v/1/collection/"
 	_DATA_V2_PREAMBLE   = "/api/v/2"
 	_DATA_V3_PREAMBLE   = "/api/v/3"
+	_DATA_V4_PREAMBLE   = "/api/v/4/"
 )
 
 //Inserts data into the platform. The interface is either a map[string]interface{} representing a row, or a []map[string]interface{} representing many rows.
@@ -268,24 +269,87 @@ func getdatatotalbyname(c cbClient, system_key, collection_name string, query *Q
 	return resp.Body.(map[string]interface{}), nil
 }
 
+//UpsertData mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
+//changes should be a map of the names of the columns, and the value you want them updated to
+
+func (u *UserClient) UpsertData(collection_id string, changes map[string]interface{}, conflictColumn string) (map[string]interface{}, error) {
+	return upsertdata(u, collection_id, changes, conflictColumn)
+}
+
+func (d *DeviceClient) UpsertData(collection_id string, changes map[string]interface{}, conflictColumn string) (map[string]interface{}, error) {
+	return upsertdata(d, collection_id, changes, conflictColumn)
+}
+
+//UpsertData mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
+//changes should be a map of the names of the columns, and the value you want them updated to
+func (d *DevClient) UpsertData(collection_id string, changes map[string]interface{}, conflictColumn string) (map[string]interface{}, error) {
+	return upsertdata(d, collection_id, changes, conflictColumn)
+}
+
+//UpsertDataByName mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
+//changes should be a map of the names of the columns, and the value you want them updated to
+
+func (u *UserClient) UpsertDataByName(system_key, collection_name string, changes map[string]interface{}, conflictColumn string) (map[string]interface{}, error) {
+	return upsertdataByName(u, system_key, collection_name, changes, conflictColumn)
+}
+
+func (d *DeviceClient) UpsertDataByName(system_key, collection_name string, changes map[string]interface{}, conflictColumn string) (map[string]interface{}, error) {
+	return upsertdataByName(d, system_key, collection_name, changes, conflictColumn)
+}
+
+//UpsertDataByName mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
+//changes should be a map of the names of the columns, and the value you want them updated to
+func (d *DevClient) UpsertDataByName(system_key, collection_name string, changes map[string]interface{}, conflictColumn string) (map[string]interface{}, error) {
+	return upsertdataByName(d, system_key, collection_name, changes, conflictColumn)
+}
+
+func upsertdata(c cbClient, collection_id string, data interface{}, conflictColumn string) (map[string]interface{}, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+	url := fmt.Sprintf("%sdata/%s/upsert?conflictColumn=%s", _DATA_V4_PREAMBLE, collection_id, conflictColumn)
+	resp, err := put(c, url, data, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error inserting: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error inserting: %v", resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func upsertdataByName(c cbClient, systemKey, collectionName string, data interface{}, conflictColumn string) (map[string]interface{}, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+	url := fmt.Sprintf("%scollection/%s/%s/upsert?conflictColumn=%s", _DATA_V4_PREAMBLE, systemKey, collectionName, conflictColumn)
+	resp, err := put(c, url, data, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error inserting: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error inserting: %v", resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
 //UpdateData mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
 //changes should be a map of the names of the columns, and the value you want them updated to
 
 func (u *UserClient) UpdateData(collection_id string, query *Query, changes map[string]interface{}) error {
-	err := updatedata(u, collection_id, query, changes)
-	return err
+	return updatedata(u, collection_id, query, changes)
 }
 
 func (d *DeviceClient) UpdateData(collection_id string, query *Query, changes map[string]interface{}) error {
-	err := updatedata(d, collection_id, query, changes)
-	return err
+	return updatedata(d, collection_id, query, changes)
 }
 
 //UpdateData mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
 //changes should be a map of the names of the columns, and the value you want them updated to
 func (d *DevClient) UpdateData(collection_id string, query *Query, changes map[string]interface{}) error {
-	err := updatedata(d, collection_id, query, changes)
-	return err
+	return updatedata(d, collection_id, query, changes)
 }
 
 //UpdateDataByName mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
