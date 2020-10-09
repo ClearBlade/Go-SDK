@@ -754,10 +754,8 @@ func createIndex(c cbClient, systemKey, collectionName, columnToIndex string) er
 	if err != nil {
 		return err
 	}
-	url := fmt.Sprintf("%scollection/%s/%s/createindex", _DATA_V4_PREAMBLE, systemKey, collectionName)
-	resp, err := put(c, url, map[string]interface{}{
-		"columnName": columnToIndex,
-	}, creds, nil)
+	url := fmt.Sprintf("%scollection/%s/%s/index?columnName=%s", _DATA_V4_PREAMBLE, systemKey, collectionName, columnToIndex)
+	resp, err := post(c, url, nil, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error sending request for creating index: %v", err)
 	}
@@ -784,15 +782,69 @@ func createUniqueIndex(c cbClient, systemKey, collectionName, columnToIndex stri
 	if err != nil {
 		return err
 	}
-	url := fmt.Sprintf("%scollection/%s/%s/createuniqueindex", _DATA_V4_PREAMBLE, systemKey, collectionName)
-	resp, err := put(c, url, map[string]interface{}{
-		"columnName": columnToIndex,
-	}, creds, nil)
+	url := fmt.Sprintf("%scollection/%s/%s/uniqueindex?columnName=%s", _DATA_V4_PREAMBLE, systemKey, collectionName, columnToIndex)
+	resp, err := post(c, url, nil, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error sending request for creating unique index: %v", err)
 	}
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("Error creating unique index: %v", resp.Body)
+	}
+	return nil
+}
+
+func (u *UserClient) DropUniqueIndex(systemKey, collectionName, columnToIndex string) error {
+	return dropUniqueIndex(u, systemKey, collectionName, columnToIndex)
+}
+
+func (d *DeviceClient) DropUniqueIndex(systemKey, collectionName, columnToIndex string) error {
+	return dropUniqueIndex(d, systemKey, collectionName, columnToIndex)
+}
+
+func (d *DevClient) DropUniqueIndex(systemKey, collectionName, columnToIndex string) error {
+	return dropUniqueIndex(d, systemKey, collectionName, columnToIndex)
+}
+
+func dropUniqueIndex(c cbClient, systemKey, collectionName, columnToIndex string) error {
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	url := fmt.Sprintf("%scollection/%s/%s/uniqueindex?columnName=%s", _DATA_V4_PREAMBLE, systemKey, collectionName, columnToIndex)
+	resp, err := delete(c, url, nil, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error sending request for dropping unique index: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error dropping unique index: %v", resp.Body)
+	}
+	return nil
+}
+
+func (u *UserClient) DropIndex(systemKey, collectionName, columnToIndex string) error {
+	return dropIndex(u, systemKey, collectionName, columnToIndex)
+}
+
+func (d *DeviceClient) DropIndex(systemKey, collectionName, columnToIndex string) error {
+	return dropIndex(d, systemKey, collectionName, columnToIndex)
+}
+
+func (d *DevClient) DropIndex(systemKey, collectionName, columnToIndex string) error {
+	return dropIndex(d, systemKey, collectionName, columnToIndex)
+}
+
+func dropIndex(c cbClient, systemKey, collectionName, columnToIndex string) error {
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	url := fmt.Sprintf("%scollection/%s/%s/index?columnName=%s", _DATA_V4_PREAMBLE, systemKey, collectionName, columnToIndex)
+	resp, err := delete(c, url, nil, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error sending request for dropping index: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error dropping index: %v", resp.Body)
 	}
 	return nil
 }
