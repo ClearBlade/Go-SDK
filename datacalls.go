@@ -848,3 +848,31 @@ func dropIndex(c cbClient, systemKey, collectionName, columnToIndex string) erro
 	}
 	return nil
 }
+
+func (u *UserClient) ListIndexes(systemKey, collectionName string) (map[string]interface{}, error) {
+	return listIndexes(u, systemKey, collectionName)
+}
+
+func (d *DeviceClient) ListIndexes(systemKey, collectionName string) (map[string]interface{}, error) {
+	return listIndexes(d, systemKey, collectionName)
+}
+
+func (d *DevClient) ListIndexes(systemKey, collectionName string) (map[string]interface{}, error) {
+	return listIndexes(d, systemKey, collectionName)
+}
+
+func listIndexes(c cbClient, systemKey, collectionName string) (map[string]interface{}, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+	url := fmt.Sprintf("%scollection/%s/%s/listindexes", _DATA_V4_PREAMBLE, systemKey, collectionName)
+	resp, err := get(c, url, nil, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error sending request for list indexes: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error listing indexes: %v", resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
