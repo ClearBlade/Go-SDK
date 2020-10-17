@@ -876,3 +876,31 @@ func listIndexes(c cbClient, systemKey, collectionName string) (map[string]inter
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
+
+func (u *UserClient) ListIndexesWithID(collectionID string) (map[string]interface{}, error) {
+	return listIndexeswithid(u, collectionID)
+}
+
+func (d *DeviceClient) ListIndexesWithID(collectionID string) (map[string]interface{}, error) {
+	return listIndexeswithid(d, collectionID)
+}
+
+func (d *DevClient) ListIndexesWithID(collectionID string) (map[string]interface{}, error) {
+	return listIndexeswithid(d, collectionID)
+}
+
+func listIndexeswithid(c cbClient, collectionID string) (map[string]interface{}, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+	url := fmt.Sprintf("%sdata/%s/listindexes", _DATA_V4_PREAMBLE, collectionID)
+	resp, err := get(c, url, nil, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error sending request for list indexes: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error listing indexes: %v", resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
