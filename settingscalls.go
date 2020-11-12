@@ -11,7 +11,7 @@ const (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (d *DevClient) GetGoogleStorageSettings(systemKey string) (map[string]interface{}, error) {
+func (d *DevClient) GetGoogleStorageSettings() (map[string]interface{}, error) {
 	return getGoogleStorageSettings(d, _SETTINGS_PREAMBLE+_GOOGLE_SERVICE)
 }
 
@@ -68,7 +68,7 @@ func updateGoogleStorageSettings(c cbClient, endpoint string, settings map[strin
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (d *DevClient) DeleteGoogleStorageSettings(systemKey, deploymentName, box, relPath string) error {
+func (d *DevClient) DeleteGoogleStorageSettings() error {
 	return deleteGoogleStorageSettings(d, _SETTINGS_PREAMBLE+_GOOGLE_SERVICE)
 }
 
