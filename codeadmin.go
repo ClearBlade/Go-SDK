@@ -184,6 +184,25 @@ func (d *DevClient) EnableLogsForService(systemKey, name string) error {
 	return err
 }
 
+func (d *DevClient) UpdateServiceWithMap(systemKey, name string, changes map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := put(d, _CODE_ADMIN_PREAMBLE+"/"+systemKey+"/"+name, changes, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error updating service: %v\n", err)
+	}
+	body, ok := resp.Body.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Service not created. First create service...")
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error updating service: %v\n", resp.Body)
+	}
+	return body, nil
+}
+
 //DisableLogsForService turns logging off for that service
 func (d *DevClient) DisableLogsForService(systemKey, name string) error {
 	creds, err := d.credentials()
