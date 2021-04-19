@@ -91,6 +91,25 @@ func (u *UserClient) GetUserCount(systemKey string) (int, error) {
 	return theCount, nil
 }
 
+func (d *DevClient) RegisterNewUserWithOptions(systemKey, systemSecret string, data map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	endpoint := fmt.Sprintf("/admin/user/%s", systemKey)
+	headers := make(map[string][]string)
+	headers["Clearblade-Systemkey"] = []string{systemKey}
+	headers["Clearblade-Systemsecret"] = []string{systemSecret}
+	resp, err := post(d, endpoint, data, creds, headers)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error registering user: %v", resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
 func (d *DevClient) GetUserCountWithQuery(systemKey string, query *Query) (CountResp, error) {
 	creds, err := d.credentials()
 	if err != nil {
