@@ -155,6 +155,34 @@ func getBucketSetFile(c cbClient, endpoint, box, relPath string) (map[string]int
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+func (d *DevClient) ReadBucketSetFile(systemKey, deploymentName, box, relPath string) (map[string]interface{}, error) {
+	return readBucketSetFile(d, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/file/read", box, relPath)
+}
+
+func (u *UserClient) ReadGetBucketSetFile(systemKey, deploymentName, box, relPath string) (map[string]interface{}, error) {
+	return readBucketSetFile(u, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/file/read", box, relPath)
+}
+
+func (dv *DeviceClient) ReadGetBucketSetFile(systemKey, deploymentName, box, relPath string) (map[string]interface{}, error) {
+	return readBucketSetFile(dv, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/file/read", box, relPath)
+}
+
+func readBucketSetFile(c cbClient, endpoint, box, relPath string) (map[string]interface{}, error) {
+	queries := map[string]string{"box": box, "path": relPath}
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(c, endpoint, queries, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 func (d *DevClient) CopyBucketSetFile(systemKey, deploymentName, fromBox, fromPath, toBox, toPath string) error {
 	return copyBucketSetFile(d, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/file/copy", fromBox, fromPath, toBox, toPath)
 }
