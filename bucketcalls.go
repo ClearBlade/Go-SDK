@@ -155,30 +155,30 @@ func getBucketSetFile(c cbClient, endpoint, box, relPath string) (map[string]int
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (d *DevClient) ReadBucketSetFile(systemKey, deploymentName, box, relPath string) (map[string]interface{}, error) {
+func (d *DevClient) ReadBucketSetFile(systemKey, deploymentName, box, relPath string) (string, error) {
 	return readBucketSetFile(d, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/file/read", box, relPath)
 }
 
-func (u *UserClient) ReadGetBucketSetFile(systemKey, deploymentName, box, relPath string) (map[string]interface{}, error) {
+func (u *UserClient) ReadGetBucketSetFile(systemKey, deploymentName, box, relPath string) (string, error) {
 	return readBucketSetFile(u, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/file/read", box, relPath)
 }
 
-func (dv *DeviceClient) ReadGetBucketSetFile(systemKey, deploymentName, box, relPath string) (map[string]interface{}, error) {
+func (dv *DeviceClient) ReadGetBucketSetFile(systemKey, deploymentName, box, relPath string) (string, error) {
 	return readBucketSetFile(dv, _BUCKET_SETS_PREAMBLE+systemKey+"/"+deploymentName+"/file/read", box, relPath)
 }
 
-func readBucketSetFile(c cbClient, endpoint, box, relPath string) (map[string]interface{}, error) {
+func readBucketSetFile(c cbClient, endpoint, box, relPath string) (string, error) {
 	queries := map[string]string{"box": box, "path": relPath}
 	creds, err := c.credentials()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	resp, err := get(c, endpoint, queries, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return resp.Body.(map[string]interface{}), nil
+	return resp.Body.(string), nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
