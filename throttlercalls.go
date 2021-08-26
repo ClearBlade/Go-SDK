@@ -36,6 +36,18 @@ func (d *DevClient) GetAllThrottlers() (map[string]interface{}, error) {
 	return resp.Body.(map[string]interface{}), nil
 }
 
+func (d *DevClient) GetThrottler(throttlerName string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := mapResponse(get(d, _THROTTLERS_PREAMBLE+"/"+throttlerName, nil, creds, nil))
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (d *DevClient) GetThrottlerCasesAndExceptions(throttlerName string) (map[string]interface{}, error) {
