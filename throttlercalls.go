@@ -10,20 +10,6 @@ const (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (d *DevClient) GetThrottlerDefinitions() (map[string]interface{}, error) {
-	creds, err := d.credentials()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := mapResponse(get(d, _THROTTLERS_PREAMBLE+"/definitions", nil, creds, nil))
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.(map[string]interface{}), nil
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 func (d *DevClient) GetAllThrottlers() (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
