@@ -36,18 +36,6 @@ func (d *DevClient) GetThrottler(throttlerName string) (map[string]interface{}, 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (d *DevClient) GetThrottlerCasesAndExceptions(throttlerName string) (map[string]interface{}, error) {
-	creds, err := d.credentials()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := mapResponse(get(d, _THROTTLERS_PREAMBLE+"/"+throttlerName, nil, creds, nil))
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.(map[string]interface{}), nil
-}
-
 func (d *DevClient) DeleteThrottlerCasesAndExceptions(throttlerName string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -61,26 +49,6 @@ func (d *DevClient) DeleteThrottlerCasesAndExceptions(throttlerName string) (map
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-func (d *DevClient) GetThrottlerCases(throttlerName string) ([]interface{}, error) {
-	return d.getThrottlerCases(throttlerName, "/cases")
-}
-
-func (d *DevClient) GetThrottlerExceptions(throttlerName string) ([]interface{}, error) {
-	return d.getThrottlerCases(throttlerName, "/exceptions")
-}
-
-func (d *DevClient) getThrottlerCases(throttlerName, pathTail string) ([]interface{}, error) {
-	creds, err := d.credentials()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := mapResponse(get(d, _THROTTLERS_PREAMBLE+"/"+throttlerName+pathTail, nil, creds, nil))
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.([]interface{}), nil
-}
 
 func (d *DevClient) CreateThrottlerCase(throttlerName string, caseInfo map[string]interface{}) (map[string]interface{}, error) {
 	return d.createThrottlerCase(throttlerName, "/cases", caseInfo)
@@ -123,26 +91,6 @@ func (d *DevClient) deleteAllThrottlerCases(throttlerName, pathTail string) ([]i
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-func (d *DevClient) GetThrottlerCase(throttlerName, caseName string) (map[string]interface{}, error) {
-	return d.getThrottlerCase(throttlerName, caseName, "/cases")
-}
-
-func (d *DevClient) GetThrottlerException(throttlerName, caseName string) (map[string]interface{}, error) {
-	return d.getThrottlerCase(throttlerName, caseName, "/exceptions")
-}
-
-func (d *DevClient) getThrottlerCase(throttlerName, caseName, pathTail string) (map[string]interface{}, error) {
-	creds, err := d.credentials()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := mapResponse(get(d, _THROTTLERS_PREAMBLE+"/"+throttlerName+pathTail+"/"+caseName, nil, creds, nil))
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.(map[string]interface{}), nil
-}
 
 func (d *DevClient) UpdateThrottlerCase(throttlerName, caseName string, updates map[string]interface{}) (map[string]interface{}, error) {
 	return d.updateThrottlerCase(throttlerName, caseName, "/cases", updates)
