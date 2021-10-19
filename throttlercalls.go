@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	_THROTTLERS_PREAMBLE = "/admin/throttlers"
+	_THROTTLERS_PREAMBLE    = "/admin/throttlers"
+	_USERS_DEVICES_PREAMBLE = "/admin/usersanddevices"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,6 +127,32 @@ func (d *DevClient) deleteThrottlerCase(throttlerName, caseName, pathTail string
 		return nil, err
 	}
 	resp, err := mapResponse(delete(d, _THROTTLERS_PREAMBLE+"/"+throttlerName+pathTail+"/"+caseName, nil, creds, nil))
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (d *DevClient) AllUsersAndDevices(inputText string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := mapResponse(get(d, _USERS_DEVICES_PREAMBLE+"?text="+inputText, nil, creds, nil))
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) OneSystemUsersAndDevices(systemKey, inputText string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := mapResponse(get(d, _USERS_DEVICES_PREAMBLE+"/"+systemKey+"?text="+inputText, nil, creds, nil))
 	if err != nil {
 		return nil, err
 	}
