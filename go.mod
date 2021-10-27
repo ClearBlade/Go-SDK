@@ -1,4 +1,4 @@
-module github.com/clearblade/Go-SDK
+module github.com/clearblade/Go-SDK/v3
 
 go 1.13
 
