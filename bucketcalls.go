@@ -10,6 +10,61 @@ const (
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+func (d *DevClient) CreateBucketSet(systemKey, name string, config map[string]interface{}) (map[string]interface{}, error) {
+	return createBucketSet(d, _BUCKET_SETS_PREAMBLE+systemKey, name, config)
+}
+
+func (u *UserClient) CreateBucketSet(systemKey, name string, config map[string]interface{}) (map[string]interface{}, error) {
+	return createBucketSet(u, _BUCKET_SETS_PREAMBLE+systemKey, name, config)
+}
+
+func (dv *DeviceClient) CreateBucketSet(systemKey, name string, config map[string]interface{}) (map[string]interface{}, error) {
+	return createBucketSet(dv, _BUCKET_SETS_PREAMBLE+systemKey, name, config)
+}
+
+func createBucketSet(c cbClient, endpoint, name string, config map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+	config["name"] = name
+	resp, err := post(c, endpoint, config, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (d *DevClient) DeleteBucketSet(systemKey, name string) (map[string]interface{}, error) {
+	return deleteBucketSet(d, _BUCKET_SETS_PREAMBLE+systemKey+"/"+name)
+}
+
+func (u *UserClient) DeleteBucketSet(systemKey, name string) (map[string]interface{}, error) {
+	return deleteBucketSet(u, _BUCKET_SETS_PREAMBLE+systemKey+"/"+name)
+}
+
+func (dv *DeviceClient) DeleteBucketSet(systemKey, name string) (map[string]interface{}, error) {
+	return deleteBucketSet(dv, _BUCKET_SETS_PREAMBLE+systemKey+"/"+name)
+}
+
+func deleteBucketSet(c cbClient, endpoint string) (map[string]interface{}, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := delete(c, endpoint, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 func (d *DevClient) GetBucketSets(systemKey string) ([]interface{}, error) {
 	return getBucketSets(d, _BUCKET_SETS_PREAMBLE+systemKey)
 }
