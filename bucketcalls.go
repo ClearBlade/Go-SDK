@@ -38,29 +38,28 @@ func createBucketSet(c cbClient, endpoint, name string, config map[string]interf
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (d *DevClient) DeleteBucketSet(systemKey, name string) (map[string]interface{}, error) {
+func (d *DevClient) DeleteBucketSet(systemKey, name string) error {
 	return deleteBucketSet(d, _BUCKET_SETS_PREAMBLE+systemKey+"/"+name)
 }
 
-func (u *UserClient) DeleteBucketSet(systemKey, name string) (map[string]interface{}, error) {
+func (u *UserClient) DeleteBucketSet(systemKey, name string) error {
 	return deleteBucketSet(u, _BUCKET_SETS_PREAMBLE+systemKey+"/"+name)
 }
 
-func (dv *DeviceClient) DeleteBucketSet(systemKey, name string) (map[string]interface{}, error) {
+func (dv *DeviceClient) DeleteBucketSet(systemKey, name string) error {
 	return deleteBucketSet(dv, _BUCKET_SETS_PREAMBLE+systemKey+"/"+name)
 }
 
-func deleteBucketSet(c cbClient, endpoint string) (map[string]interface{}, error) {
+func deleteBucketSet(c cbClient, endpoint string) error {
 	creds, err := c.credentials()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	resp, err := delete(c, endpoint, nil, creds, nil)
-	resp, err = mapResponse(resp, err)
+	_, err = delete(c, endpoint, nil, creds, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return nil, nil
+	return nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
