@@ -409,6 +409,7 @@ func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]inter
 			"services":          []map[string]interface{}{},
 			"portals":           []map[string]interface{}{},
 			"servicecaches":     []map[string]interface{}{},
+			"files":             []map[string]interface{}{},
 		},
 	}
 	changes := data["changes"].(map[string]interface{})
@@ -478,6 +479,9 @@ func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]inter
 	}
 	if externaldatabases, ok := permissions["externaldatabases"]; ok {
 		changes["externaldatabases"] = externaldatabases
+	}
+	if files, ok := permissions["files"]; ok {
+		changes["files"] = files
 	}
 	// Just to be safe, this is silly
 	data["changes"] = changes
