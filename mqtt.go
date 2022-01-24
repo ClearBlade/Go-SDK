@@ -183,6 +183,21 @@ func (d *DevClient) Publish(topic string, message []byte, qos int) error {
 	return publish(d.MQTTClient, topic, message, qos, d.getMessageId())
 }
 
+//Publish publishes a message to the specified mqtt topic and returns an mqtt.Token
+func (u *UserClient) PublishGetToken(topic string, message []byte, qos int) (mqtt.Token, error) {
+	return publishGetToken(u.MQTTClient, topic, message, qos, u.getMessageId())
+}
+
+//Publish publishes a message to the specified mqtt topic and returns an mqtt.Token
+func (d *DeviceClient) PublishGetToken(topic string, message []byte, qos int) (mqtt.Token, error) {
+	return publishGetToken(d.MQTTClient, topic, message, qos, d.getMessageId())
+}
+
+//Publish publishes a message to the specified mqtt topic and returns an mqtt.Token
+func (d *DevClient) PublishGetToken(topic string, message []byte, qos int) (mqtt.Token, error) {
+	return publishGetToken(d.MQTTClient, topic, message, qos, d.getMessageId())
+}
+
 func (d *DevClient) PublishHttp(systemKey, topic string, message []byte, qos int) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -362,6 +377,14 @@ func publish(c MqttClient, topic string, data []byte, qos int, mid uint16) error
 	}
 	ret := c.Publish(topic, uint8(qos), false, data)
 	return ret.Error()
+}
+
+func publishGetToken(c MqttClient, topic string, data []byte, qos int, mid uint16) (mqtt.Token, error) {
+	if c == nil {
+		return nil, errors.New("MQTTClient is uninitialized")
+	}
+	ret := c.Publish(topic, uint8(qos), false, data)
+	return ret, ret.Error()
 }
 
 func subscribe(c MqttClient, topic string, qos int) (<-chan *mqttTypes.Publish, error) {
