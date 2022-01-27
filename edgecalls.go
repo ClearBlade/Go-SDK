@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -356,6 +357,20 @@ func (d *DevClient) GetEdgeColumns(systemKey string) ([]interface{}, error) {
 
 func (d *DevClient) GetEdgesCountWithQuery(systemKey string, query *Query) (CountResp, error) {
 	return getEdgesCount(d, systemKey, _EDGES_USER_V3, query)
+}
+
+func (d *DevClient) MonitorEdges(daysInReport int) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	q := map[string]string{"report_days": strconv.Itoa(daysInReport)}
+	resp, err := get(d, "/admin/edge_report", q, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
 }
 
 func getEdgesCount(client cbClient, systemKey string, preamble string, query *Query) (CountResp, error) {
