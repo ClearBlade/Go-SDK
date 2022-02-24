@@ -217,3 +217,16 @@ func (d *DevClient) GetMetrics(metricType string) (interface{}, error) {
 	}
 	return resp.Body, nil
 }
+
+func (d *DevClient) KillClient(systemKey, clientID string) (interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	path := "/admin/" + systemKey + "/killClient&clientID=" + clientID
+	resp, err := post(d, path, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body, nil
+}
