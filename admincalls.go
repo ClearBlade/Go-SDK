@@ -223,8 +223,9 @@ func (d *DevClient) KillClient(systemKey, clientID string) (interface{}, error) 
 	if err != nil {
 		return nil, err
 	}
-	path := "/admin/" + systemKey + "/killClient&clientID=" + clientID
+	path := "/admin/" + systemKey + "/killclient&clientID=" + clientID
 	resp, err := post(d, path, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
 	}
