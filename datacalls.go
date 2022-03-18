@@ -696,6 +696,61 @@ func deleteColumn(c cbClient, preamble, collection_id, column_name string) error
 	return nil
 }
 
+func (d *DevClient) RenameColumn(collectionID, oldColumnName, newColumnName string) error {
+	return renameColumn(d, d.preamble(), collectionID, oldColumnName, newColumnName)
+}
+
+func (u *UserClient) RenameColumn(collectionID, oldColumnName, newColumnName string) error {
+	return renameColumn(u, _DATA_V3_PREAMBLE, collectionID, oldColumnName, newColumnName)
+}
+
+func renameColumn(c cbClient, preamble, collectionID, oldColumnName, newColumnName string) error {
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := put(c, preamble+"/collectionmanagement", map[string]interface{}{
+		"id": collectionID,
+		"renameColumn": map[string]string{
+			"from": oldColumnName,
+			"to":   newColumnName,
+		},
+	}, creds, nil)
+	if err != nil {
+		return fmt.Errorf("failed to rename column: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("failed to rename column: %v", resp.Body)
+	}
+	return nil
+}
+
+func (d *DevClient) RenameCollection(collectionID, newName string) error {
+	return renameCollection(d, d.preamble(), collectionID, newName)
+}
+
+func (u *UserClient) RenameCollection(collectionID, newName string) error {
+	return renameCollection(u, _DATA_V3_PREAMBLE, collectionID, newName)
+}
+
+func renameCollection(c cbClient, preamble, collectionID, newName string) error {
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := put(c, preamble+"/collectionmanagement", map[string]interface{}{
+		"id":               collectionID,
+		"renameCollection": newName,
+	}, creds, nil)
+	if err != nil {
+		return fmt.Errorf("failed to rename collection: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("failed to rename collection: %v", resp.Body)
+	}
+	return nil
+}
+
 //DeleteCollection deletes the collection. Note that this does not apply to collections backed by a non-default datastore.
 func (d *DevClient) DeleteCollection(colID string) error {
 	return deleteCollection(d, d.preamble(), colID)
