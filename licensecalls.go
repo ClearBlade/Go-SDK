@@ -16,3 +16,29 @@ func (d *DevClient) UpdateLicense(changes map[string]interface{}) error {
 
 	return nil
 }
+
+func (d *DevClient) ConnectedNodes() ([]string, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, "/admin/connectednodes", nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.([]string), nil
+}
+
+func (d *DevClient) ConnectedEdges() ([]map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, "/admin/connectededges", nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.([]map[string]interface{}), nil
+}
