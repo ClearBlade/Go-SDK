@@ -1,6 +1,6 @@
 package GoSDK
 
-func (d *DevClient) UpdateLicense(changes map[string]interface{}) error {
+func (d *DevClient) UpdateLicense(changes string) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
