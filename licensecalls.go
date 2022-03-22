@@ -6,7 +6,7 @@ func (d *DevClient) UpdateLicense(changes string) error {
 		return err
 	}
 
-	body := map[string]interface{}{"license": changes}
+	body := map[string]interface{}{"pkey": changes}
 
 	resp, err := put(d, "/admin/pkey", body, creds, nil)
 	_, err = mapResponse(resp, err)
