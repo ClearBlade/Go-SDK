@@ -231,3 +231,33 @@ func (d *DevClient) KillClient(systemKey, clientID string) (interface{}, error) 
 	}
 	return resp.Body, nil
 }
+
+func (d *DevClient) DeleteDeveloper(email string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(d, "/admin/platform/developer", map[string]string{"email": email}, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("%+v", resp.Body)
+	}
+	return nil
+}
+
+func (d *DevClient) DeleteSelf() error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(d, "/admin/userinfo", nil, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("%+v", resp.Body)
+	}
+	return nil
+}
