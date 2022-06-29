@@ -9,7 +9,27 @@ const (
 	_CODE_USER_PREAMBLE       = "/api/v/3/code"
 	_CODE_CACHE_META_PREAMBLE = "/admin/v/4/service_caches"
 	_WEBHOOK_PREAMBLE         = "/admin/v/4/webhook"
+	_LATEST_VERSION_ENDPOINT  = "/codeadmin/v/4/codemeta" // /{systemKey}/latest
 )
+
+func (d *DevClient) GetLatestServicesMeta(systemKey string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, _LATEST_VERSION_ENDPOINT+"/"+systemKey+"/latest", nil, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting services: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting services: %v", resp.Body)
+	}
+	theGoods, isGood := resp.Body.(map[string]interface{})
+	if !isGood {
+		return nil, fmt.Errorf("Error getting running services; expected map got %T", resp.Body)
+	}
+	return theGoods, nil
+}
 
 func (d *DevClient) GetRunningServices(systemKey string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
