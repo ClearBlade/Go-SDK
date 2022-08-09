@@ -7,6 +7,8 @@ import (
 	"net/url"
 )
 
+type KeyFormat int
+
 const (
 	_DEVICE_HEADER_KEY       = "ClearBlade-DeviceToken"
 	_DEVICES_DEV_PREAMBLE    = "/admin/devices/"
@@ -14,7 +16,85 @@ const (
 	_DEVICE_SESSION          = "/admin/v/4/session"
 	_DEVICE_V3_USER_PREAMBLE = "/api/v/3/devices/"
 	_DEVICE_V4_PREAMBLE      = "/api/v/4/devices/"
+	_DEVICE_PUBKEY_PREAMBLE  = "/admin/devices/public_keys/"
 )
+
+const (
+	RS256 KeyFormat = iota
+	ES256
+	RS256_X509
+	ES256_X509
+)
+
+func (d *DevClient) GetDevicePublicKeys(systemKey, deviceName string) ([]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, _DEVICE_PUBKEY_PREAMBLE+systemKey+"/"+deviceName, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.([]interface{}), nil
+}
+
+func (d *DevClient) AddDevicePublicKey(systemKey, deviceName, publicKey string, keyformat KeyFormat) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	body := map[string]interface{}{
+		"public_key": publicKey,
+		"key_format": int(keyformat),
+	}
+	resp, err := post(d, _DEVICE_PUBKEY_PREAMBLE+systemKey+"/"+deviceName, body, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) UpdateDevicePublicKey(systemKey, deviceName, publicKey string, keyformat KeyFormat, query *Query) ([]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	body := map[string]interface{}{
+		"public_key": publicKey,
+		"key_format": int(keyformat),
+	}
+	resp, err := put(d, _DEVICE_PUBKEY_PREAMBLE+systemKey+"/"+deviceName, map[string]interface{}{
+		"query": query,
+		"$set":  body,
+	}, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.([]interface{}), nil
+}
+
+func (d *DevClient) DeleteDevicePublicKey(systemKey, deviceName string, query *Query) ([]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	query_map := query.serialize()
+	query_bytes, err := json.Marshal(query_map)
+	if err != nil {
+		return nil, err
+	}
+	qry := map[string]string{
+		"query": url.QueryEscape(string(query_bytes)),
+	}
+	_, err = delete(d, _DEVICE_PUBKEY_PREAMBLE+systemKey+"/"+deviceName, qry, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
 
 func (d *DevClient) GetDevices(systemKey string, query *Query) ([]interface{}, error) {
 	return getDevices(d, systemKey, _DEVICES_DEV_PREAMBLE, query)

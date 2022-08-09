@@ -137,6 +137,15 @@ func (d *DeviceClient) InitializeMQTT(clientid string, ignore string, timeout in
 	return nil
 }
 
+func (d *DeviceClient) InitializeJWTMQTT(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
+	mqc, err := newJwtMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill)
+	if err != nil {
+		return err
+	}
+	d.MQTTClient = mqc
+	return nil
+}
+
 func (d *DeviceClient) InitializeMQTTWithCallback(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket, callbacks *Callbacks) error {
 	mqc, err := newMqttClientWithCallbacks(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill, callbacks)
 	if err != nil {
@@ -291,6 +300,29 @@ type mqttBaseClient struct {
 	address                                  string
 	token, systemKey, systemSecret, clientID string
 	timeout                                  int
+}
+
+func newJwtMqttClient(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket) (MqttClient, error) {
+	o := mqtt.NewClientOptions()
+	o.SetAutoReconnect(true)
+	if ssl != nil {
+		o.AddBroker("tls://" + address)
+		o.SetTLSConfig(ssl)
+	} else {
+		o.AddBroker("tcp://" + address)
+	}
+	o.SetClientID(clientid)
+	o.SetUsername("unused")
+	o.SetPassword(token)
+	o.SetConnectTimeout(time.Duration(timeout) * time.Second)
+	if lastWill != nil {
+		o.SetWill(lastWill.Topic, lastWill.Body, uint8(lastWill.Qos), lastWill.Retain)
+	}
+	cli := mqtt.NewClient(o)
+	mqc := &mqttBaseClient{cli, address, token, systemkey, systemsecret, clientid, timeout}
+	ret := mqc.Connect()
+	ret.Wait()
+	return mqc, ret.Error()
 }
 
 //InitializeMqttClient allocates a mqtt client.
