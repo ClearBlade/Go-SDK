@@ -186,7 +186,7 @@ func (d *DevClient) SetSystemTokenTTL(system_key string, token_ttl int) error {
 	return nil
 }
 
-func (d *DevClient) SetProjectAndRegistryIdMapping(systemKey, projectId, registryId string) error {
+func (d *DevClient) SetProjectAndRegistryIdMapping(systemKey, projectId, registryId, location string) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
@@ -195,6 +195,7 @@ func (d *DevClient) SetProjectAndRegistryIdMapping(systemKey, projectId, registr
 		"system_key":  systemKey,
 		"project_id":  projectId,
 		"registry_id": registryId,
+		"location":    location,
 	}, creds, nil)
 	if err != nil {
 		return fmt.Errorf("Error SetProjectAndRegistryIdMappingL: %v", err)
