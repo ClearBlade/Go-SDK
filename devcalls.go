@@ -13,7 +13,7 @@ const (
 	_DEV_PREAMBLE   = "/admin"
 )
 
-//System is a collection of facts about a system
+// System is a collection of facts about a system
 type System struct {
 	Key         string
 	Secret      string
@@ -30,7 +30,7 @@ const (
 	PERM_DELETE = 8
 )
 
-//NewSystem creates a new system. The users parameter has been depreciated. Returned is the systemid.
+// NewSystem creates a new system. The users parameter has been depreciated. Returned is the systemid.
 func (d *DevClient) NewSystem(name, description string, users bool) (string, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -68,7 +68,7 @@ func (d *DevClient) NewSystem(name, description string, users bool) (string, err
 	}
 }
 
-//GetSystem retrieves information about the system specified.
+// GetSystem retrieves information about the system specified.
 func (d *DevClient) GetSystem(key string) (*System, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -98,7 +98,7 @@ func (d *DevClient) GetSystem(key string) (*System, error) {
 
 }
 
-//DeleteSystem removes the system
+// DeleteSystem removes the system
 func (d *DevClient) DeleteSystem(s string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -129,7 +129,7 @@ func (d *DevClient) UpdateDevInfo(changes map[string]interface{}) error {
 	return nil
 }
 
-//SetSystemName can change the name of the system
+// SetSystemName can change the name of the system
 func (d *DevClient) SetSystemName(system_key, system_name string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -148,7 +148,7 @@ func (d *DevClient) SetSystemName(system_key, system_name string) error {
 	return nil
 }
 
-//SetSystemDescription can change the content of the system's description
+// SetSystemDescription can change the content of the system's description
 func (d *DevClient) SetSystemDescription(system_key, system_description string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -167,7 +167,7 @@ func (d *DevClient) SetSystemDescription(system_key, system_description string) 
 	return nil
 }
 
-//SetSystemTokenTTL can change the value for the system's token TTL
+// SetSystemTokenTTL can change the value for the system's token TTL
 func (d *DevClient) SetSystemTokenTTL(system_key string, token_ttl int) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -186,17 +186,36 @@ func (d *DevClient) SetSystemTokenTTL(system_key string, token_ttl int) error {
 	return nil
 }
 
-//SetSystemAuthOn is depreciated
+func (d *DevClient) SetProjectAndRegistryIdMapping(systemKey, projectId, registryId string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := post(d, d.preamble()+"/systemmanagement/registrymapping", map[string]interface{}{
+		"system_key":  systemKey,
+		"project_id":  projectId,
+		"registry_id": registryId,
+	}, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error SetProjectAndRegistryIdMappingL: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error SetProjectAndRegistryIdMapping: %v", resp.Body)
+	}
+	return nil
+}
+
+// SetSystemAuthOn is depreciated
 func (d *DevClient) SetSystemAuthOn(system_key string) error {
 	return fmt.Errorf("Auth is now mandatory")
 }
 
-//SetSystemAuthOff is depreciated
+// SetSystemAuthOff is depreciated
 func (d *DevClient) SetSystemAuthOff(system_key string) error {
 	return fmt.Errorf("Auth is now mandatory")
 }
 
-//DevUserInfo gets the user information for the developer
+// DevUserInfo gets the user information for the developer
 func (d *DevClient) DevUserInfo() (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -209,7 +228,7 @@ func (d *DevClient) DevUserInfo() (map[string]interface{}, error) {
 	return resp.Body.(map[string]interface{}), nil
 }
 
-//NewConnectCollection creates a new collection that is backed by a datastore of your own choosing.
+// NewConnectCollection creates a new collection that is backed by a datastore of your own choosing.
 func (d *DevClient) NewConnectCollection(systemkey string, connectConfig connectCollection) (string, error) {
 	creds, err := d.credentials()
 	m := connectConfig.toMap()
@@ -228,7 +247,7 @@ func (d *DevClient) NewConnectCollection(systemkey string, connectConfig connect
 	return resp.Body.(map[string]interface{})["collectionID"].(string), nil
 }
 
-//AlterConnectionDetails allows the developer to change or add connection information, such as updating a username
+// AlterConnectionDetails allows the developer to change or add connection information, such as updating a username
 func (d *DevClient) AlterConnectionDetails(systemkey string, connectConfig connectCollection) error {
 	creds, err := d.credentials()
 	out := make(map[string]interface{})
@@ -246,8 +265,8 @@ func (d *DevClient) AlterConnectionDetails(systemkey string, connectConfig conne
 	}
 }
 
-//GetRolesWithQuery returns a slice of roles that match the given query, including their permissions
-//the return value is a slice of [{"ID":"roleid","Name":"rolename","Description":"role description", "Permissions":{"Collections":[{"ID":"collectionid","Columns":[{"Name":"columnname","Level":0}],"Items":[{"Name":"itemid","Level":2}],"Name":"collectionname"}], "Topics":[{"Name":"topic/path","Level":1}],"CodeServices":[{"Name":"service name","SystemKey":"syskey","Level":4}],"UsersList":{"Name":"users","Level":8},"Push":{"Name":"push","Level":0},"MsgHistory":{"Name":"messagehistory","Level":1}}},...]
+// GetRolesWithQuery returns a slice of roles that match the given query, including their permissions
+// the return value is a slice of [{"ID":"roleid","Name":"rolename","Description":"role description", "Permissions":{"Collections":[{"ID":"collectionid","Columns":[{"Name":"columnname","Level":0}],"Items":[{"Name":"itemid","Level":2}],"Name":"collectionname"}], "Topics":[{"Name":"topic/path","Level":1}],"CodeServices":[{"Name":"service name","SystemKey":"syskey","Level":4}],"UsersList":{"Name":"users","Level":8},"Push":{"Name":"push","Level":0},"MsgHistory":{"Name":"messagehistory","Level":1}}},...]
 func (d *DevClient) GetRolesWithQuery(SystemKey string, query *Query) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -279,7 +298,7 @@ type CountResp struct {
 	Count float64 `json:"count"`
 }
 
-//GetRolesCount returns the number of roles that match a given query
+// GetRolesCount returns the number of roles that match a given query
 func (d *DevClient) GetRolesCount(SystemKey string, query *Query) (CountResp, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -309,8 +328,8 @@ func (d *DevClient) GetRolesCount(SystemKey string, query *Query) (CountResp, er
 	}, nil
 }
 
-//GetAllRoles returns a slice of all roles, including their permissions
-//the return value is a slice of [{"ID":"roleid","Name":"rolename","Description":"role description", "Permissions":{"Collections":[{"ID":"collectionid","Columns":[{"Name":"columnname","Level":0}],"Items":[{"Name":"itemid","Level":2}],"Name":"collectionname"}], "Topics":[{"Name":"topic/path","Level":1}],"CodeServices":[{"Name":"service name","SystemKey":"syskey","Level":4}],"UsersList":{"Name":"users","Level":8},"Push":{"Name":"push","Level":0},"MsgHistory":{"Name":"messagehistory","Level":1}}},...]
+// GetAllRoles returns a slice of all roles, including their permissions
+// the return value is a slice of [{"ID":"roleid","Name":"rolename","Description":"role description", "Permissions":{"Collections":[{"ID":"collectionid","Columns":[{"Name":"columnname","Level":0}],"Items":[{"Name":"itemid","Level":2}],"Name":"collectionname"}], "Topics":[{"Name":"topic/path","Level":1}],"CodeServices":[{"Name":"service name","SystemKey":"syskey","Level":4}],"UsersList":{"Name":"users","Level":8},"Push":{"Name":"push","Level":0},"MsgHistory":{"Name":"messagehistory","Level":1}}},...]
 func (d *DevClient) GetAllRoles(SystemKey string) ([]interface{}, error) {
 	pageSize := 25
 	query := NewQuery()
@@ -334,8 +353,8 @@ func (d *DevClient) GetAllRoles(SystemKey string) ([]interface{}, error) {
 	return rtn, nil
 }
 
-//GetRole returns a slice of the desired role, including its permissions
-//the return value is a slice of [{"ID":"roleid","Name":"rolename","Description":"role description", "Permissions":{"Collections":[{"ID":"collectionid","Columns":[{"Name":"columnname","Level":0}],"Items":[{"Name":"itemid","Level":2}],"Name":"collectionname"}], "Topics":[{"Name":"topic/path","Level":1}],"CodeServices":[{"Name":"service name","SystemKey":"syskey","Level":4}],"UsersList":{"Name":"users","Level":8},"Push":{"Name":"push","Level":0},"MsgHistory":{"Name":"messagehistory","Level":1}}},...]
+// GetRole returns a slice of the desired role, including its permissions
+// the return value is a slice of [{"ID":"roleid","Name":"rolename","Description":"role description", "Permissions":{"Collections":[{"ID":"collectionid","Columns":[{"Name":"columnname","Level":0}],"Items":[{"Name":"itemid","Level":2}],"Name":"collectionname"}], "Topics":[{"Name":"topic/path","Level":1}],"CodeServices":[{"Name":"service name","SystemKey":"syskey","Level":4}],"UsersList":{"Name":"users","Level":8},"Push":{"Name":"push","Level":0},"MsgHistory":{"Name":"messagehistory","Level":1}}},...]
 func (d *DevClient) GetRole(SystemKey, roleName string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -374,8 +393,8 @@ func (d *DevClient) GetRole(SystemKey, roleName string) (map[string]interface{},
 	return daRole, nil
 }
 
-//CreateRole creates a new role
-//returns a JSON object shaped like {"role_id":"role id goes here"}
+// CreateRole creates a new role
+// returns a JSON object shaped like {"role_id":"role id goes here"}
 func (d *DevClient) CreateRole(systemKey, role_id string) (interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -537,7 +556,7 @@ func (d *DevClient) GetUserInfo(systemKey, email string) (map[string]interface{}
 	return rawData[0].(map[string]interface{}), nil
 }
 
-//DeleteRole removes a role
+// DeleteRole removes a role
 func (d *DevClient) DeleteRole(systemKey, roleId string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -581,7 +600,7 @@ func (d *DevClient) GetAllUsers(systemKey string) ([]map[string]interface{}, err
 	return rval, nil
 }
 
-//DeleteUser removes a specific user
+// DeleteUser removes a specific user
 func (d *DevClient) DeleteUser(systemKey, userId string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -617,7 +636,7 @@ func (d *DevClient) UpdateUser(systemKey, userId string, info map[string]interfa
 	return nil
 }
 
-//update the parameters of AutoDelete using the endpoint
+// update the parameters of AutoDelete using the endpoint
 func (d *DevClient) UpdateAutoDelete(systemKey string, preamble string, size_limit int, expiry_messages int64, time_interval int, truncateStat int, panic_truncate int, autoDelete int) (bool, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -650,7 +669,7 @@ func (d *DevClient) UpdateAutoDelete(systemKey string, preamble string, size_lim
 	return true, nil
 }
 
-//AddUserToRoles assigns a role to a user
+// AddUserToRoles assigns a role to a user
 func (d *DevClient) AddUserToRoles(systemKey, userId string, roles []string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -700,7 +719,7 @@ func (d *DevClient) UpdateUserRoles(systemKey, userId string, rolesAdd, rolesRem
 	return nil
 }
 
-//AddDeviceToRoles assigns a role to a device
+// AddDeviceToRoles assigns a role to a device
 func (d *DevClient) AddDeviceToRoles(systemKey, deviceName string, roles []string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -778,7 +797,7 @@ func (d *DevClient) GetUserRoles(systemKey, userId string) ([]string, error) {
 	return rval, nil
 }
 
-//AddCollectionToRole associates some kind of permission regarding the collection to the role.
+// AddCollectionToRole associates some kind of permission regarding the collection to the role.
 func (d *DevClient) AddCollectionToRole(systemKey, collection_id, role_id string, level int) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -863,7 +882,7 @@ func (d *DevClient) AddPortalToRole(systemKey, portalName, roleId string, level 
 	return nil
 }
 
-//AddServiceToRole associates some kind of permission dealing with the specified service to the role
+// AddServiceToRole associates some kind of permission dealing with the specified service to the role
 func (d *DevClient) AddServiceToRole(systemKey, service, roleId string, level int) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -892,7 +911,7 @@ func (d *DevClient) AddServiceToRole(systemKey, service, roleId string, level in
 	return nil
 }
 
-//AddTopicToRole associates some kind of permission dealing with the specified topic to the role
+// AddTopicToRole associates some kind of permission dealing with the specified topic to the role
 func (d *DevClient) AddTopicToRole(systemKey, topic, roleId string, level int) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -921,7 +940,7 @@ func (d *DevClient) AddTopicToRole(systemKey, topic, roleId string, level int) e
 	return nil
 }
 
-//AddServiceCacheMetaToRole associates some kind of permission dealing with the specified code cache meta to the role
+// AddServiceCacheMetaToRole associates some kind of permission dealing with the specified code cache meta to the role
 func (d *DevClient) AddServiceCacheMetaToRole(systemKey, cacheName, roleId string, level int) error {
 	creds, err := d.credentials()
 	if err != nil {
