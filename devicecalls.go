@@ -56,7 +56,7 @@ func (d *DevClient) AddDevicePublicKey(systemKey, deviceName, publicKey string, 
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) UpdateDevicePublicKey(systemKey, deviceName, publicKey string, keyformat KeyFormat, query *Query) ([]interface{}, error) {
+func (d *DevClient) UpdateDevicePublicKey(systemKey, deviceName, publicKey, id string, keyformat KeyFormat) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
@@ -66,8 +66,8 @@ func (d *DevClient) UpdateDevicePublicKey(systemKey, deviceName, publicKey strin
 		"key_format": int(keyformat),
 	}
 	resp, err := put(d, _DEVICE_PUBKEY_PREAMBLE+systemKey+"/"+deviceName, map[string]interface{}{
-		"query": query,
-		"$set":  body,
+		"id":   id,
+		"$set": body,
 	}, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
