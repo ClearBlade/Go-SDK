@@ -218,7 +218,7 @@ func (d *DevClient) GetRootCACertificates(systemKey string) ([]interface{}, erro
 	return resp.Body.([]interface{}), nil
 }
 
-func (d *DevClient) UpdateRootCACertificate(systemKey, cert string, query *Query) ([]interface{}, error) {
+func (d *DevClient) UpdateRootCACertificate(systemKey, cert, id string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
@@ -228,7 +228,7 @@ func (d *DevClient) UpdateRootCACertificate(systemKey, cert string, query *Query
 	}
 	resp, err := put(d, d.preamble()+"/systemmanagement/certificates", map[string]interface{}{
 		"system_key": systemKey,
-		"query":      query,
+		"id":         id,
 		"$set":       body,
 	}, creds, nil)
 	resp, err = mapResponse(resp, err)
