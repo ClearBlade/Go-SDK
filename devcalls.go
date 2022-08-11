@@ -186,7 +186,80 @@ func (d *DevClient) SetSystemTokenTTL(system_key string, token_ttl int) error {
 	return nil
 }
 
-func (d *DevClient) SetProjectAndRegistryIdMapping(systemKey, projectId, registryId, location string) error {
+func (d *DevClient) AddRootCACertificate(systemKey, cert string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	body := map[string]interface{}{
+		"system_key":  systemKey,
+		"certificate": cert,
+	}
+	resp, err := post(d, d.preamble()+"/systemmanagement/certificates", body, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) GetRootCACertificates(systemKey string) ([]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, d.preamble()+"/systemmanagement/certificates", map[string]string{
+		"system_key": systemKey,
+	}, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.([]interface{}), nil
+}
+
+func (d *DevClient) UpdateRootCACertificate(systemKey, cert string, query *Query) ([]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	body := map[string]interface{}{
+		"certificate": cert,
+	}
+	resp, err := put(d, d.preamble()+"/systemmanagement/certificates", map[string]interface{}{
+		"system_key": systemKey,
+		"query":      query,
+		"$set":       body,
+	}, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.([]interface{}), nil
+}
+
+func (d *DevClient) DeleteRootCACertificate(systemKey string, query *Query) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	query_map := query.serialize()
+	query_bytes, err := json.Marshal(query_map)
+	if err != nil {
+		return err
+	}
+	qry := map[string]string{
+		"system_key": systemKey,
+		"query":      url.QueryEscape(string(query_bytes)),
+	}
+	_, err = delete(d, d.preamble()+"/systemmanagement/certificates", qry, creds, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *DevClient) SetRegistryMapping(systemKey, projectId, registryId, location string) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
@@ -202,6 +275,56 @@ func (d *DevClient) SetProjectAndRegistryIdMapping(systemKey, projectId, registr
 	}
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("Error SetProjectAndRegistryIdMapping: %v", resp.Body)
+	}
+	return nil
+}
+
+func (d *DevClient) GetRegistryMapping(systemKey string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, d.preamble()+"/systemmanagement/registrymapping", map[string]string{
+		"system_key": systemKey,
+	}, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) UpdateRegistryMapping(systemKey, projectId, registryId, location string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	changes := map[string]interface{}{
+		"project_id":  projectId,
+		"registry_id": registryId,
+		"location":    location,
+	}
+	resp, err := put(d, d.preamble()+"/systemmanagement/registrymapping", map[string]interface{}{
+		"system_key": systemKey,
+		"$set":       changes,
+	}, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *DevClient) DeleteRegistryMapping(systemKey string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	_, err = delete(d, d.preamble()+"/systemmanagement/registrymapping", map[string]string{
+		"system_key": systemKey,
+	}, creds, nil)
+	if err != nil {
+		return err
 	}
 	return nil
 }
