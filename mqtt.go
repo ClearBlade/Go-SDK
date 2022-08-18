@@ -68,7 +68,6 @@ func (u *UserClient) AuthenticateMQTT(username, password, systemKey, systemSecre
 	if err != nil {
 		return err
 	}
-	defer mqc.Disconnect(0)
 	subChan, err := subscribe(mqc, subTopic, 2)
 	if err != nil {
 		return err
@@ -79,7 +78,7 @@ func (u *UserClient) AuthenticateMQTT(username, password, systemKey, systemSecre
 		tokLen := binary.BigEndian.Uint16(authData[:2])
 		tok := string(authData[2 : tokLen+2])
 		u.UserToken = tok
-	case <-time.After(60 * time.Second):
+	case <-time.After(10 * time.Second):
 		return fmt.Errorf("Timed out waiting for MQTT auth response")
 	}
 	return nil
@@ -112,7 +111,6 @@ func (d *DevClient) AuthenticateMQTT(username, password, systemKey, systemSecret
 	if err != nil {
 		return err
 	}
-	defer mqc.Disconnect(0)
 	subChan, err := subscribe(mqc, subTopic, 2)
 	if err != nil {
 		return err
@@ -162,7 +160,6 @@ func (d *DeviceClient) AuthenticateMQTT(username, password, systemKey, systemSec
 	if err != nil {
 		return err
 	}
-	defer mqc.Disconnect(0)
 	subChan, err := subscribe(mqc, subTopic, 2)
 	if err != nil {
 		return err
