@@ -40,7 +40,7 @@ const (
 	createUser
 )
 
-//Client is a convience interface for API consumers, if they want to use the same functions for both developer users and unprivleged users
+// Client is a convience interface for API consumers, if they want to use the same functions for both developer users and unprivleged users
 type Client interface {
 	//session bookkeeping calls
 	Authenticate() (*AuthResponse, error)
@@ -98,8 +98,8 @@ type MqttClient interface {
 	mqtt.Client
 }
 
-//cbClient will supply various information that differs between privleged and unprivleged users
-//this interface is meant to be unexported
+// cbClient will supply various information that differs between privleged and unprivleged users
+// this interface is meant to be unexported
 type cbClient interface {
 	credentials() ([][]string, error) //the inner slice is a tuple of "Header":"Value"
 	preamble() string
@@ -119,7 +119,7 @@ type cbClient interface {
 // receiver for methods that can be shared between users/devs/devices
 type client struct{}
 
-//UserClient is the type for users
+// UserClient is the type for users
 type UserClient struct {
 	client
 	UserToken    string
@@ -154,7 +154,7 @@ type DeviceClient struct {
 	edgeProxy    *EdgeProxy
 }
 
-//DevClient is the type for developers
+// DevClient is the type for developers
 type DevClient struct {
 	client
 	DevToken     string
@@ -175,7 +175,7 @@ type EdgeProxy struct {
 	EdgeName  string
 }
 
-//CbReq is a wrapper around an HTTP request
+// CbReq is a wrapper around an HTTP request
 type CbReq struct {
 	Body        interface{}
 	Method      string
@@ -186,7 +186,7 @@ type CbReq struct {
 	MqttAddr    string
 }
 
-//CbResp is a wrapper around an HTTP response
+// CbResp is a wrapper around an HTTP response
 type CbResp struct {
 	Body       interface{}
 	StatusCode int
@@ -262,7 +262,7 @@ func NewDeviceClient(systemkey, systemsecret, deviceName, activeKey string) *Dev
 	}
 }
 
-//NewUserClient allocates a new UserClient struct
+// NewUserClient allocates a new UserClient struct
 func NewUserClient(systemkey, systemsecret, email, password string) *UserClient {
 	return &UserClient{
 		UserToken:    "",
@@ -279,7 +279,7 @@ func NewUserClient(systemkey, systemsecret, email, password string) *UserClient 
 	}
 }
 
-//NewDevClient allocates a new DevClient struct
+// NewDevClient allocates a new DevClient struct
 func NewDevClient(email, password string) *DevClient {
 	return &DevClient{
 		DevToken:     "",
@@ -321,6 +321,7 @@ func NewRefreshUserClientWithAddrs(httpAddr, mqttAddr, systemKey, systemSecret, 
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
 	}
 }
+
 func NewUserClientWithAddrs(httpAddr, mqttAddr, systemKey, systemSecret, email, password string) *UserClient {
 	return &UserClient{
 		UserToken:    "",
@@ -336,6 +337,23 @@ func NewUserClientWithAddrs(httpAddr, mqttAddr, systemKey, systemSecret, email, 
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
 	}
 }
+
+func NewUserClientWithAddrs2(httpAddr, mqttAddr, mqttAuthAddr, systemKey, systemSecret, email, password string) *UserClient {
+	return &UserClient{
+		UserToken:    "",
+		RefreshToken: "",
+		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
+		MQTTClient:   nil,
+		SystemSecret: systemSecret,
+		SystemKey:    systemKey,
+		Email:        email,
+		Password:     password,
+		HttpAddr:     httpAddr,
+		MqttAddr:     mqttAddr,
+		MqttAuthAddr: mqttAuthAddr,
+	}
+}
+
 func NewDevClientWithAddrs(httpAddr, mqttAddr, email, password string) *DevClient {
 	return &DevClient{
 		DevToken:     "",
@@ -473,7 +491,7 @@ func (d *DeviceClient) stopProxyToEdge() error {
 	return nil
 }
 
-//Authenticate retrieves a token from the specified Clearblade Platform
+// Authenticate retrieves a token from the specified Clearblade Platform
 func (u *UserClient) Authenticate() (*AuthResponse, error) {
 	if err := authenticate(u, u.Email, u.Password); err != nil {
 		return nil, err
@@ -492,7 +510,7 @@ func (u *UserClient) AuthAnon() error {
 	return authAnon(u)
 }
 
-//Authenticate retrieves a token from the specified Clearblade Platform
+// Authenticate retrieves a token from the specified Clearblade Platform
 func (d *DevClient) Authenticate() (*AuthResponse, error) {
 	var creds [][]string
 	resp, err := post(d, d.preamble()+"/auth", map[string]interface{}{
@@ -577,7 +595,7 @@ func (d *DevClient) VerifyAuthentication(verifyParams VerifyAuthenticationParams
 	return nil
 }
 
-//Register creates a new user
+// Register creates a new user
 func (u *UserClient) Register(username, password string) error {
 	if u.UserToken == "" {
 		return fmt.Errorf("Must be logged in to create users")
@@ -586,7 +604,7 @@ func (u *UserClient) Register(username, password string) error {
 	return err
 }
 
-//RegisterUser creates a new user, returning the body of the response.
+// RegisterUser creates a new user, returning the body of the response.
 func (u *UserClient) RegisterUser(username, password string) (map[string]interface{}, error) {
 	if u.UserToken == "" {
 		return nil, fmt.Errorf("Must be logged in to create users")
@@ -598,7 +616,7 @@ func (u *UserClient) RegisterUser(username, password string) (map[string]interfa
 	return resp, nil
 }
 
-//Registers a new developer
+// Registers a new developer
 func (d *DevClient) Register(username, password, fname, lname, org string) error {
 	resp, err := register(d, createDevUser, username, password, "", "", fname, lname, org, "")
 	if err != nil {
@@ -617,7 +635,7 @@ func (d *DevClient) RegisterNewUser(username, password, systemkey, systemsecret 
 
 }
 
-//Register creates a new developer user
+// Register creates a new developer user
 func (d *DevClient) RegisterDevUser(username, password, fname, lname, org string) (map[string]interface{}, error) {
 	resp, err := register(d, createDevUser, username, password, "", "", fname, lname, org, "")
 	if err != nil {
@@ -626,7 +644,7 @@ func (d *DevClient) RegisterDevUser(username, password, fname, lname, org string
 	return resp, nil
 }
 
-//Register creates a new developer user
+// Register creates a new developer user
 func (d *DevClient) RegisterDevUserWithKey(username, password, fname, lname, org, key string) (map[string]interface{}, error) {
 	resp, err := register(d, createDevUser, username, password, "", "", fname, lname, org, key)
 	if err != nil {
@@ -635,22 +653,22 @@ func (d *DevClient) RegisterDevUserWithKey(username, password, fname, lname, org
 	return resp, nil
 }
 
-//Logout ends the session
+// Logout ends the session
 func (u *UserClient) Logout() error {
 	return logout(u)
 }
 
-//Logout ends the session
+// Logout ends the session
 func (d *DevClient) Logout() error {
 	return logout(d)
 }
 
-//Check Auth of User
+// Check Auth of User
 func (d *UserClient) CheckAuth() error {
 	return checkAuth(d)
 }
 
-//Check Auth of Developer
+// Check Auth of Developer
 func (d *DevClient) CheckAuth() error {
 	return checkAuth(d)
 }

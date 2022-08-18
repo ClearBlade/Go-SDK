@@ -23,7 +23,7 @@ const (
 	_NEW_MH_PREAMBLE      = "/api/v/4/message/"
 )
 
-//LastWillPacket is a type to represent the Last Will and Testament packet
+// LastWillPacket is a type to represent the Last Will and Testament packet
 type LastWillPacket struct {
 	Topic  string
 	Body   string
@@ -44,7 +44,7 @@ func (b *client) NewClientID() string {
 
 //herein we use the same trick we used for http clients
 
-//InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
+// InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
 func (u *UserClient) InitializeMQTT(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
 	mqc, err := newMqttClient(u.UserToken, u.SystemKey, u.SystemSecret, clientid, timeout, u.MqttAddr, ssl, lastWill)
 	if err != nil {
@@ -63,12 +63,13 @@ func (u *UserClient) InitializeMQTTWithCallback(clientid string, ignore string, 
 	return nil
 }
 
-func (u *UserClient) AuthenticateMQTT(username, password, systemKey, systemSecret string, timeout int, ssl *tls.Config) error {
+func (u *UserClient) AuthenticateMQTT(username, password, systemKey, systemSecret, subTopic string, timeout int, ssl *tls.Config) error {
 	mqc, err := newMqttAuthClient(username, password, systemKey, systemSecret, timeout, u.MqttAuthAddr, ssl)
 	if err != nil {
 		return err
 	}
-	subChan, err := subscribe(mqc, "authMe", 0)
+	defer mqc.Disconnect(0)
+	subChan, err := subscribe(mqc, subTopic, 2)
 	if err != nil {
 		return err
 	}
@@ -84,10 +85,10 @@ func (u *UserClient) AuthenticateMQTT(username, password, systemKey, systemSecre
 	return nil
 }
 
-//InitializeMQTT allocates the mqtt client for the developer. the second argument is a
-//the systemkey you wish to use for authenticating with the message broker
-//topics are isolated across systems, so in order to communicate with a specific
-//system, you must supply the system key
+// InitializeMQTT allocates the mqtt client for the developer. the second argument is a
+// the systemkey you wish to use for authenticating with the message broker
+// topics are isolated across systems, so in order to communicate with a specific
+// system, you must supply the system key
 func (d *DevClient) InitializeMQTT(clientid, systemkey string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
 	mqc, err := newMqttClient(d.DevToken, systemkey, "", clientid, timeout, d.MqttAddr, ssl, lastWill)
 	if err != nil {
@@ -106,12 +107,13 @@ func (d *DevClient) InitializeMQTTWithCallback(clientid, systemkey string, timeo
 	return nil
 }
 
-func (d *DevClient) AuthenticateMQTT(username, password, systemKey, systemSecret string, timeout int, ssl *tls.Config) error {
+func (d *DevClient) AuthenticateMQTT(username, password, systemKey, systemSecret, subTopic string, timeout int, ssl *tls.Config) error {
 	mqc, err := newMqttAuthClient(username, password, systemKey, systemSecret, timeout, d.MqttAuthAddr, ssl)
 	if err != nil {
 		return err
 	}
-	subChan, err := subscribe(mqc, "authMe", 0)
+	defer mqc.Disconnect(0)
+	subChan, err := subscribe(mqc, subTopic, 2)
 	if err != nil {
 		return err
 	}
@@ -127,7 +129,7 @@ func (d *DevClient) AuthenticateMQTT(username, password, systemKey, systemSecret
 	return nil
 }
 
-//InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
+// InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
 func (d *DeviceClient) InitializeMQTT(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
 	mqc, err := newMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill)
 	if err != nil {
@@ -155,13 +157,13 @@ func (d *DeviceClient) InitializeMQTTWithCallback(clientid string, ignore string
 	return nil
 }
 
-func (d *DeviceClient) AuthenticateMQTT(username, password, systemKey, systemSecret string, timeout int, ssl *tls.Config) error {
+func (d *DeviceClient) AuthenticateMQTT(username, password, systemKey, systemSecret, subTopic string, timeout int, ssl *tls.Config) error {
 	mqc, err := newMqttAuthClient(username, password, systemKey, systemSecret, timeout, d.MqttAuthAddr, ssl)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Here 1\n")
-	subChan, err := subscribe(mqc, "authMe", 2)
+	defer mqc.Disconnect(0)
+	subChan, err := subscribe(mqc, subTopic, 2)
 	if err != nil {
 		return err
 	}
@@ -177,32 +179,32 @@ func (d *DeviceClient) AuthenticateMQTT(username, password, systemKey, systemSec
 	return nil
 }
 
-//Publish publishes a message to the specified mqtt topic
+// Publish publishes a message to the specified mqtt topic
 func (u *UserClient) Publish(topic string, message []byte, qos int) error {
 	return publish(u.MQTTClient, topic, message, qos, u.getMessageId())
 }
 
-//Publish publishes a message to the specified mqtt topic
+// Publish publishes a message to the specified mqtt topic
 func (d *DeviceClient) Publish(topic string, message []byte, qos int) error {
 	return publish(d.MQTTClient, topic, message, qos, d.getMessageId())
 }
 
-//Publish publishes a message to the specified mqtt topic
+// Publish publishes a message to the specified mqtt topic
 func (d *DevClient) Publish(topic string, message []byte, qos int) error {
 	return publish(d.MQTTClient, topic, message, qos, d.getMessageId())
 }
 
-//Publish publishes a message to the specified mqtt topic and returns an mqtt.Token
+// Publish publishes a message to the specified mqtt topic and returns an mqtt.Token
 func (u *UserClient) PublishGetToken(topic string, message []byte, qos int) (mqtt.Token, error) {
 	return publishGetToken(u.MQTTClient, topic, message, qos, u.getMessageId())
 }
 
-//Publish publishes a message to the specified mqtt topic and returns an mqtt.Token
+// Publish publishes a message to the specified mqtt topic and returns an mqtt.Token
 func (d *DeviceClient) PublishGetToken(topic string, message []byte, qos int) (mqtt.Token, error) {
 	return publishGetToken(d.MQTTClient, topic, message, qos, d.getMessageId())
 }
 
-//Publish publishes a message to the specified mqtt topic and returns an mqtt.Token
+// Publish publishes a message to the specified mqtt topic and returns an mqtt.Token
 func (d *DevClient) PublishGetToken(topic string, message []byte, qos int) (mqtt.Token, error) {
 	return publishGetToken(d.MQTTClient, topic, message, qos, d.getMessageId())
 }
@@ -224,47 +226,47 @@ func (d *DevClient) PublishHttp(systemKey, topic string, message []byte, qos int
 	return nil
 }
 
-//Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
+// Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
 func (u *UserClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publish, error) {
 	return subscribe(u.MQTTClient, topic, qos)
 }
 
-//Subscribe subscribes a device to a topic. Incoming messages will be sent over the channel.
+// Subscribe subscribes a device to a topic. Incoming messages will be sent over the channel.
 func (d *DeviceClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publish, error) {
 	return subscribe(d.MQTTClient, topic, qos)
 }
 
-//Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
+// Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
 func (d *DevClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publish, error) {
 	return subscribe(d.MQTTClient, topic, qos)
 }
 
-//Unsubscribe stops the flow of messages over the corresponding subscription chan
+// Unsubscribe stops the flow of messages over the corresponding subscription chan
 func (u *UserClient) Unsubscribe(topic string) error {
 	return unsubscribe(u.MQTTClient, topic)
 }
 
-//Unsubscribe stops the flow of messages over the corresponding subscription chan
+// Unsubscribe stops the flow of messages over the corresponding subscription chan
 func (d *DeviceClient) Unsubscribe(topic string) error {
 	return unsubscribe(d.MQTTClient, topic)
 }
 
-//Unsubscribe stops the flow of messages over the corresponding subscription chan
+// Unsubscribe stops the flow of messages over the corresponding subscription chan
 func (d *DevClient) Unsubscribe(topic string) error {
 	return unsubscribe(d.MQTTClient, topic)
 }
 
-//Disconnect stops the TCP connection and unsubscribes the client from any remaining topics
+// Disconnect stops the TCP connection and unsubscribes the client from any remaining topics
 func (u *UserClient) Disconnect() error {
 	return disconnect(u.MQTTClient)
 }
 
-//Disconnect stops the TCP connection and unsubscribes the client from any remaining topics
+// Disconnect stops the TCP connection and unsubscribes the client from any remaining topics
 func (d *DeviceClient) Disconnect() error {
 	return disconnect(d.MQTTClient)
 }
 
-//Disconnect stops the TCP connection and unsubscribes the client from any remaining topics
+// Disconnect stops the TCP connection and unsubscribes the client from any remaining topics
 func (d *DevClient) Disconnect() error {
 	return disconnect(d.MQTTClient)
 }
@@ -293,8 +295,8 @@ func (d *DevClient) GetCurrentTopics(systemKey string) ([]string, error) {
 	return getMqttTopics(d, systemKey)
 }
 
-//Below are a series of convience functions to allow the user to only need to import
-//the clearblade go-sdk
+// Below are a series of convience functions to allow the user to only need to import
+// the clearblade go-sdk
 type mqttBaseClient struct {
 	mqtt.Client
 	address                                  string
@@ -325,9 +327,9 @@ func newJwtMqttClient(token, systemkey, systemsecret, clientid string, timeout i
 	return mqc, ret.Error()
 }
 
-//InitializeMqttClient allocates a mqtt client.
-//the values for initialization are drawn from the client struct
-//with the exception of the timeout and client id, which is mqtt specific.
+// InitializeMqttClient allocates a mqtt client.
+// the values for initialization are drawn from the client struct
+// with the exception of the timeout and client id, which is mqtt specific.
 // timeout refers to broker connect timeout
 func newMqttClient(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket) (MqttClient, error) {
 	o := mqtt.NewClientOptions()
