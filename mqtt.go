@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"time"
 
 	mqttTypes "github.com/clearblade/mqtt_parsing"
@@ -221,6 +222,26 @@ func (d *DevClient) PublishHttp(systemKey, topic string, message []byte, qos int
 		return err
 	}
 	return nil
+}
+
+func (d *DevClient) GetMqttDataUsage(systemKey string, start, end int64) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	data := map[string]string{
+		"start": strconv.FormatInt(start, 10),
+		"end":   strconv.FormatInt(end, 10),
+	}
+	resp, err := get(d, "/admin/"+systemKey+"/mqttdatausage", data, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
 }
 
 // Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
