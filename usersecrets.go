@@ -30,6 +30,19 @@ func (d *DevClient) UpdateSecret(systemKey, name string, data interface{}) (stri
 	return resp.Body.(string), nil
 }
 
+func (d *DevClient) GetSecrets(systemKey string) (interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return "", err
+	}
+	resp, err := get(d, _USER_SECRETS_PREAMBLE+systemKey, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return "", err
+	}
+	return resp.Body, nil
+}
+
 func (d *DevClient) GetSecret(systemKey, name string) (interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -49,6 +62,19 @@ func (d *DevClient) DeleteSecret(systemKey, name string) (string, error) {
 		return "", err
 	}
 	resp, err := delete(d, _USER_SECRETS_PREAMBLE+systemKey+"/"+name, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return "", err
+	}
+	return resp.Body.(string), nil
+}
+
+func (d *DevClient) DeleteSecrets(systemKey string) (string, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return "", err
+	}
+	resp, err := delete(d, _USER_SECRETS_PREAMBLE+systemKey, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return "", err
