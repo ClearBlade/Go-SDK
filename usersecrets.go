@@ -33,14 +33,14 @@ func (d *DevClient) UpdateSecret(systemKey, name string, data interface{}) (stri
 func (d *DevClient) GetSecrets(systemKey string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	resp, err := get(d, _USER_SECRETS_PREAMBLE+systemKey, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return resp.Body, nil
+	return resp.Body.([]interface{}), nil
 }
 
 func (d *DevClient) GetSecret(systemKey, name string) (interface{}, error) {
