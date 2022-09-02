@@ -30,7 +30,7 @@ func (d *DevClient) UpdateSecret(systemKey, name string, data interface{}) (stri
 	return resp.Body.(string), nil
 }
 
-func (d *DevClient) GetSecrets(systemKey string) ([]interface{}, error) {
+func (d *DevClient) GetSecrets(systemKey string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func (d *DevClient) GetSecrets(systemKey string) ([]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body.([]interface{}), nil
+	return resp.Body.(map[string]interface{}), nil
 }
 
 func (d *DevClient) GetSecret(systemKey, name string) (interface{}, error) {
