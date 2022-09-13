@@ -332,7 +332,7 @@ func newJwtMqttClient(token, systemkey, systemsecret, clientid string, timeout i
 		o.AddBroker("tcp://" + address)
 	}
 	o.SetClientID(clientid)
-	o.SetUsername("")
+	o.SetUsername("STEVE")
 	o.SetPassword(token)
 	o.SetConnectTimeout(time.Duration(timeout) * time.Second)
 	if lastWill != nil {
