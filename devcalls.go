@@ -502,7 +502,7 @@ func (d *DevClient) GetRole(SystemKey, roleName string) (map[string]interface{},
 
 	rval, ok := resp.Body.([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("Bad type returned by GetAllRoles: %T, %s", resp.Body, resp.Body.(string))
+		return nil, fmt.Errorf("Bad type returned by GetAllRoles: %T", resp.Body)
 	}
 
 	if len(rval) == 0 {
@@ -625,6 +625,12 @@ func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]inter
 	}
 	if files, ok := permissions["files"]; ok {
 		changes["files"] = files
+	}
+	if usersecrets, ok := permissions["usersecrets"]; ok {
+		changes["usersecrets"] = usersecrets
+	}
+	if adapters, ok := permissions["adapters"]; ok {
+		changes["adapters"] = adapters
 	}
 	// Just to be safe, this is silly
 	data["changes"] = changes
