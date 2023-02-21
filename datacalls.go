@@ -14,35 +14,35 @@ const (
 	_DATA_V4_PREAMBLE   = "/api/v/4/"
 )
 
-//Inserts data into the platform. The interface is either a map[string]interface{} representing a row, or a []map[string]interface{} representing many rows.
+// Inserts data into the platform. The interface is either a map[string]interface{} representing a row, or a []map[string]interface{} representing many rows.
 func (u *UserClient) InsertData(collection_id string, data interface{}) error {
 	_, err := insertdata(u, collection_id, data)
 	return err
 }
 
-//Inserts data into the platform. The interface is either a map[string]interface{} representing a row, or a []map[string]interface{} representing many rows.
+// Inserts data into the platform. The interface is either a map[string]interface{} representing a row, or a []map[string]interface{} representing many rows.
 func (d *DeviceClient) InsertData(collection_id string, data interface{}) error {
 	_, err := insertdata(d, collection_id, data)
 	return err
 }
 
-//Inserts data into the platform. The interface is either a map[string]interface{} representing a row, or a []map[string]interface{} representing many rows.
+// Inserts data into the platform. The interface is either a map[string]interface{} representing a row, or a []map[string]interface{} representing many rows.
 func (d *DevClient) InsertData(collection_id string, data interface{}) error {
 	_, err := insertdata(d, collection_id, data)
 	return err
 }
 
-//CreateData is an alias for InsertData, but returns a response value, it should be a slice of strings representing the item ids (if not using an external datastore)
+// CreateData is an alias for InsertData, but returns a response value, it should be a slice of strings representing the item ids (if not using an external datastore)
 func (d *DevClient) CreateData(collection_id string, data interface{}) ([]interface{}, error) {
 	return insertdata(d, collection_id, data)
 }
 
-//CreateData is an alias for InsertData, but returns a response value, it should be a slice of strings representing the item ids (if not using an external datastore)
+// CreateData is an alias for InsertData, but returns a response value, it should be a slice of strings representing the item ids (if not using an external datastore)
 func (u *UserClient) CreateData(collection_id string, data interface{}) ([]interface{}, error) {
 	return insertdata(u, collection_id, data)
 }
 
-//CreateData is an alias for InsertData, but returns a response value, it should be a slice of strings representing the item ids (if not using an external datastore)
+// CreateData is an alias for InsertData, but returns a response value, it should be a slice of strings representing the item ids (if not using an external datastore)
 func (d *DeviceClient) CreateData(collection_id string, data interface{}) ([]interface{}, error) {
 	return insertdata(d, collection_id, data)
 }
@@ -62,26 +62,26 @@ func insertdata(c cbClient, collection_id string, data interface{}) ([]interface
 	return resp.Body.([]interface{}), nil
 }
 
-//GetData performs a query against a collection. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
-//The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
+// GetData performs a query against a collection. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
+// The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
 func (u *UserClient) GetData(collection_id string, query *Query) (map[string]interface{}, error) {
 	return getdata(u, collection_id, query)
 }
 
-//GetData performs a query against a collection. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
-//The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
+// GetData performs a query against a collection. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
+// The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
 func (d *DeviceClient) GetData(collection_id string, query *Query) (map[string]interface{}, error) {
 	return getdata(d, collection_id, query)
 }
 
-//GetDataByName performs a query against a collection, using the collection's name, rather than the ID. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
-//The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
+// GetDataByName performs a query against a collection, using the collection's name, rather than the ID. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
+// The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
 func (u *UserClient) GetDataByName(collectionName string, query *Query) (map[string]interface{}, error) {
 	return getDataByName(u, u.SystemKey, collectionName, query)
 }
 
-//GetDataByName performs a query against a collection, using the collection's name, rather than the ID. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
-//The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
+// GetDataByName performs a query against a collection, using the collection's name, rather than the ID. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
+// The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
 func (d *DeviceClient) GetDataByName(collectionName string, query *Query) (map[string]interface{}, error) {
 	return getDataByName(d, d.SystemKey, collectionName, query)
 }
@@ -95,8 +95,8 @@ func (d *DevClient) GetDataByName(collectionName string, query *Query) (map[stri
 	return nil, fmt.Errorf("Developer cannot call this yet")
 }
 
-//GetData performs a query against a collection. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
-//The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
+// GetData performs a query against a collection. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
+// The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
 func (d *DevClient) GetData(collection_id string, query *Query) (map[string]interface{}, error) {
 	return getdata(d, collection_id, query)
 }
@@ -280,8 +280,8 @@ func (d *DeviceClient) UpsertData(collection_id string, changes map[string]inter
 	return upsertdata(d, collection_id, changes, conflictColumn)
 }
 
-//UpsertData mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
-//changes should be a map of the names of the columns, and the value you want them updated to
+// UpsertData mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
+// changes should be a map of the names of the columns, and the value you want them updated to
 func (d *DevClient) UpsertData(collection_id string, changes map[string]interface{}, conflictColumn string) (map[string]interface{}, error) {
 	return upsertdata(d, collection_id, changes, conflictColumn)
 }
@@ -297,8 +297,8 @@ func (d *DeviceClient) UpsertDataByName(system_key, collection_name string, chan
 	return upsertdataByName(d, system_key, collection_name, changes, conflictColumn)
 }
 
-//UpsertDataByName mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
-//changes should be a map of the names of the columns, and the value you want them updated to
+// UpsertDataByName mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
+// changes should be a map of the names of the columns, and the value you want them updated to
 func (d *DevClient) UpsertDataByName(system_key, collection_name string, changes map[string]interface{}, conflictColumn string) (map[string]interface{}, error) {
 	return upsertdataByName(d, system_key, collection_name, changes, conflictColumn)
 }
@@ -346,8 +346,8 @@ func (d *DeviceClient) UpdateData(collection_id string, query *Query, changes ma
 	return updatedata(d, collection_id, query, changes)
 }
 
-//UpdateData mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
-//changes should be a map of the names of the columns, and the value you want them updated to
+// UpdateData mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
+// changes should be a map of the names of the columns, and the value you want them updated to
 func (d *DevClient) UpdateData(collection_id string, query *Query, changes map[string]interface{}) error {
 	return updatedata(d, collection_id, query, changes)
 }
@@ -363,8 +363,8 @@ func (d *DeviceClient) UpdateDataByName(system_key, collection_name string, quer
 	return updatedataByName(d, system_key, collection_name, query, changes)
 }
 
-//UpdateDataByName mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
-//changes should be a map of the names of the columns, and the value you want them updated to
+// UpdateDataByName mutates the values in extant rows, selecting them via a query. If the query is nil, it updates all rows
+// changes should be a map of the names of the columns, and the value you want them updated to
 func (d *DevClient) UpdateDataByName(system_key, collection_name string, query *Query, changes map[string]interface{}) (UpdateResponse, error) {
 	return updatedataByName(d, system_key, collection_name, query, changes)
 }
@@ -451,17 +451,17 @@ func createDataByName(c cbClient, system_key, collection_name string, item inter
 	return resp.Body.([]interface{}), nil
 }
 
-//DeleteData removes data from a collection according to what matches the query. If the query is nil, then all data will be removed.
+// DeleteData removes data from a collection according to what matches the query. If the query is nil, then all data will be removed.
 func (u *UserClient) DeleteData(collection_id string, query *Query) error {
 	return deletedata(u, collection_id, query)
 }
 
-//DeleteData removes data from a collection according to what matches the query. If the query is nil, then all data will be removed.
+// DeleteData removes data from a collection according to what matches the query. If the query is nil, then all data will be removed.
 func (d *DeviceClient) DeleteData(collection_id string, query *Query) error {
 	return deletedata(d, collection_id, query)
 }
 
-//DeleteData removes data from a collection according to what matches the query. If the query is nil, then all data will be removed.
+// DeleteData removes data from a collection according to what matches the query. If the query is nil, then all data will be removed.
 func (d *DevClient) DeleteData(collection_id string, query *Query) error {
 	return deletedata(d, collection_id, query)
 }
@@ -494,26 +494,26 @@ func deletedata(c cbClient, collection_id string, query *Query) error {
 	return nil
 }
 
-//GetColumns gets a slice of map[string]interface{} of the column names and values.
-//As map[string]interface{}{"ColumnName":"name","ColumnType":"typename in string", "PK":bool}
+// GetColumns gets a slice of map[string]interface{} of the column names and values.
+// As map[string]interface{}{"ColumnName":"name","ColumnType":"typename in string", "PK":bool}
 func (d *DevClient) GetColumns(collectionId, systemKey, systemSecret string) ([]interface{}, error) {
 	return getColumns(d, collectionId, systemKey, systemSecret)
 }
 
-//GetColumns gets a slice of map[string]interface{} of the column names and values.
-//As map[string]interface{}{"ColumnName":"name","ColumnType":"typename in string", "PK":bool}
+// GetColumns gets a slice of map[string]interface{} of the column names and values.
+// As map[string]interface{}{"ColumnName":"name","ColumnType":"typename in string", "PK":bool}
 func (u *UserClient) GetColumns(collection_id, systemKey, systemSecret string) ([]interface{}, error) {
 	return getColumns(u, collection_id, "", "")
 }
 
-//GetColumns gets a slice of map[string]interface{} of the column names and values.
-//As map[string]interface{}{"ColumnName":"name","ColumnType":"typename in string", "PK":bool}
+// GetColumns gets a slice of map[string]interface{} of the column names and values.
+// As map[string]interface{}{"ColumnName":"name","ColumnType":"typename in string", "PK":bool}
 func (d *DeviceClient) GetColumns(collection_id, systemKey, systemSecret string) ([]interface{}, error) {
 	return getColumns(d, collection_id, "", "")
 }
 
-//GetColumnsByCollectionName gets a slice of map[string]interface{} of the column names and values.
-//As map[string]interface{}{"ColumnName":"name","ColumnType":"typename in string", "PK":bool}
+// GetColumnsByCollectionName gets a slice of map[string]interface{} of the column names and values.
+// As map[string]interface{}{"ColumnName":"name","ColumnType":"typename in string", "PK":bool}
 func (d *DevClient) GetColumnsByCollectionName(systemKey, collectionName string) ([]interface{}, error) {
 	return getColumnsByCollectionName(d, systemKey, collectionName)
 }
@@ -558,8 +558,8 @@ func getColumns(c cbClient, collection_id, systemKey, systemSecret string) ([]in
 	return resp.Body.([]interface{}), nil
 }
 
-//GetAllCollections retrieves a list of every collection in the system
-//The return value is a slice of strings
+// GetAllCollections retrieves a list of every collection in the system
+// The return value is a slice of strings
 func (d *DevClient) GetAllCollections(systemKey string) ([]interface{}, error) {
 	return getAllCollections(d, d.preamble()+"/allcollections", systemKey)
 }
@@ -593,7 +593,7 @@ func (u *UserClient) NewCollection(systemKey, name string) (string, error) {
 	return createNewCollection(u, _DATA_V3_PREAMBLE, name, systemKey)
 }
 
-//CreateCollection creates a new collection
+// CreateCollection creates a new collection
 func createNewCollection(c cbClient, preamble, name, systemKey string) (string, error) {
 	creds, err := c.credentials()
 	if err != nil {
@@ -612,8 +612,8 @@ func createNewCollection(c cbClient, preamble, name, systemKey string) (string, 
 	return resp.Body.(map[string]interface{})["collectionID"].(string), nil
 }
 
-//GetCollectionInfo retrieves some describing information on the specified collection
-//Keys "name","collectoinID","appID", and much, much more!
+// GetCollectionInfo retrieves some describing information on the specified collection
+// Keys "name","collectoinID","appID", and much, much more!
 func (d *DevClient) GetCollectionInfo(collection_id string) (map[string]interface{}, error) {
 	return getCollectionInfo(d, d.preamble(), collection_id)
 }
@@ -639,7 +639,7 @@ func getCollectionInfo(c cbClient, preamble, collection_id string) (map[string]i
 	return resp.Body.(map[string]interface{}), nil
 }
 
-//AddColumn adds a column to a collection. Note that this does not apply to collections backed by a non-default datastore.
+// AddColumn adds a column to a collection. Note that this does not apply to collections backed by a non-default datastore.
 func (d *DevClient) AddColumn(collection_id, column_name, column_type string) error {
 	return addColumn(d, d.preamble(), collection_id, column_name, column_type)
 }
@@ -669,7 +669,28 @@ func addColumn(c cbClient, preamble, collection_id, column_name, column_type str
 	return nil
 }
 
-//DeleteColumn removes a column from a collection. Note that this does not apply to collections backed by a non-default datastore.
+func (d *DevClient) UpdateTimeseriesOptions(collectionid string, isTimescale bool, options map[string]interface{}) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := put(d, _DATA_V3_PREAMBLE+"/collectionmanagement", map[string]interface{}{
+		"id": collectionid,
+		"timeseries": map[string]interface{}{
+			"is_timescale":      isTimescale,
+			"timescale_options": options,
+		},
+	}, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error updating timeseries options: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating timeseries options: %v", resp.Body)
+	}
+	return nil
+}
+
+// DeleteColumn removes a column from a collection. Note that this does not apply to collections backed by a non-default datastore.
 func (d *DevClient) DeleteColumn(collection_id, column_name string) error {
 	return deleteColumn(d, d.preamble(), collection_id, column_name)
 }
@@ -751,7 +772,7 @@ func renameCollection(c cbClient, preamble, collectionID, newName string) error 
 	return nil
 }
 
-//DeleteCollection deletes the collection. Note that this does not apply to collections backed by a non-default datastore.
+// DeleteCollection deletes the collection. Note that this does not apply to collections backed by a non-default datastore.
 func (d *DevClient) DeleteCollection(colID string) error {
 	return deleteCollection(d, d.preamble(), colID)
 }
@@ -777,17 +798,17 @@ func deleteCollection(c cbClient, preamble, colID string) error {
 	return nil
 }
 
-//GetDataByKeyAndName is unimplemented
+// GetDataByKeyAndName is unimplemented
 func (d *DevClient) GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error) {
 	return nil, fmt.Errorf("Unimplemented")
 }
 
-//GetDataByKeyAndName is unimplemented
+// GetDataByKeyAndName is unimplemented
 func (u *UserClient) GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error) {
 	return nil, fmt.Errorf("Unimplemented")
 }
 
-//GetDataByKeyAndName is unimplemented
+// GetDataByKeyAndName is unimplemented
 func (d *DeviceClient) GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error) {
 	return nil, fmt.Errorf("Unimplemented")
 }
