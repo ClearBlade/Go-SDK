@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
 )
 
 const (
@@ -669,25 +670,158 @@ func addColumn(c cbClient, preamble, collection_id, column_name, column_type str
 	return nil
 }
 
-func (d *DevClient) UpdateTimeseriesOptions(collectionid string, isTimescale bool, options map[string]interface{}) error {
+func (d *DevClient) ConvertCollectionToHypertable(systemKey, collectionName string, options map[string]interface{}) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
-	resp, err := put(d, _DATA_V3_PREAMBLE+"/collectionmanagement", map[string]interface{}{
-		"id": collectionid,
-		"timeseries": map[string]interface{}{
-			"is_timescale":      isTimescale,
-			"timescale_options": options,
-		},
-	}, creds, nil)
+	resp, err := post(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/hypertable", options, creds, nil)
 	if err != nil {
-		return fmt.Errorf("Error updating timeseries options: %v", err)
+		return fmt.Errorf("Error converting collection to hypertable: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error updating timeseries options: %v", resp.Body)
+		return fmt.Errorf("Error converting collection to hypertable: %v", resp.Body)
 	}
 	return nil
+}
+
+func (d *DevClient) UpdateHypertableProperties(systemKey, collectionName string, options map[string]interface{}) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := put(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/hypertable", options, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error updating hypertable properties: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating hypertable properties: %v", resp.Body)
+	}
+	return nil
+}
+
+func (d *DevClient) DropHypertableChunks(systemKey, collectionName string, olderThan, newerThan int64) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	body := map[string]string{
+		"older_than": strconv.Itoa(int(olderThan)),
+	}
+	if newerThan > 0 {
+		body["newer_than"] = strconv.Itoa(int(newerThan))
+	}
+	resp, err := delete(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/hypertable", body, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error deleting hypertable chunks: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error deleting hypertable chunks: %v", resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) GetAllContinuousAggregratesForCollection(systemKey, collectionName string) ([]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/listcontinuousaggregrates", nil, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting all continuous aggregrates for collection: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting all continuous aggregrates for collection: %v", resp.Body)
+	}
+	return resp.Body.([]interface{}), nil
+}
+
+func (d *DevClient) GetContinuousAggregrate(systemKey, collectionName, aggregrateName string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/"+aggregrateName+"/continuousaggregrate", nil, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting continuous aggregrate: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting continuous aggregrate: %v", resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) CreateContinuousAggregrate(systemKey, collectionName, aggregrateName string, properties map[string]interface{}) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := post(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/"+aggregrateName+"/continuousaggregrate", properties, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error creating continuous aggregrate: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error creating continuous aggregrate: %v", resp.Body)
+	}
+	return nil
+}
+
+func (d *DevClient) UpdateContinuousAggregrate(systemKey, collectionName, aggregrateName string, properties map[string]interface{}) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := put(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/"+aggregrateName+"/continuousaggregrate", properties, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error updating continuous aggregrate: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating continuous aggregrate: %v", resp.Body)
+	}
+	return nil
+}
+
+func (d *DevClient) DeleteContinuousAggregrate(systemKey, collectionName, aggregrateName string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/"+aggregrateName+"/continuousaggregrate", nil, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error deleting continuous aggregrate: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error deleting continuous aggregrate: %v", resp.Body)
+	}
+	return nil
+}
+
+func (d *DevClient) QueryContinuousAggregrate(systemKey, collectionName, aggregrateName string, query *Query) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	var qry map[string]string
+	if query != nil {
+		query_map := query.serialize()
+		query_bytes, err := json.Marshal(query_map)
+		if err != nil {
+			return nil, err
+		}
+		qry = map[string]string{
+			"query": url.QueryEscape(string(query_bytes)),
+		}
+	} else {
+		qry = nil
+	}
+	resp, err := get(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/"+aggregrateName+"/continuousaggregrate/query", qry, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error querying continuous aggregrate: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error querying continuous aggregrate: %v", resp.Body)
+	}
+	return resp.Body.(map[string]interface{}), nil
 }
 
 // DeleteColumn removes a column from a collection. Note that this does not apply to collections backed by a non-default datastore.
