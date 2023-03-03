@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"strconv"
 )
 
 const (
@@ -700,18 +699,18 @@ func (d *DevClient) UpdateHypertableProperties(systemKey, collectionName string,
 	return nil
 }
 
-func (d *DevClient) DropHypertableChunks(systemKey, collectionName string, olderThan, newerThan int64) (map[string]interface{}, error) {
+func (d *DevClient) DropHypertableChunks(systemKey, collectionName, olderThan, newerThan string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	body := map[string]string{
-		"older_than": strconv.Itoa(int(olderThan)),
+	body := map[string]interface{}{
+		"older_than": olderThan,
 	}
-	if newerThan > 0 {
-		body["newer_than"] = strconv.Itoa(int(newerThan))
+	if newerThan != "" {
+		body["newer_than"] = newerThan
 	}
-	resp, err := delete(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/hypertable", body, creds, nil)
+	resp, err := deleteWithBody(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/hypertable", body, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error deleting hypertable chunks: %v", err)
 	}
