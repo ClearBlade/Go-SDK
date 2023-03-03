@@ -699,16 +699,10 @@ func (d *DevClient) UpdateHypertableProperties(systemKey, collectionName string,
 	return nil
 }
 
-func (d *DevClient) DropHypertableChunks(systemKey, collectionName, olderThan, newerThan string) (map[string]interface{}, error) {
+func (d *DevClient) DropHypertableChunks(systemKey, collectionName string, body map[string]interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
-	}
-	body := map[string]interface{}{
-		"older_than": olderThan,
-	}
-	if newerThan != "" {
-		body["newer_than"] = newerThan
 	}
 	resp, err := deleteWithBody(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/hypertable", body, creds, nil)
 	if err != nil {
