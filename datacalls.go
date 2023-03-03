@@ -721,82 +721,82 @@ func (d *DevClient) DropHypertableChunks(systemKey, collectionName string, older
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) GetAllContinuousAggregratesForCollection(systemKey, collectionName string) ([]interface{}, error) {
+func (d *DevClient) GetAllContinuousAggregatesForCollection(systemKey, collectionName string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/listcontinuousaggregrates", nil, creds, nil)
+	resp, err := get(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/listcontinuousaggregates", nil, creds, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Error getting all continuous aggregrates for collection: %v", err)
+		return nil, fmt.Errorf("Error getting all continuous aggregates for collection: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Error getting all continuous aggregrates for collection: %v", resp.Body)
+		return nil, fmt.Errorf("Error getting all continuous aggregates for collection: %v", resp.Body)
 	}
 	return resp.Body.([]interface{}), nil
 }
 
-func (d *DevClient) GetContinuousAggregrate(systemKey, collectionName, aggregrateName string) (map[string]interface{}, error) {
+func (d *DevClient) GetContinuousAggregate(systemKey, collectionName, aggregateName string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/"+aggregrateName+"/continuousaggregrate", nil, creds, nil)
+	resp, err := get(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/"+aggregateName+"/continuousaggregate", nil, creds, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Error getting continuous aggregrate: %v", err)
+		return nil, fmt.Errorf("Error getting continuous aggregate: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Error getting continuous aggregrate: %v", resp.Body)
+		return nil, fmt.Errorf("Error getting continuous aggregate: %v", resp.Body)
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) CreateContinuousAggregrate(systemKey, collectionName, aggregrateName string, properties map[string]interface{}) error {
+func (d *DevClient) CreateContinuousAggregate(systemKey, collectionName, aggregateName string, properties map[string]interface{}) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
-	resp, err := post(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/"+aggregrateName+"/continuousaggregrate", properties, creds, nil)
+	resp, err := post(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/"+aggregateName+"/continuousaggregate", properties, creds, nil)
 	if err != nil {
-		return fmt.Errorf("Error creating continuous aggregrate: %v", err)
+		return fmt.Errorf("Error creating continuous aggregate: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error creating continuous aggregrate: %v", resp.Body)
+		return fmt.Errorf("Error creating continuous aggregate: %v", resp.Body)
 	}
 	return nil
 }
 
-func (d *DevClient) UpdateContinuousAggregrate(systemKey, collectionName, aggregrateName string, properties map[string]interface{}) error {
+func (d *DevClient) UpdateContinuousAggregate(systemKey, collectionName, aggregateName string, properties map[string]interface{}) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
-	resp, err := put(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/"+aggregrateName+"/continuousaggregrate", properties, creds, nil)
+	resp, err := put(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/"+aggregateName+"/continuousaggregate", properties, creds, nil)
 	if err != nil {
-		return fmt.Errorf("Error updating continuous aggregrate: %v", err)
+		return fmt.Errorf("Error updating continuous aggregate: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error updating continuous aggregrate: %v", resp.Body)
+		return fmt.Errorf("Error updating continuous aggregate: %v", resp.Body)
 	}
 	return nil
 }
 
-func (d *DevClient) DeleteContinuousAggregrate(systemKey, collectionName, aggregrateName string) error {
+func (d *DevClient) DeleteContinuousAggregate(systemKey, collectionName, aggregateName string) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
-	resp, err := delete(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/"+aggregrateName+"/continuousaggregrate", nil, creds, nil)
+	resp, err := delete(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/"+aggregateName+"/continuousaggregate", nil, creds, nil)
 	if err != nil {
-		return fmt.Errorf("Error deleting continuous aggregrate: %v", err)
+		return fmt.Errorf("Error deleting continuous aggregate: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error deleting continuous aggregrate: %v", resp.Body)
+		return fmt.Errorf("Error deleting continuous aggregate: %v", resp.Body)
 	}
 	return nil
 }
 
-func (d *DevClient) QueryContinuousAggregrate(systemKey, collectionName, aggregrateName string, query *Query) (map[string]interface{}, error) {
+func (d *DevClient) QueryContinuousAggregate(systemKey, collectionName, aggregateName string, query *Query) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
@@ -814,12 +814,12 @@ func (d *DevClient) QueryContinuousAggregrate(systemKey, collectionName, aggregr
 	} else {
 		qry = nil
 	}
-	resp, err := get(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/"+aggregrateName+"/continuousaggregrate/query", qry, creds, nil)
+	resp, err := get(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/"+aggregateName+"/continuousaggregate/query", qry, creds, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Error querying continuous aggregrate: %v", err)
+		return nil, fmt.Errorf("Error querying continuous aggregate: %v", err)
 	}
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Error querying continuous aggregrate: %v", resp.Body)
+		return nil, fmt.Errorf("Error querying continuous aggregate: %v", resp.Body)
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
