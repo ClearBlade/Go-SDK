@@ -493,7 +493,14 @@ func (d *DeviceClient) stopProxyToEdge() error {
 
 // Authenticate retrieves a token from the specified Clearblade Platform
 func (u *UserClient) Authenticate() (*AuthResponse, error) {
-	if err := authenticate(u, u.Email, u.Password); err != nil {
+	if err := authenticate(u, u.Email, u.Password, map[string]string{}); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func (u *UserClient) AuthenticateWithOptions(opts map[string]string) (*AuthResponse, error) {
+	if err := authenticate(u, u.Email, u.Password, opts); err != nil {
 		return nil, err
 	}
 	return nil, nil
@@ -695,7 +702,7 @@ func checkAuth(c cbClient) error {
 
 //Below are some shared functions
 
-func authenticate(c cbClient, username, password string) error {
+func authenticate(c cbClient, username, password string, opts map[string]string) error {
 	var creds [][]string
 	switch c.(type) {
 	case *UserClient:
@@ -706,10 +713,12 @@ func authenticate(c cbClient, username, password string) error {
 		}
 	case *DevClient:
 	}
-	resp, err := post(c, c.preamble()+"/auth", map[string]interface{}{
-		"email":    username,
-		"password": password,
-	}, creds, nil)
+	if opts == nil {
+		opts = map[string]string{}
+	}
+	opts["email"] = username
+	opts["password"] = password
+	resp, err := post(c, c.preamble()+"/auth", opts, creds, nil)
 	if err != nil {
 		return err
 	}
