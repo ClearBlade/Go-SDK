@@ -39,7 +39,7 @@ func (d *DevClient) GetDevicePublicKeys(systemKey, deviceName string) ([]interfa
 	return resp.Body.([]interface{}), nil
 }
 
-func (d *DevClient) AddDevicePublicKey(systemKey, deviceName, publicKey string, keyformat KeyFormat) (map[string]interface{}, error) {
+func (d *DevClient) AddDevicePublicKey(systemKey, deviceName, publicKey, expirationTime string, keyformat KeyFormat) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
@@ -48,6 +48,11 @@ func (d *DevClient) AddDevicePublicKey(systemKey, deviceName, publicKey string, 
 		"public_key": publicKey,
 		"key_format": int(keyformat),
 	}
+
+	if expirationTime != "" {
+		body["expiration_time"] = expirationTime
+	}
+
 	resp, err := post(d, _DEVICE_PUBKEY_PREAMBLE+systemKey+"/"+deviceName, body, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
@@ -56,7 +61,7 @@ func (d *DevClient) AddDevicePublicKey(systemKey, deviceName, publicKey string, 
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) UpdateDevicePublicKey(systemKey, deviceName, publicKey, id string, keyformat KeyFormat) ([]interface{}, error) {
+func (d *DevClient) UpdateDevicePublicKey(systemKey, deviceName, publicKey, id, expirationTime string, keyformat KeyFormat) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
@@ -64,6 +69,9 @@ func (d *DevClient) UpdateDevicePublicKey(systemKey, deviceName, publicKey, id s
 	body := map[string]interface{}{
 		"public_key": publicKey,
 		"key_format": int(keyformat),
+	}
+	if expirationTime != "" {
+		body["expiration_time"] = expirationTime
 	}
 	resp, err := put(d, _DEVICE_PUBKEY_PREAMBLE+systemKey+"/"+deviceName, map[string]interface{}{
 		"id":   id,
