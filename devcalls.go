@@ -1209,3 +1209,43 @@ func (d *DevClient) getExpiresAt() float64 {
 func (d *DevClient) getMessageId() uint16 {
 	return uint16(d.mrand.Int())
 }
+
+func (d *DevClient) AddMessageTypeTriggers(systemKey string, msgTypeTriggers []map[string]interface{}) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := post(d, d.preamble()+"/"+systemKey+"/msgtypetriggers", msgTypeTriggers, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error adding message type triggers: %v", resp.Body)
+	}
+
+	return nil
+}
+
+func (d *DevClient) GetMessageTypeTriggers(systemKey string) ([]map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	} else if len(creds) != 1 {
+		return nil, fmt.Errorf("Error getting mesage type triggers: No DevToken Supplied")
+	}
+	resp, err := get(d, d.preamble()+"/"+systemKey+"/msgtypetriggers", nil, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting mesage type triggers: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error getting mesage type triggers: %v", resp.Body)
+	}
+
+	rawData := resp.Body.([]interface{})
+	rVal := make([]map[string]interface{}, len(rawData))
+	for idx, oneRsp := range rawData {
+		rVal[idx] = oneRsp.(map[string]interface{})
+	}
+
+	return rVal, nil
+}
