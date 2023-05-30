@@ -1249,3 +1249,21 @@ func (d *DevClient) GetMessageTypeTriggers(systemKey string) ([]map[string]inter
 
 	return rVal, nil
 }
+
+func (d *DevClient) DeleteMessageTypeTriggers(systemKey string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	} else if len(creds) != 1 {
+		return fmt.Errorf("Error deleting mesage type triggers: No DevToken Supplied")
+	}
+	resp, err := delete(d, d.preamble()+"/"+systemKey+"/msgtypetriggers", nil, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error deleting mesage type triggers: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error deleting mesage type triggers: %v", resp.Body)
+	}
+
+	return nil
+}
