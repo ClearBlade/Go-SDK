@@ -155,8 +155,8 @@ func (d *DevClient) GetUsersWithQuery(systemKey string, query *Query) ([]interfa
 	return resp.Body.([]interface{}), nil
 }
 
-//GetUserColumns returns the description of the columns in the user table
-//Returns a structure shaped []map[string]interface{}{map[string]interface{}{"ColumnName":"blah","ColumnType":"int"}}
+// GetUserColumns returns the description of the columns in the user table
+// Returns a structure shaped []map[string]interface{}{map[string]interface{}{"ColumnName":"blah","ColumnType":"int"}}
 func (d *DevClient) GetUserColumns(systemKey string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -173,7 +173,7 @@ func (d *DevClient) GetUserColumns(systemKey string) ([]interface{}, error) {
 	return resp.Body.([]interface{}), nil
 }
 
-//CreateUserColumn creates a new column in the user table
+// CreateUserColumn creates a new column in the user table
 func (d *DevClient) CreateUserColumn(systemKey, columnName, columnType string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -447,4 +447,43 @@ func (u *UserClient) GetUserRoles(systemKey, userId string) ([]interface{}, erro
 	}
 
 	return resp.Body.([]interface{}), nil
+}
+
+func ConnectedUsers(client cbClient, systemKey string) (map[string]interface{}, error) {
+	creds, err := client.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(client, _USER_PREAMBLE+"/"+systemKey+"/connections", nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func UserConnections(client cbClient, systemKey, deviceName string) (map[string]interface{}, error) {
+	creds, err := client.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(client, _USER_PREAMBLE+"/"+systemKey+"/connections/"+deviceName, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func ConnectedUserCount(client cbClient, systemKey string) (map[string]interface{}, error) {
+	creds, err := client.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(client, _USER_PREAMBLE+"/"+systemKey+"/connectioncount", nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
 }
