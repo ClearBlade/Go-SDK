@@ -363,7 +363,7 @@ func (d *DeviceClient) AuthenticateDeviceWithMTLS(systemKey, name, certFile, pri
 	transport := &http.Transport{
 		TLSClientConfig: tlsConfig,
 	}
-	resp, err := postWithCustomTransport(d, _DEVICE_V4_PREAMBLE+"mtls/auth:444", postBody, creds, nil, transport)
+	resp, err := postWithCustomTransport(d, _DEVICE_V4_PREAMBLE+"mtls/auth", postBody, creds, nil, transport, true)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -696,6 +696,10 @@ func (dvc *DeviceClient) getMessageId() uint16 {
 
 func (dvc *DeviceClient) getHttpAddr() string {
 	return dvc.HttpAddr
+}
+
+func (dvc *DeviceClient) getMTLSPort() string {
+	return dvc.MTLSPort
 }
 
 func (dvc *DeviceClient) getMqttAddr() string {

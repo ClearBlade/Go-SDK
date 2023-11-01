@@ -26,6 +26,8 @@ var (
 	CB_MSG_ADDR      = "platform.clearblade.com:1883"
 	CB_MSG_AUTH_ADDR = "platform.clearblade.com:8905"
 
+	MTLS_PORT = "444"
+
 	_HEADER_KEY_KEY    = "ClearBlade-SystemKey"
 	_HEADER_SECRET_KEY = "ClearBlade-SystemSecret"
 )
@@ -113,6 +115,7 @@ type cbClient interface {
 	getMessageId() uint16
 	getHttpAddr() string
 	getMqttAddr() string
+	getMTLSPort() string
 	getEdgeProxy() *EdgeProxy
 }
 
@@ -134,6 +137,7 @@ type UserClient struct {
 	HttpAddr     string
 	MqttAddr     string
 	MqttAuthAddr string
+	MTLSPort     string
 	edgeProxy    *EdgeProxy
 }
 
@@ -151,6 +155,7 @@ type DeviceClient struct {
 	HttpAddr     string
 	MqttAddr     string
 	MqttAuthAddr string
+	MTLSPort     string
 	edgeProxy    *EdgeProxy
 }
 
@@ -167,6 +172,7 @@ type DevClient struct {
 	HttpAddr     string
 	MqttAddr     string
 	MqttAuthAddr string
+	MTLSPort     string
 	edgeProxy    *EdgeProxy
 }
 
@@ -185,6 +191,7 @@ type CbReq struct {
 	HttpAddr    string
 	MqttAddr    string
 	Transport   *http.Transport
+	IsMTLS      bool
 }
 
 // CbResp is a wrapper around an HTTP response
@@ -211,8 +218,16 @@ func (u *UserClient) getHttpAddr() string {
 	return u.HttpAddr
 }
 
+func (u *UserClient) getMTLSPort() string {
+	return u.MTLSPort
+}
+
 func (d *DevClient) getHttpAddr() string {
 	return d.HttpAddr
+}
+
+func (d *DevClient) getMTLSPort() string {
+	return d.MTLSPort
 }
 
 func (u *UserClient) getMqttAddr() string {
@@ -260,6 +275,7 @@ func NewDeviceClient(systemkey, systemsecret, deviceName, activeKey string) *Dev
 		HttpAddr:     CB_ADDR,
 		MqttAddr:     CB_MSG_ADDR,
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
+		MTLSPort:     MTLS_PORT,
 	}
 }
 
@@ -277,6 +293,7 @@ func NewUserClient(systemkey, systemsecret, email, password string) *UserClient 
 		HttpAddr:     CB_ADDR,
 		MqttAddr:     CB_MSG_ADDR,
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
+		MTLSPort:     MTLS_PORT,
 	}
 }
 
@@ -292,6 +309,7 @@ func NewDevClient(email, password string) *DevClient {
 		HttpAddr:     CB_ADDR,
 		MqttAddr:     CB_MSG_ADDR,
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
+		MTLSPort:     MTLS_PORT,
 	}
 }
 
@@ -306,6 +324,7 @@ func NewDevClientWithToken(token, email string) *DevClient {
 		HttpAddr:     CB_ADDR,
 		MqttAddr:     CB_MSG_ADDR,
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
+		MTLSPort:     MTLS_PORT,
 	}
 }
 
@@ -320,6 +339,7 @@ func NewRefreshUserClientWithAddrs(httpAddr, mqttAddr, systemKey, systemSecret, 
 		HttpAddr:     httpAddr,
 		MqttAddr:     mqttAddr,
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
+		MTLSPort:     MTLS_PORT,
 	}
 }
 
@@ -336,6 +356,7 @@ func NewUserClientWithAddrs(httpAddr, mqttAddr, systemKey, systemSecret, email, 
 		HttpAddr:     httpAddr,
 		MqttAddr:     mqttAddr,
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
+		MTLSPort:     MTLS_PORT,
 	}
 }
 
@@ -352,6 +373,7 @@ func NewUserClientWithAddrs2(httpAddr, mqttAddr, mqttAuthAddr, systemKey, system
 		HttpAddr:     httpAddr,
 		MqttAddr:     mqttAddr,
 		MqttAuthAddr: mqttAuthAddr,
+		MTLSPort:     MTLS_PORT,
 	}
 }
 
@@ -366,6 +388,7 @@ func NewDevClientWithAddrs(httpAddr, mqttAddr, email, password string) *DevClien
 		HttpAddr:     httpAddr,
 		MqttAddr:     mqttAddr,
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
+		MTLSPort:     MTLS_PORT,
 	}
 }
 
@@ -380,6 +403,7 @@ func NewDevClientWithTokenAndAddrs(httpAddr, mqttAddr, token, email string) *Dev
 		HttpAddr:     httpAddr,
 		MqttAddr:     mqttAddr,
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
+		MTLSPort:     MTLS_PORT,
 	}
 }
 
@@ -396,6 +420,7 @@ func NewDeviceClientWithAddrs(httpAddr, mqttAddr, systemkey, systemsecret, devic
 		HttpAddr:     httpAddr,
 		MqttAddr:     mqttAddr,
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
+		MTLSPort:     MTLS_PORT,
 	}
 }
 
@@ -410,6 +435,7 @@ func NewDeviceClientWithServiceAccountAndAddrs(httpAddr, mqttAddr, systemkey, sy
 		SystemSecret: systemsecret,
 		HttpAddr:     httpAddr,
 		MqttAddr:     mqttAddr,
+		MTLSPort:     MTLS_PORT,
 	}
 }
 
@@ -424,6 +450,7 @@ func NewUserClientWithServiceAccountAndAddrs(httpAddr, mqttAddr, systemkey, syst
 		Password:     "",
 		HttpAddr:     httpAddr,
 		MqttAddr:     mqttAddr,
+		MTLSPort:     MTLS_PORT,
 	}
 }
 
@@ -892,6 +919,9 @@ func do(c cbClient, r *CbReq, creds [][]string) (*CbResp, error) {
 		bodyToSend = nil
 	}
 	url := c.getHttpAddr() + r.Endpoint
+	if r.IsMTLS {
+		url = c.getHttpAddr() + ":" + c.getMTLSPort() + r.Endpoint
+	}
 	if r.QueryString != "" {
 		url += "?" + r.QueryString
 	}
@@ -986,7 +1016,7 @@ func post(c cbClient, endpoint string, body interface{}, creds [][]string, heade
 	return do(c, req, creds)
 }
 
-func postWithCustomTransport(c cbClient, endpoint string, body interface{}, creds [][]string, headers map[string][]string, tr *http.Transport) (*CbResp, error) {
+func postWithCustomTransport(c cbClient, endpoint string, body interface{}, creds [][]string, headers map[string][]string, tr *http.Transport, isMTLS bool) (*CbResp, error) {
 	req := &CbReq{
 		Body:        body,
 		Method:      "POST",
@@ -994,6 +1024,7 @@ func postWithCustomTransport(c cbClient, endpoint string, body interface{}, cred
 		QueryString: "",
 		Headers:     headers,
 		Transport:   tr,
+		IsMTLS:      isMTLS,
 	}
 	return do(c, req, creds)
 }
