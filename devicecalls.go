@@ -360,7 +360,7 @@ func (d *DeviceClient) AuthenticateDeviceWithMTLS(systemKey, name, certFile, pri
 		Certificates: []tls.Certificate{cert},
 	}
 	transport := &http.Transport{TLSClientConfig: tlsConfig}
-	resp, err := postWithCustomTransport(d, _DEVICE_V4_PREAMBLE+"/mtls/auth", postBody, creds, nil, transport)
+	resp, err := postWithCustomTransport(d, _DEVICE_V4_PREAMBLE+"mtls/auth:444", postBody, creds, nil, transport)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
