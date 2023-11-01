@@ -173,24 +173,24 @@ func updateService(c cbClient, sysKey, name, code string, extra map[string]inter
 	return nil, body
 }
 
-//CallService performs a call against the specific service with the specified parameters. The logging argument will allow the developer to call the service with logging enabled for just that run.
-//The return value is a map[string]interface{} where the results will be stored in the key "results". If logs were enabled, they'll be in "log".
+// CallService performs a call against the specific service with the specified parameters. The logging argument will allow the developer to call the service with logging enabled for just that run.
+// The return value is a map[string]interface{} where the results will be stored in the key "results". If logs were enabled, they'll be in "log".
 func (d *DevClient) CallService(systemKey, name string, params map[string]interface{}, log bool) (map[string]interface{}, error) {
 	return callService(d, systemKey, name, params, log)
 }
 
-//CallService performs a call against the specific service with the specified parameters.
-//The return value is a map[string]interface{} where the results will be stored in the key "results". If logs were enabled, they'll be in "log".
+// CallService performs a call against the specific service with the specified parameters.
+// The return value is a map[string]interface{} where the results will be stored in the key "results". If logs were enabled, they'll be in "log".
 func (u *UserClient) CallService(systemKey, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return callService(u, systemKey, name, params, false)
 }
 
-//GetServiceNames retrieves the service names for a particular system
+// GetServiceNames retrieves the service names for a particular system
 func (u *UserClient) GetServiceNames(systemKey string) ([]string, error) {
 	return GetServiceNames(u, systemKey)
 }
 
-//GetService returns information about a specified service
+// GetService returns information about a specified service
 func (u *UserClient) GetService(systemKey, name string) (*Service, error) {
 	return getService(u, systemKey, name)
 }
@@ -335,6 +335,25 @@ func (d *DevClient) CreateWebhook(systemKey, name string, meta map[string]interf
 		return fmt.Errorf("Error creating new webhook: %v", resp.Body)
 	}
 	return nil
+}
+
+func (d *DevClient) InvokeWebhook(systemKey, name string, body map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := post(d, "/api/v/4/webhook/execute/"+systemKey+"/"+name, body, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error invoking webhook: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error invoking webhook: %v", resp.Body)
+	}
+	mapBody, ok := resp.Body.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Invalid response received for invoking webhook: %+v", resp.Body)
+	}
+	return mapBody, nil
 }
 
 func (d *DevClient) UpdateWebhook(systemKey, name string, changes map[string]interface{}) error {

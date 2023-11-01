@@ -184,6 +184,7 @@ type CbReq struct {
 	Headers     map[string][]string
 	HttpAddr    string
 	MqttAddr    string
+	Transport   *http.Transport
 }
 
 // CbResp is a wrapper around an HTTP response
@@ -916,10 +917,12 @@ func do(c cbClient, r *CbReq, creds [][]string) (*CbResp, error) {
 		}
 		req.Header.Add(c[0], c[1])
 	}
-
 	cli := &http.Client{
 		Transport: tr,
 		Timeout:   time.Minute * 5,
+	}
+	if r.Transport != nil {
+		cli.Transport = r.Transport
 	}
 	resp, err := cli.Do(req)
 	if err != nil {
@@ -979,6 +982,18 @@ func post(c cbClient, endpoint string, body interface{}, creds [][]string, heade
 		Endpoint:    endpoint,
 		QueryString: "",
 		Headers:     headers,
+	}
+	return do(c, req, creds)
+}
+
+func postWithCustomTransport(c cbClient, endpoint string, body interface{}, creds [][]string, headers map[string][]string, tr *http.Transport) (*CbResp, error) {
+	req := &CbReq{
+		Body:        body,
+		Method:      "POST",
+		Endpoint:    endpoint,
+		QueryString: "",
+		Headers:     headers,
+		Transport:   tr,
 	}
 	return do(c, req, creds)
 }

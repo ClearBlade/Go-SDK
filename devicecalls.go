@@ -1,9 +1,11 @@
 package GoSDK
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 )
 
@@ -341,6 +343,36 @@ func (d *DeviceClient) AuthenticateDeviceWithKey(systemKey, name, activeKey stri
 	return theJewels, nil
 }
 
+func (d *DeviceClient) AuthenticateDeviceWithMTLS(systemKey, name, certFile, privKeyFile string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	postBody := map[string]interface{}{
+		"name":       name,
+		"system_key": systemKey,
+	}
+	cert, err := tls.LoadX509KeyPair(certFile, privKeyFile)
+	if err != nil {
+		return nil, err
+	}
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+	transport := &http.Transport{TLSClientConfig: tlsConfig}
+	resp, err := postWithCustomTransport(d, _DEVICE_V4_PREAMBLE+"/mtls/auth", postBody, creds, nil, transport)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	theJewels, ok := resp.Body.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Got unexpected return value from AuthenticateDeviceWithMTLS: %+v", theJewels)
+	}
+	d.DeviceToken = theJewels["deviceToken"].(string)
+	return theJewels, nil
+}
+
 func (d *DevClient) DeleteDevice(systemKey, name string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -612,6 +644,11 @@ func (dvc *DeviceClient) credentials() ([][]string, error) {
 // "Login and logout"
 func (dvc *DeviceClient) Authenticate() (*AuthResponse, error) {
 	_, err := dvc.AuthenticateDeviceWithKey(dvc.SystemKey, dvc.DeviceName, dvc.ActiveKey)
+	return nil, err
+}
+
+func (dvc *DeviceClient) AuthenticateWithMTLS(certFile, privKeyFile string) (*AuthResponse, error) {
+	_, err := dvc.AuthenticateDeviceWithMTLS(dvc.SystemKey, dvc.DeviceName, certFile, privKeyFile)
 	return nil, err
 }
 
