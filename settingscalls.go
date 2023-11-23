@@ -1,5 +1,11 @@
 package GoSDK
 
+import (
+	"encoding/json"
+	"fmt"
+	"net/url"
+)
+
 //"fmt"
 
 const (
@@ -90,7 +96,104 @@ func (d *DevClient) AddMTLSSettings(rootCA, crl string) error {
 		"root_ca": rootCA,
 		"crl":     crl,
 	}
-	resp, err := post(d, _SETTINGS_PREAMBLE+"mtls", settings, creds, nil)
+	resp, err := put(d, _SETTINGS_PREAMBLE+"mtls", settings, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *DevClient) GetMTLSSettings() (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, _SETTINGS_PREAMBLE+"mtls", nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) DeleteMTLSSettings() error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(d, _SETTINGS_PREAMBLE+"mtls", nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *DevClient) RevokeCertificate(certificate string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	payload := map[string]interface{}{
+		"certificate": certificate,
+	}
+	resp, err := post(d, "/admin/revoked_certs", payload, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *DevClient) GetRevokedCertificates(query *Query) ([]map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	var qry map[string]string
+	if query != nil {
+		query_map := query.serialize()
+		query_bytes, err := json.Marshal(query_map)
+		if err != nil {
+			return nil, err
+		}
+		qry = map[string]string{
+			"query": url.QueryEscape(string(query_bytes)),
+		}
+	} else {
+		qry = nil
+	}
+	resp, err := get(d, "/admin/revoked_certs", qry, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting data: %v", err)
+	}
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.([]map[string]interface{}), nil
+}
+
+func (d *DevClient) DeleteRevokedCertificates(query *Query) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	var qry map[string]string
+	if query != nil {
+		query_map := query.serialize()
+		query_bytes, err := json.Marshal(query_map)
+		if err != nil {
+			return err
+		}
+		qry = map[string]string{
+			"query": url.QueryEscape(string(query_bytes)),
+		}
+	} else {
+		qry = nil
+	}
+	resp, err := delete(d, "/admin/revoked_certs", qry, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return err
