@@ -81,10 +81,10 @@ func deleteGoogleStorageSettings(c cbClient, endpoint string) error {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (d *DevClient) AddMTLSSettings(rootCA, crl string) (map[string]interface{}, error) {
+func (d *DevClient) AddMTLSSettings(rootCA, crl string) error {
 	creds, err := d.credentials()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	settings := map[string]interface{}{
 		"root_ca": rootCA,
@@ -93,7 +93,7 @@ func (d *DevClient) AddMTLSSettings(rootCA, crl string) (map[string]interface{},
 	resp, err := post(d, _SETTINGS_PREAMBLE+"mtls", settings, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.Body.(map[string]interface{}), nil
+	return nil
 }
