@@ -1,8 +1,6 @@
 package GoSDK
 
-import (
 //"fmt"
-)
 
 const (
 	_SETTINGS_PREAMBLE = "/admin/settings/"
@@ -79,4 +77,23 @@ func deleteGoogleStorageSettings(c cbClient, endpoint string) error {
 	}
 	_, err = delete(c, endpoint, nil, creds, nil)
 	return err
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (d *DevClient) AddMTLSSettings(rootCA, crl string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	settings := map[string]interface{}{
+		"root_ca": rootCA,
+		"crl":     crl,
+	}
+	resp, err := post(d, _SETTINGS_PREAMBLE+"mtls", settings, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
 }
