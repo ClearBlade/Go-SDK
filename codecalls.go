@@ -10,6 +10,12 @@ const (
 	_CODE_CACHE_META_PREAMBLE = "/admin/v/4/service_caches"
 	_WEBHOOK_PREAMBLE         = "/admin/v/4/webhook"
 	_LATEST_VERSION_ENDPOINT  = "/codeadmin/v/4/codemeta" // /{systemKey}/latest
+
+	// webhook auth methods
+	NO_AUTH         = "no_auth"
+	CB_AUTH         = "cb_auth"
+	HTTP_BASIC_AUTH = "http_auth"
+	PAYLOAD_AUTH    = "payload_auth"
 )
 
 func (d *DevClient) GetLatestServicesMeta(systemKey string) (map[string]interface{}, error) {
@@ -337,12 +343,68 @@ func (d *DevClient) CreateWebhook(systemKey, name string, meta map[string]interf
 	return nil
 }
 
-func (d *DevClient) InvokeWebhook(systemKey, name string, body map[string]interface{}) (map[string]interface{}, error) {
+func (d *DevClient) InvokeWebhook(systemKey, name string, body map[string]interface{}, authMethod string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := post(d, "/api/v/4/webhook/execute/"+systemKey+"/"+name, body, creds, nil)
+	var resp *CbResp
+	switch authMethod {
+	case NO_AUTH:
+		resp, err = post(d, "/api/v/4/webhook/execute/"+systemKey+"/"+name, body, nil, nil)
+	case CB_AUTH:
+		resp, err = post(d, "/api/v/4/webhook/execute/"+systemKey+"/"+name, body, creds, nil)
+	case HTTP_BASIC_AUTH:
+		headers := map[string][]string{
+			"Authorization": {fmt.Sprintf("Basic %s", d.DevToken)},
+		}
+		resp, err = post(d, "/api/v/4/webhook/execute/"+systemKey+"/"+name, body, nil, headers)
+	case PAYLOAD_AUTH:
+		if body == nil {
+			body = map[string]interface{}{}
+		}
+		body["token"] = d.DevToken
+	default:
+		return nil, fmt.Errorf("Invalid auth method for executing webhook: %s", authMethod)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("Error invoking webhook: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error invoking webhook: %v", resp.Body)
+	}
+	mapBody, ok := resp.Body.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Invalid response received for invoking webhook: %+v", resp.Body)
+	}
+	return mapBody, nil
+}
+
+func (u *UserClient) InvokeWebhook(systemKey, name string, body map[string]interface{}, authMethod string) (map[string]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+	var resp *CbResp
+	switch authMethod {
+	case NO_AUTH:
+		resp, err = post(u, "/api/v/4/webhook/execute/"+systemKey+"/"+name, body, nil, nil)
+	case CB_AUTH:
+		resp, err = post(u, "/api/v/4/webhook/execute/"+systemKey+"/"+name, body, creds, nil)
+	case HTTP_BASIC_AUTH:
+		headers := map[string][]string{
+			"Authorization": {fmt.Sprintf("Basic %s", u.UserToken)},
+		}
+		resp, err = post(u, "/api/v/4/webhook/execute/"+systemKey+"/"+name, body, nil, headers)
+	case PAYLOAD_AUTH:
+		if body == nil {
+			body = map[string]interface{}{}
+		}
+		body["token"] = u.UserToken
+		resp, err = post(u, "/api/v/4/webhook/execute/"+systemKey+"/"+name, body, nil, nil)
+	default:
+		return nil, fmt.Errorf("Invalid auth method for executing webhook: %s", authMethod)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("Error invoking webhook: %v", err)
 	}
