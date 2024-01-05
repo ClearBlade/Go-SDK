@@ -91,8 +91,8 @@ func (d *DeviceClient) GetDataByName(collectionName string, query *Query) (map[s
 //GetDataByName performs a query against a collection, using the collection's name, rather than the ID. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
 //The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
 
-func (d *DevClient) GetDataByName(collectionName string, query *Query) (map[string]interface{}, error) {
-	return nil, fmt.Errorf("Developer cannot call this yet")
+func (d *DevClient) GetDataByName(collectionName string, query *Query, systemKey string) (map[string]interface{}, error) {
+	return getDataByName(d, systemKey, collectionName, query)
 }
 
 // GetData performs a query against a collection. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
