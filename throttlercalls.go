@@ -1,8 +1,6 @@
 package GoSDK
 
-import (
 //"fmt"
-)
 
 const (
 	_THROTTLERS_PREAMBLE    = "/admin/throttlers"
@@ -71,15 +69,15 @@ func (d *DevClient) createThrottlerCase(throttlerName, pathTail string, caseInfo
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) DeleteAllThrottlerCases(throttlerName string) ([]interface{}, error) {
+func (d *DevClient) DeleteAllThrottlerCases(throttlerName string) (map[string]interface{}, error) {
 	return d.deleteAllThrottlerCases(throttlerName, "/cases")
 }
 
-func (d *DevClient) DeleteAllThrottlerExceptions(throttlerName string) ([]interface{}, error) {
+func (d *DevClient) DeleteAllThrottlerExceptions(throttlerName string) (map[string]interface{}, error) {
 	return d.deleteAllThrottlerCases(throttlerName, "/exceptions")
 }
 
-func (d *DevClient) deleteAllThrottlerCases(throttlerName, pathTail string) ([]interface{}, error) {
+func (d *DevClient) deleteAllThrottlerCases(throttlerName, pathTail string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
@@ -88,7 +86,7 @@ func (d *DevClient) deleteAllThrottlerCases(throttlerName, pathTail string) ([]i
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body.([]interface{}), nil
+	return resp.Body.(map[string]interface{}), nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
