@@ -130,6 +130,22 @@ func (d *DevClient) DeleteMTLSSettings() error {
 	return nil
 }
 
+func (d *DevClient) DeleteRevokedCertificate(certificate string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	payload := map[string]string{
+		"certificate": certificate,
+	}
+	resp, err := delete(d, "/admin/revoked_certs", payload, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (d *DevClient) RevokeCertificate(certificate string) error {
 	creds, err := d.credentials()
 	if err != nil {
