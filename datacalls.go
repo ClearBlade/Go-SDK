@@ -86,13 +86,10 @@ func (d *DeviceClient) GetDataByName(collectionName string, query *Query) (map[s
 	return getDataByName(d, d.SystemKey, collectionName, query)
 }
 
-//GetDataByName performs a query against a collection, using the collection's name, rather than the ID. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
-
-//GetDataByName performs a query against a collection, using the collection's name, rather than the ID. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
-//The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
-
-func (d *DevClient) GetDataByName(collectionName string, query *Query, systemKey string) (map[string]interface{}, error) {
-	return getDataByName(d, systemKey, collectionName, query)
+// GetDataByName performs a query against a collection, using the collection's name, rather than the ID. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
+// The return value is a key-value of the types. Note that due to the transport mechanism being JSON, ints will be turned into float64s.
+func (d *DevClient) GetDataByName(collectionName string, query *Query) (map[string]interface{}, error) {
+	return nil, fmt.Errorf("Developer cannot call GetDataByName, must use GetDataByNameWithSystemKey")
 }
 
 // GetData performs a query against a collection. The query object is discussed elsewhere. If the query object is nil, then it will return all of the data.
@@ -925,19 +922,16 @@ func deleteCollection(c cbClient, preamble, colID string) error {
 	return nil
 }
 
-// GetDataByKeyAndName is unimplemented
-func (d *DevClient) GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error) {
-	return nil, fmt.Errorf("Unimplemented")
+func (d *DevClient) GetDataByNameWithSystemKey(systemKey, collectionName string, query *Query) (map[string]interface{}, error) {
+	return getDataByName(d, systemKey, collectionName, query)
 }
 
-// GetDataByKeyAndName is unimplemented
-func (u *UserClient) GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error) {
-	return nil, fmt.Errorf("Unimplemented")
+func (u *UserClient) GetDataByNameWithSystemKey(systemKey, collectionName string, query *Query) (map[string]interface{}, error) {
+	return getDataByName(u, systemKey, collectionName, query)
 }
 
-// GetDataByKeyAndName is unimplemented
-func (d *DeviceClient) GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error) {
-	return nil, fmt.Errorf("Unimplemented")
+func (d *DeviceClient) GetDataByNameWithSystemKey(systemKey, collectionName string, query *Query) (map[string]interface{}, error) {
+	return getDataByName(d, systemKey, collectionName, query)
 }
 
 func (u *UserClient) CreateIndex(systemKey, collectionName, columnToIndex string) error {

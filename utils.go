@@ -56,7 +56,7 @@ type Client interface {
 	UpdateDataByName(string, string, *Query, map[string]interface{}) (UpdateResponse, error)
 	GetData(string, *Query) (map[string]interface{}, error)
 	GetDataByName(string, *Query) (map[string]interface{}, error)
-	GetDataByKeyAndName(string, string, *Query) (map[string]interface{}, error)
+	GetDataByNameWithSystemKey(string, string, *Query) (map[string]interface{}, error)
 	DeleteData(string, *Query) error
 	GetItemCount(string) (int, error)
 	GetDataTotal(string, *Query) (map[string]interface{}, error)
@@ -95,6 +95,13 @@ type Client interface {
 	UpdateAdaptorFile(string, string, string, map[string]interface{}) (map[string]interface{}, error)
 	DeleteAdaptorFile(string, string, string) error
 }
+
+// interface assertions
+var (
+	_ Client = (*UserClient)(nil)
+	_ Client = (*DeviceClient)(nil)
+	_ Client = (*DevClient)(nil)
+)
 
 type MqttClient interface {
 	mqtt.Client
