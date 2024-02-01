@@ -398,3 +398,61 @@ func getEdgesCount(client cbClient, systemKey string, preamble string, query *Qu
 		Count: rval["count"].(float64),
 	}, nil
 }
+
+func (d *DevClient) AddEdgePublicKey(systemKey, edgeName, publicKey, expirationTime string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	body := map[string]interface{}{
+		"public_key": publicKey,
+	}
+
+	if expirationTime != "" {
+		body["expiration_time"] = expirationTime
+	}
+
+	resp, err := post(d, _EDGES_PREAMBLE+"public_key/"+systemKey+"/"+edgeName, body, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) UpdateEdgePublicKey(systemKey, edgeName, publicKey, expirationTime string) ([]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	body := map[string]interface{}{
+		"public_key": publicKey,
+	}
+	if expirationTime != "" {
+		body["expiration_time"] = expirationTime
+	}
+	resp, err := put(d, _EDGES_PREAMBLE+"public_key/"+systemKey+"/"+edgeName, map[string]interface{}{
+		"$set": body,
+	}, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.([]interface{}), nil
+}
+
+func (d *DevClient) DeleteEdgePublicKey(systemKey, edgeName string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(d, _EDGES_PREAMBLE+"public_key/"+systemKey+"/"+edgeName, nil, creds, nil)
+	if err != nil {
+		return err
+	}
+	_, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
