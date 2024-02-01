@@ -399,6 +399,19 @@ func getEdgesCount(client cbClient, systemKey string, preamble string, query *Qu
 	}, nil
 }
 
+func (d *DevClient) GetEdgePublicKey(systemKey, edgeName string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, _EDGES_PREAMBLE+"public_key/"+systemKey+"/"+edgeName, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
 func (d *DevClient) AddEdgePublicKey(systemKey, edgeName, publicKey, expirationTime string) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
