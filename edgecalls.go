@@ -3,6 +3,7 @@ package GoSDK
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"os/exec"
 	"strconv"
@@ -399,7 +400,7 @@ func getEdgesCount(client cbClient, systemKey string, preamble string, query *Qu
 	}, nil
 }
 
-func (d *DevClient) GetEdgePublicKey(systemKey, edgeName string) (map[string]interface{}, error) {
+func (d *DevClient) GetEdgePublicKeys(systemKey, edgeName string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
@@ -409,7 +410,7 @@ func (d *DevClient) GetEdgePublicKey(systemKey, edgeName string) (map[string]int
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body.(map[string]interface{}), nil
+	return resp.Body.([]interface{}), nil
 }
 
 func (d *DevClient) AddEdgePublicKey(systemKey, edgeName, publicKey, expirationTime string) (map[string]interface{}, error) {
@@ -433,7 +434,7 @@ func (d *DevClient) AddEdgePublicKey(systemKey, edgeName, publicKey, expirationT
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) UpdateEdgePublicKey(systemKey, edgeName, publicKey, expirationTime string) ([]interface{}, error) {
+func (d *DevClient) UpdateEdgePublicKey(systemKey, edgeName, publicKey, id, expirationTime string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
@@ -445,6 +446,7 @@ func (d *DevClient) UpdateEdgePublicKey(systemKey, edgeName, publicKey, expirati
 		body["expiration_time"] = expirationTime
 	}
 	resp, err := put(d, _EDGES_PREAMBLE+"public_key/"+systemKey+"/"+edgeName, map[string]interface{}{
+		"id":   id,
 		"$set": body,
 	}, creds, nil)
 	resp, err = mapResponse(resp, err)
@@ -454,18 +456,22 @@ func (d *DevClient) UpdateEdgePublicKey(systemKey, edgeName, publicKey, expirati
 	return resp.Body.([]interface{}), nil
 }
 
-func (d *DevClient) DeleteEdgePublicKey(systemKey, edgeName string) error {
+func (d *DevClient) DeleteEdgePublicKey(systemKey, edgeName string, query *Query) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	resp, err := delete(d, _EDGES_PREAMBLE+"public_key/"+systemKey+"/"+edgeName, nil, creds, nil)
+	query_map := query.serialize()
+	query_bytes, err := json.Marshal(query_map)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	_, err = mapResponse(resp, err)
+	qry := map[string]string{
+		"query": url.QueryEscape(string(query_bytes)),
+	}
+	_, err = delete(d, _EDGES_PREAMBLE+"public_key/"+systemKey+"/"+edgeName, qry, creds, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return nil, nil
 }
