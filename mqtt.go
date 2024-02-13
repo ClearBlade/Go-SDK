@@ -179,17 +179,21 @@ func (d *DeviceClient) AuthenticateMQTT(username, password, systemKey, systemSec
 
 // Publish publishes a message to the specified mqtt topic
 func (u *UserClient) Publish(topic string, message []byte, qos int) error {
-	return publish(u.MQTTClient, topic, message, qos, u.getMessageId())
+	return publish(u.MQTTClient, topic, message, qos, u.getMessageId(), false)
 }
 
 // Publish publishes a message to the specified mqtt topic
 func (d *DeviceClient) Publish(topic string, message []byte, qos int) error {
-	return publish(d.MQTTClient, topic, message, qos, d.getMessageId())
+	return publish(d.MQTTClient, topic, message, qos, d.getMessageId(), false)
 }
 
 // Publish publishes a message to the specified mqtt topic
 func (d *DevClient) Publish(topic string, message []byte, qos int) error {
-	return publish(d.MQTTClient, topic, message, qos, d.getMessageId())
+	return publish(d.MQTTClient, topic, message, qos, d.getMessageId(), false)
+}
+
+func (d *DevClient) PublishWithRetained(topic string, message []byte, qos int, retain bool) error {
+	return publish(d.MQTTClient, topic, message, qos, d.getMessageId(), retain)
 }
 
 // Publish publishes a message to the specified mqtt topic and returns an mqtt.Token
@@ -424,11 +428,11 @@ func newMqttAuthClient(username, password, systemkey, systemsecret string, timeo
 	return mqc, ret.Error()
 }
 
-func publish(c MqttClient, topic string, data []byte, qos int, mid uint16) error {
+func publish(c MqttClient, topic string, data []byte, qos int, mid uint16, retain bool) error {
 	if c == nil {
 		return errors.New("MQTTClient is uninitialized")
 	}
-	ret := c.Publish(topic, uint8(qos), false, data)
+	ret := c.Publish(topic, uint8(qos), retain, data)
 	return ret.Error()
 }
 
