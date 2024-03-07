@@ -29,3 +29,18 @@ func (d *DevClient) UploadToSystem(systemKey string, zipBuffer []byte, dryRun bo
 	}
 	return resp.Body, nil
 }
+
+func (d *DevClient) GetSystemUploadVersion(systemKey string) (interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("%s%s/upload", _SYSTEM_MIGRATION_DEV_PREAMBLE, systemKey)
+	resp, err := get(d, url, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body, nil
+}
