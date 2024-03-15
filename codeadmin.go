@@ -375,15 +375,12 @@ func (d *DevClient) StopAllServiceInstances(systemKey, name string) error {
 		return err
 	}
 
-	fmt.Printf("RUNNING SERVICES: %v\n", services)
-
 	for service := range services {
 		params := map[string]string{
 			"id": service,
 		}
-		fmt.Printf("PARAMS: %v\n", params)
 
-		_, err = delete(d, _CODE_ADMIN_PREAMBLE_V3+"/running/"+systemKey, params, creds, nil)
+		_, err = deleteWithBody(d, _CODE_ADMIN_PREAMBLE_V3+"/running/"+systemKey, params, creds, nil)
 		if err != nil {
 			return err
 		}
