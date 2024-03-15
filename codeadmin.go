@@ -380,7 +380,7 @@ func (d *DevClient) StopAllServiceInstances(systemKey, name string) error {
 			"id": service,
 		}
 
-		_, err = delete(d, _CODE_ADMIN_PREAMBLE_V3+"/running/"+systemKey+"/"+name, params, creds, nil)
+		_, err = delete(d, _CODE_ADMIN_PREAMBLE_V3+"/running/"+systemKey, params, creds, nil)
 		if err != nil {
 			return err
 		}
