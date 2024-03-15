@@ -8,9 +8,10 @@ import (
 const (
 	_CODE_ADMIN_PREAMBLE    = "/admin/code/v/1"
 	_CODE_ADMIN_PREAMBLE_V2 = "/codeadmin/v/2"
+	_CODE_ADMIN_PREAMBLE_V3 = "/codeadmin/v/3"
 )
 
-//Service is a helper struct for grouping facts about a code service
+// Service is a helper struct for grouping facts about a code service
 type Service struct {
 	Name    string
 	Code    string
@@ -19,13 +20,13 @@ type Service struct {
 	System  string
 }
 
-//CodeLog provides structure to the code log return value
+// CodeLog provides structure to the code log return value
 type CodeLog struct {
 	Log  string
 	Time string
 }
 
-//GetServiceNames retrieves the service names for a particular system
+// GetServiceNames retrieves the service names for a particular system
 func (d *DevClient) GetServiceNames(systemKey string) ([]string, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -50,7 +51,7 @@ func (d *DevClient) GetServiceNames(systemKey string) ([]string, error) {
 	return services, nil
 }
 
-//GetService returns information about a specified service
+// GetService returns information about a specified service
 func (d *DevClient) GetService(systemKey, name string) (*Service, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -102,7 +103,7 @@ func (d *DevClient) GetServiceRaw(systemKey, name string) (map[string]interface{
 	return mapBody, nil
 }
 
-//SetServiceEffectiveUser allows the developer to set the userid that a service executes under.
+// SetServiceEffectiveUser allows the developer to set the userid that a service executes under.
 func (d *DevClient) SetServiceEffectiveUser(systemKey, name, userid string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -120,7 +121,7 @@ func (d *DevClient) SetServiceEffectiveUser(systemKey, name, userid string) erro
 	return nil
 }
 
-//UpdateService facillitates changes to the service's code
+// UpdateService facillitates changes to the service's code
 func (d *DevClient) UpdateService(systemKey, name, code string, params []string) (map[string]interface{}, error) {
 	extra := map[string]interface{}{"code": code, "name": name, "parameters": params}
 	return d.updateService(systemKey, name, code, extra)
@@ -131,7 +132,7 @@ func (d *DevClient) UpdateServiceWithLibraries(systemKey, name, code, deps strin
 	return d.updateService(systemKey, name, code, extra)
 }
 
-//UpdateServiceWithBody updates a service code and any additional info passed in (parameters, execution_timeout, etc.)
+// UpdateServiceWithBody updates a service code and any additional info passed in (parameters, execution_timeout, etc.)
 func (d *DevClient) UpdateServiceWithBody(systemKey, name, code string, extra map[string]interface{}) (map[string]interface{}, error) {
 	return d.updateService(systemKey, name, code, extra)
 }
@@ -156,25 +157,25 @@ func (d *DevClient) updateService(sysKey, name, code string, extra map[string]in
 	return body, nil
 }
 
-//NewServiceWithLibraries creates a new service with the specified code, params, and libraries/dependencies.
-//Parameters is a slice of strings of parameter names
+// NewServiceWithLibraries creates a new service with the specified code, params, and libraries/dependencies.
+// Parameters is a slice of strings of parameter names
 func (d *DevClient) NewServiceWithLibraries(systemKey, name, code, deps string, params []string) error {
 	extra := map[string]interface{}{"parameters": params, "dependencies": deps}
 	return d.newService(systemKey, name, code, extra)
 }
 
-//NewService creates a new service with a new name, code and params
+// NewService creates a new service with a new name, code and params
 func (d *DevClient) NewService(systemKey, name, code string, params []string) error {
 	extra := map[string]interface{}{"parameters": params}
 	return d.newService(systemKey, name, code, extra)
 }
 
-//NewServiceWithBody creates a new service with a new name, code and any additional info passed in (parameters, execution_timeout, etc.)
+// NewServiceWithBody creates a new service with a new name, code and any additional info passed in (parameters, execution_timeout, etc.)
 func (d *DevClient) NewServiceWithBody(systemKey, name, code string, extra map[string]interface{}) error {
 	return d.newService(systemKey, name, code, extra)
 }
 
-//EnableLogsForService activates logging for execution of a service
+// EnableLogsForService activates logging for execution of a service
 func (d *DevClient) EnableLogsForService(systemKey, name string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -203,7 +204,7 @@ func (d *DevClient) UpdateServiceWithMap(systemKey, name string, changes map[str
 	return body, nil
 }
 
-//DisableLogsForService turns logging off for that service
+// DisableLogsForService turns logging off for that service
 func (d *DevClient) DisableLogsForService(systemKey, name string) error {
 	creds, err := d.credentials()
 	if err != nil {
@@ -213,7 +214,7 @@ func (d *DevClient) DisableLogsForService(systemKey, name string) error {
 	return err
 }
 
-//AreServiceLogsEnabled allows the developer to query the state of logging
+// AreServiceLogsEnabled allows the developer to query the state of logging
 func (d *DevClient) AreServiceLogsEnabled(systemKey, name string) (bool, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -231,7 +232,7 @@ func (d *DevClient) AreServiceLogsEnabled(systemKey, name string) (bool, error) 
 	}
 }
 
-//GetLogsForService retrieves the logs for the service
+// GetLogsForService retrieves the logs for the service
 func (d *DevClient) GetLogsForService(systemKey, name string) ([]CodeLog, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -361,6 +362,31 @@ func (d *DevClient) SetLongRunningServiceParams(systemKey, name string, autoRest
 
 	_, err = put(d, _CODE_ADMIN_PREAMBLE_V2+"/"+systemKey+"/"+name, params, creds, nil)
 	return err
+}
+
+func (d *DevClient) StopAllServiceInstances(systemKey, name string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+
+	services, err := d.GetRunningServices(systemKey)
+	if err != nil {
+		return err
+	}
+
+	for service := range services {
+		params := map[string]string{
+			"id": service,
+		}
+
+		_, err = delete(d, _CODE_ADMIN_PREAMBLE_V3+"/running/"+systemKey+"/"+name, params, creds, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func genCodeLog(m map[string]interface{}) CodeLog {
