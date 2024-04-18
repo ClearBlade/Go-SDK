@@ -130,13 +130,13 @@ func (d *DevClient) DeleteMTLSSettings() error {
 	return nil
 }
 
-func (d *DevClient) DeleteRevokedCertificate(certificate string) error {
+func (d *DevClient) DeleteRevokedCertificate(certificateHash string) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
 	payload := map[string]string{
-		"certificate": certificate,
+		"certificate_hash": certificateHash,
 	}
 	resp, err := delete(d, "/admin/revoked_certs", payload, creds, nil)
 	resp, err = mapResponse(resp, err)
@@ -146,13 +146,13 @@ func (d *DevClient) DeleteRevokedCertificate(certificate string) error {
 	return nil
 }
 
-func (d *DevClient) RevokeCertificate(certificate string) error {
+func (d *DevClient) RevokeCertificate(certificateHash string) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
 	}
 	payload := map[string]interface{}{
-		"certificate": certificate,
+		"certificate_hash": certificateHash,
 	}
 	resp, err := post(d, "/admin/revoked_certs", payload, creds, nil)
 	resp, err = mapResponse(resp, err)
