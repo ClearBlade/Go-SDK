@@ -11,7 +11,6 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 
 	cbErr "github.com/clearblade/go-utils/errors"
@@ -21,10 +20,13 @@ import (
 
 var (
 	//CB_ADDR is the address of the ClearBlade Platform you are speaking with
-	CB_ADDR = "https://platform.clearblade.com"
+	// CB_ADDR = "https://platform.clearblade.com"
+	CB_ADDR = "https://localhost.clearblade.com"
 	//CB_MSG_ADDR is the messaging address you wish to speak to
-	CB_MSG_ADDR      = "platform.clearblade.com:1883"
-	CB_MSG_AUTH_ADDR = "platform.clearblade.com:8905"
+	// CB_MSG_ADDR      = "platform.clearblade.com:1883"
+	CB_MSG_ADDR = "localhost.clearblade.com:1883"
+	// CB_MSG_AUTH_ADDR = "platform.clearblade.com:8905"
+	CB_MSG_AUTH_ADDR = "localhost.clearblade.com:8905"
 
 	MTLS_PORT = "444"
 
@@ -937,6 +939,7 @@ func do(c cbClient, r *CbReq, creds [][]string) (*CbResp, error) {
 	if bodyToSend != nil {
 		req, reqErr = http.NewRequest(r.Method, url, bodyToSend)
 	} else {
+		fmt.Printf("URL: %s\n", url)
 		req, reqErr = http.NewRequest(r.Method, url, nil)
 	}
 	if reqErr != nil {
@@ -1070,11 +1073,11 @@ func deleteWithBody(c cbClient, endpoint string, body interface{}, heads [][]str
 }
 
 func query_to_string(query map[string]string) string {
-	qryStr := ""
+	qryVals := url.Values{}
 	for k, v := range query {
-		qryStr += k + "=" + v + "&"
+		qryVals.Set(k, v)
 	}
-	return strings.TrimSuffix(qryStr, "&")
+	return qryVals.Encode()
 }
 
 func checkForEdgeProxy(c cbClient, r *CbReq) {
