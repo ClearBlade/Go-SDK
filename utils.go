@@ -20,8 +20,7 @@ import (
 
 var (
 	//CB_ADDR is the address of the ClearBlade Platform you are speaking with
-	// CB_ADDR = "https://platform.clearblade.com"
-	CB_ADDR = "https://localhost.clearblade.com"
+	CB_ADDR = "https://platform.clearblade.com"
 	//CB_MSG_ADDR is the messaging address you wish to speak to
 	CB_MSG_ADDR      = "platform.clearblade.com:1883"
 	CB_MSG_AUTH_ADDR = "platform.clearblade.com:8905"
