@@ -1,8 +1,8 @@
 package GoSDK
 
-import (
+import "fmt"
+
 //"fmt"
-)
 
 const (
 	_BUCKET_SETS_PREAMBLE = "/api/v/4/bucket_sets/"
@@ -225,14 +225,17 @@ func readBucketSetFile(c cbClient, endpoint, box, relPath string) (string, error
 	queries := map[string]string{"box": box, "path": relPath}
 	creds, err := c.credentials()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Credentials error: %w", err)
 	}
 	resp, err := get(c, endpoint, queries, creds, nil)
-	resp, err = mapResponse(resp, err)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Get error: %w", err)
 	}
-	return resp.Body.(string), nil
+	r, err := mapResponse(resp, err)
+	if err != nil {
+		return "", fmt.Errorf("Map response error - resp is: %v: %w", resp, err)
+	}
+	return r.Body.(string), nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
