@@ -11,7 +11,6 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 
 	cbErr "github.com/clearblade/go-utils/errors"
@@ -1070,11 +1069,11 @@ func deleteWithBody(c cbClient, endpoint string, body interface{}, heads [][]str
 }
 
 func query_to_string(query map[string]string) string {
-	qryStr := ""
+	qryVals := url.Values{}
 	for k, v := range query {
-		qryStr += k + "=" + v + "&"
+		qryVals.Set(k, v)
 	}
-	return strings.TrimSuffix(qryStr, "&")
+	return qryVals.Encode()
 }
 
 func checkForEdgeProxy(c cbClient, r *CbReq) {
