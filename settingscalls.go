@@ -3,7 +3,6 @@ package GoSDK
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 )
 
 //"fmt"
@@ -175,7 +174,7 @@ func (d *DevClient) GetRevokedCertificates(query *Query) ([]map[string]interface
 			return nil, err
 		}
 		qry = map[string]string{
-			"query": url.QueryEscape(string(query_bytes)),
+			"query": string(query_bytes),
 		}
 	} else {
 		qry = nil
@@ -204,7 +203,7 @@ func (d *DevClient) DeleteRevokedCertificates(query *Query) error {
 			return err
 		}
 		qry = map[string]string{
-			"query": url.QueryEscape(string(query_bytes)),
+			"query": string(query_bytes),
 		}
 	} else {
 		qry = nil

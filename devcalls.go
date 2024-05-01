@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 	"strings"
 )
 
@@ -250,7 +249,7 @@ func (d *DevClient) DeleteRootCACertificate(systemKey string, query *Query) erro
 	}
 	qry := map[string]string{
 		"system_key": systemKey,
-		"query":      url.QueryEscape(string(query_bytes)),
+		"query":      string(query_bytes),
 	}
 	_, err = delete(d, d.preamble()+"/systemmanagement/certificates", qry, creds, nil)
 	if err != nil {
@@ -403,7 +402,7 @@ func (d *DevClient) GetRolesWithQuery(SystemKey string, query *Query) ([]interfa
 		return nil, err
 	}
 	qry = map[string]string{
-		"query": url.QueryEscape(string(query_bytes)),
+		"query": string(query_bytes),
 	}
 	resp, err := get(d, d.preamble()+"/user/"+SystemKey+"/roles", qry, creds, nil)
 	if err != nil {
@@ -435,7 +434,7 @@ func (d *DevClient) GetRolesCount(SystemKey string, query *Query) (CountResp, er
 		return CountResp{Count: 0}, err
 	}
 	qry = map[string]string{
-		"query": url.QueryEscape(string(query_bytes)),
+		"query": string(query_bytes),
 	}
 	resp, err := get(d, d.preamble()+"/user/"+SystemKey+"/roles/count", qry, creds, nil)
 	if err != nil {
@@ -493,7 +492,7 @@ func (d *DevClient) GetRole(SystemKey, roleName string) (map[string]interface{},
 		return nil, err
 	}
 	qry = map[string]string{
-		"query": url.QueryEscape(string(query_bytes)),
+		"query": string(query_bytes),
 	}
 	resp, err := get(d, d.preamble()+"/user/"+SystemKey+"/roles", qry, creds, nil)
 	if err != nil {
@@ -663,7 +662,7 @@ func (d *DevClient) GetUserInfo(systemKey, email string) (map[string]interface{}
 		return nil, err
 	}
 	qry = map[string]string{
-		"query": url.QueryEscape(string(query_bytes)),
+		"query": string(query_bytes),
 	}
 	resp, err := get(d, d.preamble()+"/user/"+systemKey, qry, creds, nil)
 	if err != nil {
