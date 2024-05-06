@@ -1177,7 +1177,7 @@ func createQueryMap(query *Query) (map[string]string, error) {
 			return nil, err
 		}
 		qry = map[string]string{
-			"query": url.QueryEscape(string(queryBytes)),
+			"query": string(queryBytes),
 		}
 	} else {
 		qry = nil

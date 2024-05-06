@@ -3,7 +3,6 @@ package GoSDK
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 )
 
 const (
@@ -117,7 +116,7 @@ func dbQueryToReqQuery(query *Query) (map[string]string, error) {
 			return nil, err
 		}
 		qry = map[string]string{
-			"query": url.QueryEscape(string(queryBytes)),
+			"query": string(queryBytes),
 		}
 	} else {
 		qry = nil

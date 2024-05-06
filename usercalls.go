@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 )
 
 const (
@@ -253,7 +252,7 @@ func (d *DevClient) GetUserSession(systemKey string, query *Query) ([]interface{
 			return nil, err
 		}
 		qry = map[string]string{
-			"query": url.QueryEscape(string(query_bytes)),
+			"query": string(query_bytes),
 		}
 	} else {
 		qry = nil
@@ -281,7 +280,7 @@ func (d *DevClient) DeleteUserSession(systemKey string, query *Query) error {
 			return err
 		}
 		qry = map[string]string{
-			"query": url.QueryEscape(string(query_bytes)),
+			"query": string(query_bytes),
 		}
 	} else {
 		qry = nil
@@ -381,7 +380,7 @@ func (u *UserClient) GetUserInfo(systemKey, email string) (map[string]interface{
 		return nil, err
 	}
 	qry = map[string]string{
-		"query": url.QueryEscape(string(query_bytes)),
+		"query": string(query_bytes),
 	}
 	resp, err := get(u, u.preamble(), qry, creds, nil)
 	if err != nil {

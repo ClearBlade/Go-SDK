@@ -3,7 +3,6 @@ package GoSDK
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 	"os/exec"
 	"strconv"
@@ -467,7 +466,7 @@ func (d *DevClient) DeleteEdgePublicKey(systemKey, edgeName string, query *Query
 		return nil, err
 	}
 	qry := map[string]string{
-		"query": url.QueryEscape(string(query_bytes)),
+		"query": string(query_bytes),
 	}
 	_, err = delete(d, _EDGES_PREAMBLE+"public_key/"+systemKey+"/"+edgeName, qry, creds, nil)
 	if err != nil {

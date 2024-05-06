@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 )
 
 type KeyFormat int
@@ -97,7 +96,7 @@ func (d *DevClient) DeleteDevicePublicKey(systemKey, deviceName string, query *Q
 		return nil, err
 	}
 	qry := map[string]string{
-		"query": url.QueryEscape(string(query_bytes)),
+		"query": string(query_bytes),
 	}
 	_, err = delete(d, _DEVICE_PUBKEY_PREAMBLE+systemKey+"/"+deviceName, qry, creds, nil)
 	if err != nil {
@@ -569,7 +568,7 @@ func (d *DevClient) GetDeviceSession(systemKey string, query *Query) ([]interfac
 			return nil, err
 		}
 		qry = map[string]string{
-			"query": url.QueryEscape(string(query_bytes)),
+			"query": string(query_bytes),
 		}
 	} else {
 		qry = nil
@@ -597,7 +596,7 @@ func (d *DevClient) DeleteDeviceSession(systemKey string, query *Query) error {
 			return err
 		}
 		qry = map[string]string{
-			"query": url.QueryEscape(string(query_bytes)),
+			"query": string(query_bytes),
 		}
 	} else {
 		qry = nil

@@ -3,7 +3,6 @@ package GoSDK
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 )
 
 const (
@@ -165,7 +164,7 @@ func getDataByName(c cbClient, sysKey string, collectionName string, query *Quer
 			return nil, err
 		}
 		qry = map[string]string{
-			"query": url.QueryEscape(string(query_bytes)),
+			"query": string(query_bytes),
 		}
 	} else {
 		qry = nil
@@ -193,7 +192,7 @@ func getdata(c cbClient, collection_id string, query *Query) (map[string]interfa
 			return nil, err
 		}
 		qry = map[string]string{
-			"query": url.QueryEscape(string(query_bytes)),
+			"query": string(query_bytes),
 		}
 	} else {
 		qry = nil
@@ -222,7 +221,7 @@ func getdatatotal(c cbClient, collection_id string, query *Query) (map[string]in
 			return nil, err
 		}
 		qry = map[string]string{
-			"query": url.QueryEscape(string(query_bytes)),
+			"query": string(query_bytes),
 		}
 	} else {
 		qry = nil
@@ -251,7 +250,7 @@ func getdatatotalbyname(c cbClient, system_key, collection_name string, query *Q
 			return nil, err
 		}
 		qry = map[string]string{
-			"query": url.QueryEscape(string(query_bytes)),
+			"query": string(query_bytes),
 		}
 	} else {
 		qry = nil
@@ -476,7 +475,7 @@ func deletedata(c cbClient, collection_id string, query *Query) error {
 			return err
 		}
 		qry = map[string]string{
-			"query": url.QueryEscape(string(query_bytes)),
+			"query": string(query_bytes),
 		}
 	} else {
 		qry = nil
@@ -799,7 +798,7 @@ func (d *DevClient) QueryContinuousAggregate(systemKey, collectionName, aggregat
 			return nil, err
 		}
 		qry = map[string]string{
-			"query": url.QueryEscape(string(query_bytes)),
+			"query": string(query_bytes),
 		}
 	} else {
 		qry = nil
