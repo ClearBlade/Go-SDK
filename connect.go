@@ -10,13 +10,13 @@ import (
 //needs to be trucked across the line during setup. enough that it's more helpful to have it in a
 //struct than it is just in a map, or an endless list of function arguments.
 
-type connectCollection interface {
+type ConnectCollection interface {
 	toMap() map[string]interface{}
 	tableName() string
 	name() string
 }
 
-//MySqlConfig houses configuration information for an MySql-backed collection
+// MySqlConfig houses configuration information for an MySql-backed collection
 type MySqlConfig struct {
 	Name, User, Password, Host, Port, DBName, Tablename string
 }
@@ -37,7 +37,7 @@ func (my MySqlConfig) toMap() map[string]interface{} {
 	return m
 }
 
-//MSSqlConfig houses configuration information for an MSSql-backed collection
+// MSSqlConfig houses configuration information for an MSSql-backed collection
 type MSSqlConfig struct {
 	Name, User, Password, Host, Port, DBName, Tablename string
 }
@@ -58,7 +58,7 @@ func (ms MSSqlConfig) toMap() map[string]interface{} {
 	return m
 }
 
-//PostgresqlConfig houses configuration information for an Postgresql-backed collection
+// PostgresqlConfig houses configuration information for an Postgresql-backed collection
 type PostgresqlConfig struct {
 	Name, User, Password, Host, Port, DBName, Tablename string
 }
@@ -99,7 +99,7 @@ func (mg MongoDBConfig) toMap() map[string]interface{} {
 func (mg MongoDBConfig) tableName() string { return mg.Tablename }
 func (mg MongoDBConfig) name() string      { return mg.Tablename }
 
-func GenerateConnectCollection(co map[string]interface{}) (connectCollection, error) {
+func GenerateConnectCollection(co map[string]interface{}) (ConnectCollection, error) {
 	dbtype, ok := co["dbtype"].(string)
 	if !ok {
 		return nil, fmt.Errorf("generateConnectCollection: dbtype field missing or is not a string")
