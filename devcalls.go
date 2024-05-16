@@ -352,11 +352,11 @@ func (d *DevClient) DevUserInfo() (map[string]interface{}, error) {
 }
 
 // NewConnectCollection creates a new collection that is backed by a datastore of your own choosing.
-func (d *DevClient) NewConnectCollection(systemkey string, connectConfig connectCollection) (string, error) {
+func (d *DevClient) NewConnectCollection(systemkey string, connectConfig ConnectCollection) (string, error) {
 	creds, err := d.credentials()
-	m := connectConfig.toMap()
+	m := connectConfig.ToMap()
 	m["appID"] = systemkey
-	m["name"] = connectConfig.name()
+	m["name"] = connectConfig.Name()
 	if err != nil {
 		return "", err
 	}
@@ -371,12 +371,12 @@ func (d *DevClient) NewConnectCollection(systemkey string, connectConfig connect
 }
 
 // AlterConnectionDetails allows the developer to change or add connection information, such as updating a username
-func (d *DevClient) AlterConnectionDetails(systemkey string, connectConfig connectCollection) error {
+func (d *DevClient) AlterConnectionDetails(systemkey string, connectConfig ConnectCollection) error {
 	creds, err := d.credentials()
 	out := make(map[string]interface{})
-	m := connectConfig.toMap()
+	m := connectConfig.ToMap()
 	out["appID"] = systemkey
-	out["name"] = connectConfig.name()
+	out["name"] = connectConfig.Name()
 	out["connectionStringMap"] = m
 	resp, err := put(d, d.preamble()+"/collectionmanagement", out, creds, nil)
 	if err != nil {
