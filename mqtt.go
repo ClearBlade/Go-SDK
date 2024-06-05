@@ -138,6 +138,15 @@ func (d *DeviceClient) InitializeMQTT(clientid string, ignore string, timeout in
 	return nil
 }
 
+func (d *DeviceClient) InitializeMQTTWithMTLS(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
+	mqc, err := newMqttClient(d.DeviceName, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill)
+	if err != nil {
+		return err
+	}
+	d.MQTTClient = mqc
+	return nil
+}
+
 func (d *DeviceClient) InitializeJWTMQTT(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
 	mqc, err := newJwtMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill)
 	if err != nil {
