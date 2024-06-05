@@ -145,7 +145,7 @@ func (d *DeviceClient) InitializeMQTTWithMTLS(username, clientid string, ignore 
 		return fmt.Errorf("Invalid mqtt addr. Expected len 2 but got %+v", mqttAddrSplit)
 	}
 	mTLSMqttAddr := mqttAddrSplit[0] + ":" + d.MTLSPort
-	mqc, err := newMqttClient(d.DeviceName, d.SystemKey, d.SystemSecret, clientid, timeout, mTLSMqttAddr, ssl, lastWill)
+	mqc, err := newMqttClient(username, d.SystemKey, d.SystemSecret, clientid, timeout, mTLSMqttAddr, ssl, lastWill)
 	if err != nil {
 		return err
 	}
