@@ -139,7 +139,7 @@ func (d *DeviceClient) InitializeMQTT(clientid string, ignore string, timeout in
 	return nil
 }
 
-func (d *DeviceClient) InitializeMQTTWithMTLS(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
+func (d *DeviceClient) InitializeMQTTWithMTLS(username, clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
 	mqttAddrSplit := strings.Split(d.MqttAddr, ":")
 	if len(mqttAddrSplit) != 2 {
 		return fmt.Errorf("Invalid mqtt addr. Expected len 2 but got %+v", mqttAddrSplit)
