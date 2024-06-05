@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 
 	mqttTypes "github.com/clearblade/mqtt_parsing"
@@ -139,7 +140,12 @@ func (d *DeviceClient) InitializeMQTT(clientid string, ignore string, timeout in
 }
 
 func (d *DeviceClient) InitializeMQTTWithMTLS(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
-	mqc, err := newMqttClient(d.DeviceName, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill)
+	mqttAddrSplit := strings.Split(d.MqttAddr, ":")
+	if len(mqttAddrSplit) != 2 {
+		return fmt.Errorf("Invalid mqtt addr. Expected len 2 but got %+v", mqttAddrSplit)
+	}
+	mTLSMqttAddr := mqttAddrSplit[0] + ":" + d.MTLSPort
+	mqc, err := newMqttClient(d.DeviceName, d.SystemKey, d.SystemSecret, clientid, timeout, mTLSMqttAddr, ssl, lastWill)
 	if err != nil {
 		return err
 	}
