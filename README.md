@@ -203,8 +203,10 @@ Do a ``` git clone https://github.com/ClearBlade/Go-SDK.git``` to clone the Go-S
 ### Import the Go-SDK package in your project  
 In order to use the Go-SDK in your project, you will need to import the Go-SDK package that you cloned from github, in your project.
 
-# GoDoc
-
-The GoDoc for the Go API can be found at https://docs.clearblade.com/v/3/static/goapi/pkg/github.com/clearblade/Go-SDK/index.html
+```
+import (
+    cb "github.com/clearblade/Go-SDK"
+)
+```
 
 

@@ -10,23 +10,23 @@ import (
 //needs to be trucked across the line during setup. enough that it's more helpful to have it in a
 //struct than it is just in a map, or an endless list of function arguments.
 
-type connectCollection interface {
-	toMap() map[string]interface{}
-	tableName() string
-	name() string
+type ConnectCollection interface {
+	ToMap() map[string]interface{}
+	TableName() string
+	Name() string
 }
 
-//MySqlConfig houses configuration information for an MySql-backed collection
+// MySqlConfig houses configuration information for an MySql-backed collection
 type MySqlConfig struct {
-	Name, User, Password, Host, Port, DBName, Tablename string
+	ColName, User, Password, Host, Port, DBName, Tablename string
 }
 
-func (my MySqlConfig) tableName() string { return my.Tablename }
-func (my MySqlConfig) name() string      { return my.Name }
+func (my MySqlConfig) TableName() string { return my.Tablename }
+func (my MySqlConfig) Name() string      { return my.ColName }
 
-func (my MySqlConfig) toMap() map[string]interface{} {
+func (my MySqlConfig) ToMap() map[string]interface{} {
 	m := make(map[string]interface{})
-	m["name"] = my.Name
+	m["name"] = my.ColName
 	m["user"] = my.User
 	m["password"] = my.Password
 	m["address"] = my.Host
@@ -37,15 +37,15 @@ func (my MySqlConfig) toMap() map[string]interface{} {
 	return m
 }
 
-//MSSqlConfig houses configuration information for an MSSql-backed collection
+// MSSqlConfig houses configuration information for an MSSql-backed collection
 type MSSqlConfig struct {
-	Name, User, Password, Host, Port, DBName, Tablename string
+	ColName, User, Password, Host, Port, DBName, Tablename string
 }
 
-func (ms MSSqlConfig) tableName() string { return ms.Tablename }
-func (ms MSSqlConfig) name() string      { return ms.Tablename }
+func (ms MSSqlConfig) TableName() string { return ms.Tablename }
+func (ms MSSqlConfig) Name() string      { return ms.Tablename }
 
-func (ms MSSqlConfig) toMap() map[string]interface{} {
+func (ms MSSqlConfig) ToMap() map[string]interface{} {
 	m := make(map[string]interface{})
 	m["user"] = ms.User
 	m["password"] = ms.Password
@@ -54,16 +54,16 @@ func (ms MSSqlConfig) toMap() map[string]interface{} {
 	m["dbname"] = ms.DBName
 	m["tablename"] = ms.Tablename
 	m["dbtype"] = "mssql"
-	m["name"] = ms.Name
+	m["name"] = ms.ColName
 	return m
 }
 
-//PostgresqlConfig houses configuration information for an Postgresql-backed collection
+// PostgresqlConfig houses configuration information for an Postgresql-backed collection
 type PostgresqlConfig struct {
-	Name, User, Password, Host, Port, DBName, Tablename string
+	ColName, User, Password, Host, Port, DBName, Tablename string
 }
 
-func (pg PostgresqlConfig) toMap() map[string]interface{} {
+func (pg PostgresqlConfig) ToMap() map[string]interface{} {
 	m := make(map[string]interface{})
 	m["user"] = pg.User
 	m["password"] = pg.Password
@@ -72,18 +72,18 @@ func (pg PostgresqlConfig) toMap() map[string]interface{} {
 	m["dbname"] = pg.DBName
 	m["tablename"] = pg.Tablename
 	m["dbtype"] = "postgres"
-	m["name"] = pg.Name
+	m["name"] = pg.ColName
 	return m
 }
 
-func (pg PostgresqlConfig) tableName() string { return pg.Tablename }
-func (pg PostgresqlConfig) name() string      { return pg.Tablename }
+func (pg PostgresqlConfig) TableName() string { return pg.Tablename }
+func (pg PostgresqlConfig) Name() string      { return pg.Tablename }
 
 type MongoDBConfig struct {
-	Name, User, Password, Host, Port, DBName, Tablename string
+	ColName, User, Password, Host, Port, DBName, Tablename string
 }
 
-func (mg MongoDBConfig) toMap() map[string]interface{} {
+func (mg MongoDBConfig) ToMap() map[string]interface{} {
 	m := make(map[string]interface{})
 	m["user"] = mg.User
 	m["password"] = mg.Password
@@ -92,14 +92,14 @@ func (mg MongoDBConfig) toMap() map[string]interface{} {
 	m["dbname"] = mg.DBName
 	m["tablename"] = mg.Tablename
 	m["dbtype"] = "MongoDB"
-	m["name"] = mg.Name
+	m["name"] = mg.ColName
 	return m
 }
 
-func (mg MongoDBConfig) tableName() string { return mg.Tablename }
-func (mg MongoDBConfig) name() string      { return mg.Tablename }
+func (mg MongoDBConfig) TableName() string { return mg.Tablename }
+func (mg MongoDBConfig) Name() string      { return mg.Tablename }
 
-func GenerateConnectCollection(co map[string]interface{}) (connectCollection, error) {
+func GenerateConnectCollection(co map[string]interface{}) (ConnectCollection, error) {
 	dbtype, ok := co["dbtype"].(string)
 	if !ok {
 		return nil, fmt.Errorf("generateConnectCollection: dbtype field missing or is not a string")
@@ -113,7 +113,7 @@ func GenerateConnectCollection(co map[string]interface{}) (connectCollection, er
 			Port:      co["port"].(string),
 			DBName:    co["dbname"].(string),
 			Tablename: co["tablename"].(string),
-			Name:      co["name"].(string),
+			ColName:   co["name"].(string),
 		}, nil
 	case "mssql":
 		return &MSSqlConfig{
@@ -123,7 +123,7 @@ func GenerateConnectCollection(co map[string]interface{}) (connectCollection, er
 			Port:      co["port"].(string),
 			DBName:    co["dbname"].(string),
 			Tablename: co["tablename"].(string),
-			Name:      co["name"].(string),
+			ColName:   co["name"].(string),
 		}, nil
 	case "postgresql":
 		return &PostgresqlConfig{
@@ -133,7 +133,7 @@ func GenerateConnectCollection(co map[string]interface{}) (connectCollection, er
 			Port:      co["port"].(string),
 			DBName:    co["dbname"].(string),
 			Tablename: co["tablename"].(string),
-			Name:      co["name"].(string),
+			ColName:   co["name"].(string),
 		}, nil
 	case "MongoDB":
 		return &MongoDBConfig{
@@ -143,7 +143,7 @@ func GenerateConnectCollection(co map[string]interface{}) (connectCollection, er
 			Port:      co["port"].(string),
 			DBName:    co["dbname"].(string),
 			Tablename: co["tablename"].(string),
-			Name:      co["name"].(string),
+			ColName:   co["name"].(string),
 		}, nil
 	default:
 		return nil, fmt.Errorf("generateConnectCollection: Unknown connect database type: '%s'\n", dbtype)
