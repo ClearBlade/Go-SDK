@@ -16,6 +16,7 @@ import (
 	cbErr "github.com/clearblade/go-utils/errors"
 	mqttTypes "github.com/clearblade/mqtt_parsing"
 	mqtt "github.com/clearblade/paho.mqtt.golang"
+	"github.com/mitchellh/mapstructure"
 )
 
 var (
@@ -1191,4 +1192,17 @@ func nicelySetRefreshToken(body map[string]interface{}) string {
 		return tok
 	}
 	return ""
+}
+
+func decodeMapToStruct(incoming interface{}, outgoing interface{}) error {
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result:  outgoing,
+		TagName: "json",
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return decoder.Decode(incoming)
 }
