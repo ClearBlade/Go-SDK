@@ -1,6 +1,9 @@
 package GoSDK
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 const (
 	_SYSTEM_MIGRATION_DEV_PREAMBLE = "/api/v/1/systemmigration/"
@@ -150,6 +153,19 @@ type SystemUploadChanges struct {
 	MessageHistoryStorageTopics []string            `json:"message_history_storage_topics"`
 	MessageTypeTriggers         []*TriggeredMsgType `json:"message_type_triggers"`
 	Errors                      []string            `json:"errors"`
+}
+
+func (r *SystemUploadChanges) Error() error {
+	if len(r.Errors) == 0 {
+		return nil
+	}
+
+	errs := make([]error, len(r.Errors))
+	for i, err := range r.Errors {
+		errs[i] = errors.New(err)
+	}
+
+	return fmt.Errorf("encountered the following errors while pushing: %w", errors.Join(errs...))
 }
 
 func (d *DevClient) UploadToSystem(systemKey string, zipBuffer []byte) (*SystemUploadChanges, error) {
