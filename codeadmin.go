@@ -282,7 +282,6 @@ func (d *DevClient) GetLogsForServiceInstance(systemKey, serviceName, serviceId 
 	}
 
 	var log CodeLog
-	fmt.Printf("LOG IS %v\n", resp.Body)
 	if err := decodeMapToStruct(resp.Body, &log); err != nil {
 		return nil, fmt.Errorf("could not decode logs: %w", err)
 	}
