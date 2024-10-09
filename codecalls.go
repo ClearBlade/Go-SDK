@@ -493,3 +493,27 @@ func (d *DevClient) GetAllWebhooks(systemKey string) ([]map[string]interface{}, 
 	}
 	return allWebhooks, nil
 }
+
+func (d *DevClient) SetLogLevel(systemKey, serviceName, logLevel string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("/codeadmin/v/2/logs/%s/%s", systemKey, serviceName)
+	body := map[string]interface{}{"log_level": logLevel}
+	resp, err := put(d, url, body, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not set log level: %w", err)
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("received error response setting logs: %v", resp.Body)
+	}
+
+	if mapResp, ok := resp.Body.(map[string]interface{}); !ok {
+		return nil, fmt.Errorf("error setting log level; expected map got %T", resp.Body)
+	} else {
+		return mapResp, nil
+	}
+}
