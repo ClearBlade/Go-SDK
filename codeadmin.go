@@ -22,8 +22,8 @@ type Service struct {
 
 // CodeLog provides structure to the code log return value
 type CodeLog struct {
-	Log  string
-	Time string
+	Log  string `json:"log"`
+	Time string `json:"service_execution_time"`
 }
 
 // GetServiceNames retrieves the service names for a particular system
@@ -263,6 +263,53 @@ func (d *DevClient) GetLogsForService(systemKey, name string) ([]CodeLog, error)
 		return outgoing, nil
 	default:
 		return nil, fmt.Errorf("Bad Return Value\n")
+	}
+}
+
+func (d *DevClient) GetLogsForServiceInstance(systemKey, serviceName, serviceId string) (*CodeLog, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	url := fmt.Sprintf("%s/logs/%s/%s/%s", _CODE_ADMIN_PREAMBLE_V2, systemKey, serviceName, serviceId)
+	resp, err := get(d, url, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("received error getting logs: %v", resp.Body)
+	}
+
+	var log CodeLog
+	if err := decodeMapToStruct(resp.Body, &log); err != nil {
+		return nil, fmt.Errorf("could not decode logs: %w", err)
+	}
+
+	return &log, nil
+}
+
+func (d *DevClient) SetLogLevel(systemKey, serviceName, logLevel string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	body := map[string]interface{}{"log_level": logLevel}
+	url := fmt.Sprintf("%s/logs/%s/%s", _CODE_ADMIN_PREAMBLE_V2, systemKey, serviceName)
+	resp, err := put(d, url, body, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not set log level: %w", err)
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("received error response setting logs: %v", resp.Body)
+	}
+
+	if mapResp, ok := resp.Body.(map[string]interface{}); !ok {
+		return nil, fmt.Errorf("error setting log level; expected map got %T", resp.Body)
+	} else {
+		return mapResp, nil
 	}
 }
 
