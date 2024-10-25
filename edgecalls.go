@@ -15,6 +15,7 @@ const (
 	_EDGES_SYNC_MANAGEMENT   = "/admin/edges/sync/"
 	_EDGES_DEPLOY_MANAGEMENT = "/admin/edges/resources/{systemKey}/deploy"
 	_EDGES_USER_V3           = "/api/v/3/edges/"
+	_EDGES_V1                = "/api/v/1/edges/"
 )
 
 type EdgeConfig struct {
@@ -473,4 +474,30 @@ func (d *DevClient) DeleteEdgePublicKey(systemKey, edgeName string, query *Query
 		return nil, err
 	}
 	return nil, nil
+}
+
+func (d *DevClient) RemoteCommandExecEdge(systemKey, edgeName string, cmd map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := post(d, _EDGES_V1+systemKey+"/"+edgeName+"/command-exec", cmd, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (u *UserClient) RemoteCommandExecEdge(systemKey, edgeName string, cmd map[string]interface{}) (map[string]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := post(u, _EDGES_V1+systemKey+"/"+edgeName+"/command-exec", cmd, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
 }
