@@ -1098,6 +1098,34 @@ func (d *DevClient) AddServiceCacheMetaToRole(systemKey, cacheName, roleId strin
 	return nil
 }
 
+func (d *DevClient) AddEdgeToRole(systemKey, edgeName, roleId string, level int) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{
+		"id": roleId,
+		"changes": map[string]interface{}{
+			"edges": []map[string]interface{}{
+				map[string]interface{}{
+					"itemInfo": map[string]interface{}{
+						"name": edgeName,
+					},
+					"permissions": level,
+				},
+			},
+		},
+	}
+	resp, err := put(d, d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating a role to have an edge: %v", resp.Body)
+	}
+	return nil
+}
+
 func (d *DevClient) AddGenericPermissionToRole(systemKey, roleId, permission string, level int) error {
 	creds, err := d.credentials()
 	if err != nil {
