@@ -502,12 +502,12 @@ func (u *UserClient) RemoteCommandExecEdge(systemKey, edgeName string, cmd map[s
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) RemoteRestartEdge(systemKey, edgeName string, cmd map[string]interface{}) (string, error) {
+func (d *DevClient) RemoteRestartEdge(systemKey, edgeName string) (string, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return "", err
 	}
-	resp, err := post(d, _EDGES_V1+systemKey+"/"+edgeName+"/restart", cmd, creds, nil)
+	resp, err := post(d, _EDGES_V1+systemKey+"/"+edgeName+"/restart", nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return "", err
@@ -515,12 +515,12 @@ func (d *DevClient) RemoteRestartEdge(systemKey, edgeName string, cmd map[string
 	return resp.Body.(string), nil
 }
 
-func (u *UserClient) RemoteRestartEdge(systemKey, edgeName string, cmd map[string]interface{}) (string, error) {
+func (u *UserClient) RemoteRestartEdge(systemKey, edgeName string) (string, error) {
 	creds, err := u.credentials()
 	if err != nil {
 		return "", err
 	}
-	resp, err := post(u, _EDGES_V1+systemKey+"/"+edgeName+"/restart", cmd, creds, nil)
+	resp, err := post(u, _EDGES_V1+systemKey+"/"+edgeName+"/restart", nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return "", err
