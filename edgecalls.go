@@ -527,3 +527,55 @@ func (u *UserClient) RemoteRestartEdge(systemKey, edgeName string) (string, erro
 	}
 	return resp.Body.(string), nil
 }
+
+func (d *DevClient) GetEdgeConfig(systemKey, edgeName string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, _EDGES_V1+systemKey+"/"+edgeName+"/config", nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (u *UserClient) GetEdgeConfig(systemKey, edgeName string) (map[string]interface{}, error) {
+	creds, err := u.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(u, _EDGES_V1+systemKey+"/"+edgeName+"/config", nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) UpdateEdgeConfig(systemKey, edgeName string, changes map[string]interface{}) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := put(d, _EDGES_V1+systemKey+"/"+edgeName+"/config", changes, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *UserClient) UpdateEdgeConfig(systemKey, edgeName string, changes map[string]interface{}) error {
+	creds, err := u.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := put(u, _EDGES_V1+systemKey+"/"+edgeName+"/config", changes, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
