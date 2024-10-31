@@ -579,3 +579,29 @@ func (u *UserClient) UpdateEdgeConfig(systemKey, edgeName string, changes map[st
 	}
 	return nil
 }
+
+func (d *DevClient) RemoteDBWipeEdge(systemKey, edgeName string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := post(d, _EDGES_V1+systemKey+"/"+edgeName+"/db-wipe", nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *UserClient) RemoteDBWipeEdge(systemKey, edgeName string) error {
+	creds, err := u.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := post(u, _EDGES_V1+systemKey+"/"+edgeName+"/db-wipe", nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
