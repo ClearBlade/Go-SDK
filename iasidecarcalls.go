@@ -4,7 +4,7 @@ const (
 	_SIDECAR_PREAMBLE_ = "/ia-sidecar"
 )
 
-func (d *DevClient) CreateIAInstance(systemKey, name string, data map[string]interface{}) (map[string]interface{}, error) {
+func (d *DevClient) CreateIAInstance(name string, data map[string]interface{}) (map[string]interface{}, error) {
 	return createIAInstance(d, _SIDECAR_PREAMBLE_+"/instances", data)
 }
 
