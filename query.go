@@ -1,7 +1,5 @@
 package GoSDK
 
-import ()
-
 // Filter is the atomic structure inside a query it contains
 // A field a value and an operator
 type Filter struct {
@@ -28,8 +26,10 @@ type Query struct {
 //NewQuery allocates a new query
 func NewQuery() *Query {
 	query := &Query{
-		Filters: [][]Filter{[]Filter{}},
-		Order:   []Ordering{},
+		Filters:    [][]Filter{[]Filter{}},
+		Order:      []Ordering{},
+		PageSize:   100,
+		PageNumber: 1,
 	}
 	return query
 }
