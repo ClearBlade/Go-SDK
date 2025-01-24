@@ -22,7 +22,7 @@ type outputHandler interface {
 	HandleError(err error)
 }
 
-func (d *DevClient) OpenRemoteShell(systemKey, edgeName string, handler outputHandler) (*remoteShell, error) {
+func (d *DevClient) OpenRemoteShell(systemKey, edgeName string, handler outputHandler) (*RemoteShell, error) {
 	url := fmt.Sprintf("wss://%s/%s", d.getHttpAddr(), _REMOTE_SHELL_PREAMBLE)
 	cfg, err := websocket.NewConfig(url, "")
 	if err != nil {
@@ -50,7 +50,7 @@ func (d *DevClient) OpenRemoteShell(systemKey, edgeName string, handler outputHa
 	}
 
 	go processShellOutput(conn, handler)
-	return &remoteShell{c: conn}, nil
+	return &RemoteShell{c: conn}, nil
 }
 
 func openShell(conn *websocket.Conn) error {
@@ -125,15 +125,15 @@ func processShellOutput(conn *websocket.Conn, handler outputHandler) {
 	}
 }
 
-type remoteShell struct {
+type RemoteShell struct {
 	c *websocket.Conn
 }
 
-func (r *remoteShell) Close() error {
+func (r *RemoteShell) Close() error {
 	return r.c.Close()
 }
 
-func (r *remoteShell) Write(data []byte) error {
+func (r *RemoteShell) Write(data []byte) error {
 	msg := map[string]interface{}{
 		"type":    "exec",
 		"command": data,
