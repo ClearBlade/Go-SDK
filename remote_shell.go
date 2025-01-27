@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 
 	"golang.org/x/net/websocket"
@@ -29,19 +30,21 @@ func (d *DevClient) OpenRemoteShell(systemKey, edgeName string, handler outputHa
 		return nil, err
 	}
 
-	url := fmt.Sprintf("wss://%s%s", u.Hostname(), _REMOTE_SHELL_PREAMBLE)
-	fmt.Printf("URL IS %q\n", url)
-	cfg, err := websocket.NewConfig(url, "")
+	server := fmt.Sprintf("wss://%s%s", u.Hostname(), _REMOTE_SHELL_PREAMBLE)
+	config := new(websocket.Config)
+	config.Header = http.Header(make(map[string][]string))
+	config.Version = websocket.ProtocolVersionHybi13
+	config.Location, err = url.ParseRequestURI(server)
 	if err != nil {
-		return nil, fmt.Errorf("invalid config: %w", err)
+		return nil, err
 	}
 
 	if d.DevToken == "" {
 		return nil, fmt.Errorf("client is not authenticated")
 	}
 
-	cfg.Protocol = []string{"clearblade", systemKey, edgeName, d.DevToken}
-	conn, err := websocket.DialConfig(cfg)
+	config.Protocol = []string{"clearblade", systemKey, edgeName, d.DevToken}
+	conn, err := websocket.DialConfig(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial: %w", err)
 	}
