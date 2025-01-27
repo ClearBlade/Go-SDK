@@ -22,13 +22,13 @@ type outputHandler interface {
 	HandleError(err error)
 }
 
-func (d *DevClient) OpenRemoteShell(systemKey, edgeName string, handler outputHandler) (*RemoteShell, error) {
+func (d *DevClient) OpenRemoteShell(systemKey, edgeName, origin string, handler outputHandler) (*RemoteShell, error) {
 	if d.BrokerWsAddr == "" {
 		return nil, fmt.Errorf("client was not initialized with websocket address")
 	}
 
 	url := fmt.Sprintf("%s%s", d.BrokerWsAddr, _REMOTE_SHELL_PREAMBLE)
-	cfg, err := websocket.NewConfig(url, "https://localhost")
+	cfg, err := websocket.NewConfig(url, origin)
 	if err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
 	}
