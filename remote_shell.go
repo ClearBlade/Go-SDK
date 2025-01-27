@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 
 	"golang.org/x/net/websocket"
 )
@@ -23,7 +24,12 @@ type outputHandler interface {
 }
 
 func (d *DevClient) OpenRemoteShell(systemKey, edgeName string, handler outputHandler) (*RemoteShell, error) {
-	url := fmt.Sprintf("wss://%s%s", d.getHttpAddr(), _REMOTE_SHELL_PREAMBLE)
+	u, err := url.Parse(d.getHttpAddr())
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("wss://%s%s", u.Hostname(), _REMOTE_SHELL_PREAMBLE)
 	fmt.Printf("URL IS %q\n", url)
 	cfg, err := websocket.NewConfig(url, "")
 	if err != nil {
