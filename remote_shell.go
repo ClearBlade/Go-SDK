@@ -28,7 +28,6 @@ func (d *DevClient) OpenRemoteShell(systemKey, edgeName string, handler outputHa
 	}
 
 	url := fmt.Sprintf("%s%s", d.BrokerWsAddr, _REMOTE_SHELL_PREAMBLE)
-	fmt.Printf("URL IS %q\n", url)
 	cfg, err := websocket.NewConfig(url, "https://localhost")
 	if err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
@@ -84,7 +83,7 @@ func waitForShellToOpen(conn *websocket.Conn) error {
 	}
 
 	if response.Type != "shell_opened" {
-		return fmt.Errorf("unexpected response type: %v", response.Type)
+		return fmt.Errorf("unexpected response type %q: %v", response.Type, response)
 	}
 
 	return nil
@@ -111,8 +110,8 @@ func processShellOutput(conn *websocket.Conn, handler outputHandler) {
 			return
 		}
 
-		decoded := []byte{}
-		if _, err := base64.StdEncoding.Decode(decoded, []byte(data)); err != nil {
+		decoded, err := base64.StdEncoding.DecodeString(data)
+		if err != nil {
 			handler.HandleError(fmt.Errorf("could not decode base64 data: %w", err))
 			return
 		}
