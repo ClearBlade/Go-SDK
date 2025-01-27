@@ -24,6 +24,7 @@ type outputHandler interface {
 
 func (d *DevClient) OpenRemoteShell(systemKey, edgeName string, handler outputHandler) (*RemoteShell, error) {
 	url := fmt.Sprintf("wss://%s/%s", d.getHttpAddr(), _REMOTE_SHELL_PREAMBLE)
+	fmt.Printf("URL IS %q\n", url)
 	cfg, err := websocket.NewConfig(url, "")
 	if err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
