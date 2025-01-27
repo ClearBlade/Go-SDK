@@ -90,42 +90,44 @@ func waitForShellToOpen(conn *websocket.Conn) error {
 }
 
 func processShellOutput(conn *websocket.Conn, handler outputHandler) {
-	var rawData map[string]any
-	if err := websocket.JSON.Receive(conn, &rawData); err != nil {
-		handler.HandleError(fmt.Errorf("could not receive json message: %w", err))
-		return
-	}
-
-	var baseMessage baseMessage
-	if err := decodeMapToStruct(rawData, &baseMessage); err != nil {
-		handler.HandleError(fmt.Errorf("could not decode websocket frame (%v) to base message: %w", rawData, err))
-		return
-	}
-
-	switch baseMessage.Type {
-	case "output":
-		data, ok := rawData["data"].(string)
-		if !ok {
-			handler.HandleError(fmt.Errorf("could not convert data to string: %T", rawData["data"]))
+	for {
+		var rawData map[string]any
+		if err := websocket.JSON.Receive(conn, &rawData); err != nil {
+			handler.HandleError(fmt.Errorf("could not receive json message: %w", err))
 			return
 		}
 
-		decoded, err := base64.StdEncoding.DecodeString(data)
-		if err != nil {
-			handler.HandleError(fmt.Errorf("could not decode base64 data: %w", err))
+		var baseMessage baseMessage
+		if err := decodeMapToStruct(rawData, &baseMessage); err != nil {
+			handler.HandleError(fmt.Errorf("could not decode websocket frame (%v) to base message: %w", rawData, err))
 			return
 		}
 
-		handler.HandleOutput(decoded)
-	case "error":
-		err, ok := rawData["error"].(string)
-		if !ok {
-			handler.HandleError(fmt.Errorf("could not convert error to string: %T", rawData["error"]))
-		} else {
-			handler.HandleError(errors.New(err))
+		switch baseMessage.Type {
+		case "output":
+			data, ok := rawData["data"].(string)
+			if !ok {
+				handler.HandleError(fmt.Errorf("could not convert data to string: %T", rawData["data"]))
+				return
+			}
+
+			decoded, err := base64.StdEncoding.DecodeString(data)
+			if err != nil {
+				handler.HandleError(fmt.Errorf("could not decode base64 data: %w", err))
+				return
+			}
+
+			handler.HandleOutput(decoded)
+		case "error":
+			err, ok := rawData["error"].(string)
+			if !ok {
+				handler.HandleError(fmt.Errorf("could not convert error to string: %T", rawData["error"]))
+			} else {
+				handler.HandleError(errors.New(err))
+			}
+		default:
+			handler.HandleError(fmt.Errorf("unknown message type: %s", baseMessage.Type))
 		}
-	default:
-		handler.HandleError(fmt.Errorf("unknown message type: %s", baseMessage.Type))
 	}
 }
 
