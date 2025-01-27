@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 
 	"golang.org/x/net/websocket"
 )
@@ -24,12 +23,11 @@ type outputHandler interface {
 }
 
 func (d *DevClient) OpenRemoteShell(systemKey, edgeName string, handler outputHandler) (*RemoteShell, error) {
-	u, err := url.Parse(d.getHttpAddr())
-	if err != nil {
-		return nil, err
+	if d.BrokerWsAddr == "" {
+		return nil, fmt.Errorf("client was not initialized with websocket address")
 	}
 
-	url := fmt.Sprintf("wss://%s%s", u.Hostname(), _REMOTE_SHELL_PREAMBLE)
+	url := fmt.Sprintf("wss://%s%s", d.BrokerWsAddr, _REMOTE_SHELL_PREAMBLE)
 	fmt.Printf("URL IS %q\n", url)
 	cfg, err := websocket.NewConfig(url, "https://localhost")
 	if err != nil {
