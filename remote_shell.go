@@ -37,7 +37,7 @@ func (d *DevClient) OpenRemoteShell(systemKey, edgeName, origin string, handler 
 		return nil, fmt.Errorf("client is not authenticated")
 	}
 
-	cfg.Protocol = []string{"clearblade", systemKey, edgeName, d.DevToken}
+	cfg.Protocol = []string{"clearblade", d.DevToken, systemKey, edgeName}
 	conn, err := websocket.DialConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial: %w", err)
