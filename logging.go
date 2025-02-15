@@ -6,14 +6,17 @@ import (
 	"strings"
 )
 
-type MQTTLogger struct{}
+type MQTTLogger struct {
+	level string
+}
 
-func (MQTTLogger) Println(v ...interface{}) {
+func (l MQTTLogger) Println(v ...interface{}) {
+	v = []interface{}{l.level, v}
 	fmt.Println(v...)
 }
 
-func (MQTTLogger) Printf(format string, v ...interface{}) {
-	fmt.Printf(format, v...)
+func (l MQTTLogger) Printf(format string, v ...interface{}) {
+	fmt.Printf(l.level+": "+format, v...)
 }
 
 func SetPahoLoggers(levelStr string) {
@@ -21,14 +24,14 @@ func SetPahoLoggers(levelStr string) {
 	for _, oneLevel := range levels {
 		oneLevel = strings.ToLower(strings.TrimSpace(oneLevel))
 		switch oneLevel {
-		case "error":
-			mqtt.ERROR = MQTTLogger{}
 		case "critical":
-			mqtt.CRITICAL = MQTTLogger{}
+			mqtt.CRITICAL = MQTTLogger{level: "CRITICAL"}
+		case "error":
+			mqtt.ERROR = MQTTLogger{level: "ERROR"}
 		case "warn", "warning":
-			mqtt.WARN = MQTTLogger{}
+			mqtt.WARN = MQTTLogger{level: "WARN"}
 		case "debug":
-			mqtt.DEBUG = MQTTLogger{}
+			mqtt.DEBUG = MQTTLogger{level: "DEBUG"}
 		case "": // just handle the case where nothing was passed in
 		default:
 			fmt.Printf("Ignoring bad logging level: \"%s\"\n", oneLevel)
