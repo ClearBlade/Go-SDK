@@ -16,7 +16,7 @@ func (MQTTLogger) Printf(format string, v ...interface{}) {
 	fmt.Printf(format, v...)
 }
 
-func SetLoggers(levelStr string) {
+func SetPahoLoggers(levelStr string) {
 	levels := strings.Split(levelStr, ",")
 	for _, oneLevel := range levels {
 		oneLevel = strings.ToLower(strings.TrimSpace(oneLevel))
