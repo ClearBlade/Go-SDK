@@ -178,6 +178,7 @@ type DevClient struct {
 	Password     string
 	HttpAddr     string
 	MqttAddr     string
+	BrokerWsAddr string
 	MqttAuthAddr string
 	MTLSPort     string
 	edgeProxy    *EdgeProxy
@@ -397,6 +398,12 @@ func NewDevClientWithAddrs(httpAddr, mqttAddr, email, password string) *DevClien
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
 		MTLSPort:     MTLS_PORT,
 	}
+}
+
+func NewDevClientWithWebsocket(httpAddr, mqttAddr, wsAddr, email, password string) *DevClient {
+	c := NewDevClientWithAddrs(httpAddr, mqttAddr, email, password)
+	c.BrokerWsAddr = wsAddr
+	return c
 }
 
 func NewDevClientWithTokenAndAddrs(httpAddr, mqttAddr, token, email string) *DevClient {
