@@ -163,7 +163,16 @@ func (d *DeviceClient) InitializeMQTTWithMTLS(username, clientid string, ignore 
 }
 
 func (d *DeviceClient) InitializeJWTMQTT(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
-	mqc, err := newJwtMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill)
+	mqc, err := newJwtMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill, true)
+	if err != nil {
+		return err
+	}
+	d.MQTTClient = mqc
+	return nil
+}
+
+func (d *DeviceClient) InitializeJWTMQTTWithoutAutoReconnect(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
+	mqc, err := newJwtMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill, false)
 	if err != nil {
 		return err
 	}
@@ -350,9 +359,9 @@ type mqttBaseClient struct {
 	timeout                                  int
 }
 
-func newJwtMqttClient(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket) (MqttClient, error) {
+func newJwtMqttClient(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket, autoReconnect bool) (MqttClient, error) {
 	o := mqtt.NewClientOptions()
-	o.SetAutoReconnect(true)
+	o.SetAutoReconnect(autoReconnect)
 	if ssl != nil {
 		o.AddBroker("tls://" + address)
 		o.SetTLSConfig(ssl)
