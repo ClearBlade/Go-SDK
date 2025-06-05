@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 )
 
 const (
@@ -1262,7 +1263,7 @@ func (d *DevClient) getExpiresAt() float64 {
 }
 
 func (d *DevClient) getMessageId() uint16 {
-	return uint16(d.mrand.Int())
+	return uint16(time.Now().UnixNano())
 }
 
 func (d *DevClient) AddMessageTypeTriggers(systemKey string, msgTypeTriggers []map[string]interface{}) error {

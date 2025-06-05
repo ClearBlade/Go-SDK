@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -135,7 +134,6 @@ type UserClient struct {
 	UserToken    string
 	RefreshToken string
 	ExpiresAt    float64
-	mrand        *rand.Rand
 	MQTTClient   MqttClient
 	SystemKey    string
 	SystemSecret string
@@ -155,7 +153,6 @@ type DeviceClient struct {
 	DeviceToken  string
 	RefreshToken string
 	ExpiresAt    float64
-	mrand        *rand.Rand
 	MQTTClient   MqttClient
 	SystemKey    string
 	SystemSecret string
@@ -172,7 +169,6 @@ type DevClient struct {
 	DevToken     string
 	RefreshToken string
 	ExpiresAt    float64
-	mrand        *rand.Rand
 	MQTTClient   MqttClient
 	Email        string
 	Password     string
@@ -276,7 +272,6 @@ func NewDeviceClient(systemkey, systemsecret, deviceName, activeKey string) *Dev
 		DeviceToken:  "",
 		RefreshToken: "",
 		ActiveKey:    activeKey,
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemKey:    systemkey,
 		SystemSecret: systemsecret,
@@ -292,7 +287,6 @@ func NewUserClient(systemkey, systemsecret, email, password string) *UserClient 
 	return &UserClient{
 		UserToken:    "",
 		RefreshToken: "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemSecret: systemsecret,
 		SystemKey:    systemkey,
@@ -310,7 +304,6 @@ func NewDevClient(email, password string) *DevClient {
 	return &DevClient{
 		DevToken:     "",
 		RefreshToken: "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		Email:        email,
 		Password:     password,
@@ -325,7 +318,6 @@ func NewDevClientWithToken(token, email string) *DevClient {
 	return &DevClient{
 		DevToken:     token,
 		RefreshToken: "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		Email:        email,
 		Password:     "",
@@ -340,7 +332,6 @@ func NewRefreshUserClientWithAddrs(httpAddr, mqttAddr, systemKey, systemSecret, 
 	return &UserClient{
 		UserToken:    accessToken,
 		RefreshToken: refreshToken,
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemSecret: systemSecret,
 		SystemKey:    systemKey,
@@ -355,7 +346,6 @@ func NewUserClientWithAddrs(httpAddr, mqttAddr, systemKey, systemSecret, email, 
 	return &UserClient{
 		UserToken:    "",
 		RefreshToken: "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemSecret: systemSecret,
 		SystemKey:    systemKey,
@@ -372,7 +362,6 @@ func NewUserClientWithAddrs2(httpAddr, mqttAddr, mqttAuthAddr, systemKey, system
 	return &UserClient{
 		UserToken:    "",
 		RefreshToken: "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemSecret: systemSecret,
 		SystemKey:    systemKey,
@@ -389,7 +378,6 @@ func NewDevClientWithAddrs(httpAddr, mqttAddr, email, password string) *DevClien
 	return &DevClient{
 		DevToken:     "",
 		RefreshToken: "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		Email:        email,
 		Password:     password,
@@ -410,7 +398,6 @@ func NewDevClientWithTokenAndAddrs(httpAddr, mqttAddr, token, email string) *Dev
 	return &DevClient{
 		DevToken:     token,
 		RefreshToken: "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		Email:        email,
 		Password:     "",
@@ -427,7 +414,6 @@ func NewDeviceClientWithAddrs(httpAddr, mqttAddr, systemkey, systemsecret, devic
 		DeviceToken:  "",
 		RefreshToken: "",
 		ActiveKey:    activeKey,
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemKey:    systemkey,
 		SystemSecret: systemsecret,
@@ -443,7 +429,6 @@ func NewDeviceClientWithServiceAccountAndAddrs(httpAddr, mqttAddr, systemkey, sy
 		DeviceName:   deviceName,
 		DeviceToken:  token,
 		ActiveKey:    "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemKey:    systemkey,
 		SystemSecret: systemsecret,
@@ -456,7 +441,6 @@ func NewDeviceClientWithServiceAccountAndAddrs(httpAddr, mqttAddr, systemkey, sy
 func NewUserClientWithServiceAccountAndAddrs(httpAddr, mqttAddr, systemkey, systemsecret, email, token string) *UserClient {
 	return &UserClient{
 		UserToken:    token,
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemSecret: systemsecret,
 		SystemKey:    systemkey,

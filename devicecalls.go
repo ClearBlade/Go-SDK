@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 type KeyFormat int
@@ -690,7 +691,7 @@ func (dvc *DeviceClient) getSystemInfo() (string, string) {
 }
 
 func (dvc *DeviceClient) getMessageId() uint16 {
-	return uint16(dvc.mrand.Int())
+	return uint16(time.Now().UnixNano())
 }
 
 func (dvc *DeviceClient) getHttpAddr() string {
