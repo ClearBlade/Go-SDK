@@ -191,6 +191,10 @@ func (u *UserClient) CallService(systemKey, name string, params map[string]inter
 	return callService(u, systemKey, name, params, false)
 }
 
+func (d *DeviceClient) CallService(systemKey, name string, params map[string]interface{}, log bool) (map[string]interface{}, error) {
+	return callService(d, systemKey, name, params, log)
+}
+
 // GetServiceNames retrieves the service names for a particular system
 func (u *UserClient) GetServiceNames(systemKey string) ([]string, error) {
 	return GetServiceNames(u, systemKey)
