@@ -124,6 +124,7 @@ type cbClient interface {
 	getMTLSPort() string
 	getEdgeProxy() *EdgeProxy
 	isMtlsClient() bool
+	loadX509KeyPair() (tls.Certificate, error)
 }
 
 // receiver for methods that can be shared between users/devs/devices
@@ -163,6 +164,8 @@ type DeviceClient struct {
 	MTLSPort     string
 	edgeProxy    *EdgeProxy
 	IsMTLS       bool
+	CertFilePath string
+	KeyFilePath  string
 }
 
 // DevClient is the type for developers
@@ -200,6 +203,21 @@ type CbReq struct {
 	IsMTLS      bool
 }
 
+func (r *CbReq) setupForMTLS(client cbClient) error {
+	cert, err := client.loadX509KeyPair()
+	if err != nil {
+		return fmt.Errorf("Error loading X509 Key Pair: %v", err)
+	}
+	r.IsMTLS = true
+	r.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{
+			Certificates:       []tls.Certificate{cert},
+			InsecureSkipVerify: true,
+		},
+	}
+	return nil
+}
+
 // CbResp is a wrapper around an HTTP response
 type CbResp struct {
 	Body       interface{}
@@ -232,12 +250,20 @@ func (u *UserClient) isMtlsClient() bool {
 	return false
 }
 
+func (u *UserClient) loadX509KeyPair() (tls.Certificate, error) {
+	return tls.Certificate{}, fmt.Errorf("loadX509KeyPair not implemented for UserClient")
+}
+
 func (d *DevClient) getHttpAddr() string {
 	return d.HttpAddr
 }
 
 func (d *DevClient) getMTLSPort() string {
 	return d.MTLSPort
+}
+
+func (d *DevClient) loadX509KeyPair() (tls.Certificate, error) {
+	return tls.Certificate{}, fmt.Errorf("loadX509KeyPair not implemented for DevClient")
 }
 
 func (d *DevClient) isMtlsClient() bool {
@@ -268,6 +294,10 @@ func (d *DeviceClient) isMtlsClient() bool {
 	return d.IsMTLS
 }
 
+func (d *DeviceClient) loadX509KeyPair() (tls.Certificate, error) {
+	return tls.LoadX509KeyPair(d.CertFilePath, d.KeyFilePath)
+}
+
 func (u *UserClient) SetMqttClient(c MqttClient) {
 	u.MQTTClient = c
 }
@@ -296,7 +326,7 @@ func NewDeviceClient(systemkey, systemsecret, deviceName, activeKey string) *Dev
 	}
 }
 
-func NewDeviceMTLSClient(systemkey, deviceName string) *DeviceClient {
+func NewDeviceMTLSClient(systemkey, deviceName, certFilePath, keyFilePath string) *DeviceClient {
 	return &DeviceClient{
 		DeviceName:   deviceName,
 		DeviceToken:  "",
@@ -308,6 +338,8 @@ func NewDeviceMTLSClient(systemkey, deviceName string) *DeviceClient {
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
 		MTLSPort:     MTLS_PORT,
 		IsMTLS:       true,
+		CertFilePath: certFilePath,
+		KeyFilePath:  keyFilePath,
 	}
 }
 
@@ -1030,7 +1062,9 @@ func get(c cbClient, endpoint string, query map[string]string, creds [][]string,
 		Headers:     headers,
 	}
 	if c.isMtlsClient() {
-		req.IsMTLS = true
+		if err := req.setupForMTLS(c); err != nil {
+			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
+		}
 	}
 	return do(c, req, creds)
 }
@@ -1044,7 +1078,9 @@ func post(c cbClient, endpoint string, body interface{}, creds [][]string, heade
 		Headers:     headers,
 	}
 	if c.isMtlsClient() {
-		req.IsMTLS = true
+		if err := req.setupForMTLS(c); err != nil {
+			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
+		}
 	}
 	return do(c, req, creds)
 }
@@ -1071,7 +1107,9 @@ func put(c cbClient, endpoint string, body interface{}, heads [][]string, header
 		Headers:     headers,
 	}
 	if c.isMtlsClient() {
-		req.IsMTLS = true
+		if err := req.setupForMTLS(c); err != nil {
+			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
+		}
 	}
 	return do(c, req, heads)
 }
@@ -1085,7 +1123,9 @@ func delete(c cbClient, endpoint string, query map[string]string, heads [][]stri
 		QueryString: query_to_string(query),
 	}
 	if c.isMtlsClient() {
-		req.IsMTLS = true
+		if err := req.setupForMTLS(c); err != nil {
+			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
+		}
 	}
 	return do(c, req, heads)
 }
@@ -1099,7 +1139,9 @@ func deleteWithBody(c cbClient, endpoint string, body interface{}, heads [][]str
 		QueryString: "",
 	}
 	if c.isMtlsClient() {
-		req.IsMTLS = true
+		if err := req.setupForMTLS(c); err != nil {
+			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
+		}
 	}
 	return do(c, req, heads)
 }
