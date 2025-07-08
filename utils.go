@@ -123,6 +123,7 @@ type cbClient interface {
 	getMqttAddr() string
 	getMTLSPort() string
 	getEdgeProxy() *EdgeProxy
+	isMtlsClient() bool
 }
 
 // receiver for methods that can be shared between users/devs/devices
@@ -161,6 +162,7 @@ type DeviceClient struct {
 	MqttAuthAddr string
 	MTLSPort     string
 	edgeProxy    *EdgeProxy
+	IsMTLS       bool
 }
 
 // DevClient is the type for developers
@@ -226,12 +228,20 @@ func (u *UserClient) getMTLSPort() string {
 	return u.MTLSPort
 }
 
+func (u *UserClient) isMtlsClient() bool {
+	return false
+}
+
 func (d *DevClient) getHttpAddr() string {
 	return d.HttpAddr
 }
 
 func (d *DevClient) getMTLSPort() string {
 	return d.MTLSPort
+}
+
+func (d *DevClient) isMtlsClient() bool {
+	return false
 }
 
 func (u *UserClient) getMqttAddr() string {
@@ -252,6 +262,10 @@ func (d *DevClient) getEdgeProxy() *EdgeProxy {
 
 func (d *DeviceClient) getEdgeProxy() *EdgeProxy {
 	return d.edgeProxy
+}
+
+func (d *DeviceClient) isMtlsClient() bool {
+	return d.IsMTLS
 }
 
 func (u *UserClient) SetMqttClient(c MqttClient) {
@@ -279,6 +293,21 @@ func NewDeviceClient(systemkey, systemsecret, deviceName, activeKey string) *Dev
 		MqttAddr:     CB_MSG_ADDR,
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
 		MTLSPort:     MTLS_PORT,
+	}
+}
+
+func NewDeviceMTLSClient(systemkey, deviceName string) *DeviceClient {
+	return &DeviceClient{
+		DeviceName:   deviceName,
+		DeviceToken:  "",
+		RefreshToken: "",
+		MQTTClient:   nil,
+		SystemKey:    systemkey,
+		HttpAddr:     CB_ADDR,
+		MqttAddr:     CB_MSG_ADDR,
+		MqttAuthAddr: CB_MSG_AUTH_ADDR,
+		MTLSPort:     MTLS_PORT,
+		IsMTLS:       true,
 	}
 }
 
@@ -1000,6 +1029,9 @@ func get(c cbClient, endpoint string, query map[string]string, creds [][]string,
 		QueryString: query_to_string(query),
 		Headers:     headers,
 	}
+	if c.isMtlsClient() {
+		req.IsMTLS = true
+	}
 	return do(c, req, creds)
 }
 
@@ -1010,6 +1042,9 @@ func post(c cbClient, endpoint string, body interface{}, creds [][]string, heade
 		Endpoint:    endpoint,
 		QueryString: "",
 		Headers:     headers,
+	}
+	if c.isMtlsClient() {
+		req.IsMTLS = true
 	}
 	return do(c, req, creds)
 }
@@ -1035,6 +1070,9 @@ func put(c cbClient, endpoint string, body interface{}, heads [][]string, header
 		QueryString: "",
 		Headers:     headers,
 	}
+	if c.isMtlsClient() {
+		req.IsMTLS = true
+	}
 	return do(c, req, heads)
 }
 
@@ -1046,6 +1084,9 @@ func delete(c cbClient, endpoint string, query map[string]string, heads [][]stri
 		Headers:     headers,
 		QueryString: query_to_string(query),
 	}
+	if c.isMtlsClient() {
+		req.IsMTLS = true
+	}
 	return do(c, req, heads)
 }
 
@@ -1056,6 +1097,9 @@ func deleteWithBody(c cbClient, endpoint string, body interface{}, heads [][]str
 		Endpoint:    endpoint,
 		Headers:     headers,
 		QueryString: "",
+	}
+	if c.isMtlsClient() {
+		req.IsMTLS = true
 	}
 	return do(c, req, heads)
 }

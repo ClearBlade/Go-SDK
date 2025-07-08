@@ -616,6 +616,9 @@ func (d *DevClient) DeleteDeviceSession(systemKey string, query *Query) error {
 
 func (dvc *DeviceClient) credentials() ([][]string, error) {
 	ret := make([][]string, 0)
+	if dvc.IsMTLS {
+		return [][]string{}, nil
+	}
 	if dvc.DeviceToken != "" {
 		ret = append(ret, []string{
 			_DEVICE_HEADER_KEY,
