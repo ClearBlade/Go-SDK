@@ -158,7 +158,7 @@ func (d *DevClient) GetMTLSSystemCertificate(systemKey, name string) (map[string
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) GetAllMTLSSystemCertificates(systemKey string) ([]map[string]interface{}, error) {
+func (d *DevClient) GetAllMTLSSystemCertificates(systemKey string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
@@ -168,7 +168,7 @@ func (d *DevClient) GetAllMTLSSystemCertificates(systemKey string) ([]map[string
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body.([]map[string]interface{}), nil
+	return resp.Body.([]interface{}), nil
 }
 
 func (d *DevClient) DeleteMTLSSystemCertificate(systemKey, name string) error {
