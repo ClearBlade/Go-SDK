@@ -103,7 +103,7 @@ func (d *DevClient) AddMTLSSettings(rootCA, crl string) error {
 	return nil
 }
 
-func (d *DevClient) AddMTLSSystemCertificate(systemKey, systemCA, privateKey, name string) error {
+func (d *DevClient) AddMTLSSystemCertificate(systemKey, name, systemCA, privateKey string) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
@@ -124,7 +124,7 @@ func (d *DevClient) AddMTLSSystemCertificate(systemKey, systemCA, privateKey, na
 	return nil
 }
 
-func (d *DevClient) UpdateMTLSSystemCertificate(systemKey, systemCA, privateKey, name string) error {
+func (d *DevClient) UpdateMTLSSystemCertificate(systemKey, name, systemCA, privateKey string) error {
 	creds, err := d.credentials()
 	if err != nil {
 		return err
