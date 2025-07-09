@@ -124,7 +124,7 @@ type cbClient interface {
 	getMTLSPort() string
 	getEdgeProxy() *EdgeProxy
 	isMtlsClient() bool
-	getCertFilePaths() (string, string)
+	getCerts() (string, string)
 }
 
 // receiver for methods that can be shared between users/devs/devices
@@ -164,8 +164,8 @@ type DeviceClient struct {
 	MTLSPort     string
 	edgeProxy    *EdgeProxy
 	IsMTLS       bool
-	CertFilePath string
-	KeyFilePath  string
+	Cert         string
+	Key          string
 	DetailsInCN  bool
 }
 
@@ -205,15 +205,15 @@ type CbReq struct {
 }
 
 func (r *CbReq) setupForMTLS(client cbClient) error {
-	certFilePath, keyFilePath := client.getCertFilePaths()
-	cert, err := tls.LoadX509KeyPair(certFilePath, keyFilePath)
+	cert, key := client.getCerts()
+	c, err := tls.X509KeyPair([]byte(cert), []byte(key))
 	if err != nil {
 		return fmt.Errorf("Error loading X509 Key Pair: %v", err)
 	}
 	r.IsMTLS = true
 	r.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{
-			Certificates:       []tls.Certificate{cert},
+			Certificates:       []tls.Certificate{c},
 			InsecureSkipVerify: true,
 		},
 	}
@@ -252,7 +252,7 @@ func (u *UserClient) isMtlsClient() bool {
 	return false
 }
 
-func (u *UserClient) getCertFilePaths() (string, string) {
+func (u *UserClient) getCerts() (string, string) {
 	return "", ""
 }
 
@@ -264,7 +264,7 @@ func (d *DevClient) getMTLSPort() string {
 	return d.MTLSPort
 }
 
-func (d *DevClient) getCertFilePaths() (string, string) {
+func (d *DevClient) getCerts() (string, string) {
 	return "", ""
 }
 
@@ -296,8 +296,8 @@ func (d *DeviceClient) isMtlsClient() bool {
 	return d.IsMTLS
 }
 
-func (d *DeviceClient) getCertFilePaths() (string, string) {
-	return d.CertFilePath, d.KeyFilePath
+func (d *DeviceClient) getCerts() (string, string) {
+	return d.Cert, d.Key
 }
 
 func (u *UserClient) SetMqttClient(c MqttClient) {
@@ -328,7 +328,7 @@ func NewDeviceClient(systemkey, systemsecret, deviceName, activeKey string) *Dev
 	}
 }
 
-func NewDeviceMTLSClient(systemkey, deviceName, certFilePath, keyFilePath string, detailsInCommonName bool) *DeviceClient {
+func NewDeviceMTLSClient(systemkey, deviceName, cert, key string, detailsInCommonName bool) *DeviceClient {
 	return &DeviceClient{
 		DeviceName:   deviceName,
 		DeviceToken:  "",
@@ -340,8 +340,8 @@ func NewDeviceMTLSClient(systemkey, deviceName, certFilePath, keyFilePath string
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
 		MTLSPort:     MTLS_PORT,
 		IsMTLS:       true,
-		CertFilePath: certFilePath,
-		KeyFilePath:  keyFilePath,
+		Cert:         cert,
+		Key:          key,
 		DetailsInCN:  detailsInCommonName,
 	}
 }
