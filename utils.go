@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -206,7 +207,9 @@ type CbReq struct {
 
 func (r *CbReq) setupForMTLS(client cbClient) error {
 	cert, key := client.getCerts()
-	c, err := tls.X509KeyPair([]byte(cert), []byte(key))
+	cb, _ := pem.Decode([]byte(cert))
+	kb, _ := pem.Decode([]byte(key))
+	c, err := tls.X509KeyPair(cb.Bytes, kb.Bytes)
 	if err != nil {
 		return fmt.Errorf("Error loading X509 Key Pair: %v", err)
 	}
