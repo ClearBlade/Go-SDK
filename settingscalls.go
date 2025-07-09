@@ -103,6 +103,74 @@ func (d *DevClient) AddMTLSSettings(rootCA, crl string) error {
 	return nil
 }
 
+func (d *DevClient) AddMTLSSystemCertificate(systemKey, systemCA, privateKey, name string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	settings := map[string]interface{}{
+		"system_key":  systemKey,
+		"certificate": systemCA,
+		"name":        name,
+	}
+	if privateKey != "" {
+		settings["private_key"] = privateKey
+	}
+	resp, err := post(d, _SETTINGS_PREAMBLE+"mtls/"+systemKey+"/"+name, settings, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *DevClient) UpdateMTLSSystemCertificate(systemKey, systemCA, privateKey, name string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	settings := map[string]interface{}{
+		"system_key":  systemKey,
+		"certificate": systemCA,
+		"name":        name,
+	}
+	if privateKey != "" {
+		settings["private_key"] = privateKey
+	}
+	resp, err := put(d, _SETTINGS_PREAMBLE+"mtls/"+systemKey+"/"+name, settings, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *DevClient) GetMTLSSystemCertificate(systemKey, name string) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := get(d, _SETTINGS_PREAMBLE+"mtls/"+systemKey+"/"+name, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
+
+func (d *DevClient) DeleteMTLSSystemCertificate(systemKey, name string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := delete(d, _SETTINGS_PREAMBLE+"mtls/"+systemKey+"/"+name, nil, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (d *DevClient) GetMTLSSettings() (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
