@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 )
 
 const (
@@ -352,11 +353,11 @@ func (d *DevClient) DevUserInfo() (map[string]interface{}, error) {
 }
 
 // NewConnectCollection creates a new collection that is backed by a datastore of your own choosing.
-func (d *DevClient) NewConnectCollection(systemkey string, connectConfig connectCollection) (string, error) {
+func (d *DevClient) NewConnectCollection(systemkey string, connectConfig ConnectCollection) (string, error) {
 	creds, err := d.credentials()
-	m := connectConfig.toMap()
+	m := connectConfig.ToMap()
 	m["appID"] = systemkey
-	m["name"] = connectConfig.name()
+	m["name"] = connectConfig.Name()
 	if err != nil {
 		return "", err
 	}
@@ -371,12 +372,12 @@ func (d *DevClient) NewConnectCollection(systemkey string, connectConfig connect
 }
 
 // AlterConnectionDetails allows the developer to change or add connection information, such as updating a username
-func (d *DevClient) AlterConnectionDetails(systemkey string, connectConfig connectCollection) error {
+func (d *DevClient) AlterConnectionDetails(systemkey string, connectConfig ConnectCollection) error {
 	creds, err := d.credentials()
 	out := make(map[string]interface{})
-	m := connectConfig.toMap()
+	m := connectConfig.ToMap()
 	out["appID"] = systemkey
-	out["name"] = connectConfig.name()
+	out["name"] = connectConfig.Name()
 	out["connectionStringMap"] = m
 	resp, err := put(d, d.preamble()+"/collectionmanagement", out, creds, nil)
 	if err != nil {
@@ -1040,6 +1041,34 @@ func (d *DevClient) AddServiceToRole(systemKey, service, roleId string, level in
 	return nil
 }
 
+func (d *DevClient) AddEdgeRemoteAdminToRole(systemKey, edge, roleId string, level int) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{
+		"id": roleId,
+		"changes": map[string]interface{}{
+			"edgeremoteadmin": []map[string]interface{}{
+				map[string]interface{}{
+					"itemInfo": map[string]interface{}{
+						"name": edge,
+					},
+					"permissions": level,
+				},
+			},
+		},
+	}
+	resp, err := put(d, d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating a role to have a edgeremoteadmin: %v", resp.Body)
+	}
+	return nil
+}
+
 // AddTopicToRole associates some kind of permission dealing with the specified topic to the role
 func (d *DevClient) AddTopicToRole(systemKey, topic, roleId string, level int) error {
 	creds, err := d.credentials()
@@ -1094,6 +1123,34 @@ func (d *DevClient) AddServiceCacheMetaToRole(systemKey, cacheName, roleId strin
 	}
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("Error updating a role to have a service cache: %v", resp.Body)
+	}
+	return nil
+}
+
+func (d *DevClient) AddEdgeToRole(systemKey, edgeName, roleId string, level int) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{
+		"id": roleId,
+		"changes": map[string]interface{}{
+			"edges": []map[string]interface{}{
+				map[string]interface{}{
+					"itemInfo": map[string]interface{}{
+						"name": edgeName,
+					},
+					"permissions": level,
+				},
+			},
+		},
+	}
+	resp, err := put(d, d.preamble()+"/user/"+systemKey+"/roles", data, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Error updating a role to have an edge: %v", resp.Body)
 	}
 	return nil
 }
@@ -1206,7 +1263,7 @@ func (d *DevClient) getExpiresAt() float64 {
 }
 
 func (d *DevClient) getMessageId() uint16 {
-	return uint16(d.mrand.Int())
+	return uint16(time.Now().UnixNano())
 }
 
 func (d *DevClient) AddMessageTypeTriggers(systemKey string, msgTypeTriggers []map[string]interface{}) error {
