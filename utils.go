@@ -123,8 +123,6 @@ type cbClient interface {
 	getMqttAddr() string
 	getMTLSPort() string
 	getEdgeProxy() *EdgeProxy
-	isMtlsClient() bool
-	getCerts() (string, string)
 }
 
 // receiver for methods that can be shared between users/devs/devices
@@ -204,9 +202,8 @@ type CbReq struct {
 	IsMTLS      bool
 }
 
-func (r *CbReq) setupForMTLS(client cbClient) error {
-	cert, key := client.getCerts()
-	c, err := tls.X509KeyPair([]byte(cert), []byte(key))
+func (r *CbReq) setupForMTLS(client *DeviceClient) error {
+	c, err := tls.X509KeyPair([]byte(client.Cert), []byte(client.Key))
 	if err != nil {
 		return fmt.Errorf("Error loading X509 Key Pair: %v", err)
 	}
@@ -248,28 +245,12 @@ func (u *UserClient) getMTLSPort() string {
 	return u.MTLSPort
 }
 
-func (u *UserClient) isMtlsClient() bool {
-	return false
-}
-
-func (u *UserClient) getCerts() (string, string) {
-	return "", ""
-}
-
 func (d *DevClient) getHttpAddr() string {
 	return d.HttpAddr
 }
 
 func (d *DevClient) getMTLSPort() string {
 	return d.MTLSPort
-}
-
-func (d *DevClient) getCerts() (string, string) {
-	return "", ""
-}
-
-func (d *DevClient) isMtlsClient() bool {
-	return false
 }
 
 func (u *UserClient) getMqttAddr() string {
@@ -290,14 +271,6 @@ func (d *DevClient) getEdgeProxy() *EdgeProxy {
 
 func (d *DeviceClient) getEdgeProxy() *EdgeProxy {
 	return d.edgeProxy
-}
-
-func (d *DeviceClient) isMtlsClient() bool {
-	return d.IsMTLS
-}
-
-func (d *DeviceClient) getCerts() (string, string) {
-	return d.Cert, d.Key
 }
 
 func (u *UserClient) SetMqttClient(c MqttClient) {
@@ -1064,8 +1037,9 @@ func get(c cbClient, endpoint string, query map[string]string, creds [][]string,
 		QueryString: query_to_string(query),
 		Headers:     headers,
 	}
-	if c.isMtlsClient() {
-		if err := req.setupForMTLS(c); err != nil {
+	d, ok := c.(*DeviceClient)
+	if ok && d.IsMTLS {
+		if err := req.setupForMTLS(d); err != nil {
 			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
 		}
 	}
@@ -1080,8 +1054,9 @@ func post(c cbClient, endpoint string, body interface{}, creds [][]string, heade
 		QueryString: "",
 		Headers:     headers,
 	}
-	if c.isMtlsClient() {
-		if err := req.setupForMTLS(c); err != nil {
+	d, ok := c.(*DeviceClient)
+	if ok && d.IsMTLS {
+		if err := req.setupForMTLS(d); err != nil {
 			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
 		}
 	}
@@ -1109,8 +1084,9 @@ func put(c cbClient, endpoint string, body interface{}, heads [][]string, header
 		QueryString: "",
 		Headers:     headers,
 	}
-	if c.isMtlsClient() {
-		if err := req.setupForMTLS(c); err != nil {
+	d, ok := c.(*DeviceClient)
+	if ok && d.IsMTLS {
+		if err := req.setupForMTLS(d); err != nil {
 			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
 		}
 	}
@@ -1125,8 +1101,9 @@ func delete(c cbClient, endpoint string, query map[string]string, heads [][]stri
 		Headers:     headers,
 		QueryString: query_to_string(query),
 	}
-	if c.isMtlsClient() {
-		if err := req.setupForMTLS(c); err != nil {
+	d, ok := c.(*DeviceClient)
+	if ok && d.IsMTLS {
+		if err := req.setupForMTLS(d); err != nil {
 			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
 		}
 	}
@@ -1141,8 +1118,9 @@ func deleteWithBody(c cbClient, endpoint string, body interface{}, heads [][]str
 		Headers:     headers,
 		QueryString: "",
 	}
-	if c.isMtlsClient() {
-		if err := req.setupForMTLS(c); err != nil {
+	d, ok := c.(*DeviceClient)
+	if ok && d.IsMTLS {
+		if err := req.setupForMTLS(d); err != nil {
 			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
 		}
 	}
