@@ -161,6 +161,10 @@ type DeviceClient struct {
 	MqttAuthAddr string
 	MTLSPort     string
 	edgeProxy    *EdgeProxy
+	IsMTLS       bool
+	Cert         string
+	Key          string
+	DetailsInCN  bool
 }
 
 // DevClient is the type for developers
@@ -196,6 +200,21 @@ type CbReq struct {
 	MqttAddr    string
 	Transport   *http.Transport
 	IsMTLS      bool
+}
+
+func (r *CbReq) setupForMTLS(client *DeviceClient) error {
+	c, err := tls.X509KeyPair([]byte(client.Cert), []byte(client.Key))
+	if err != nil {
+		return fmt.Errorf("Error loading X509 Key Pair: %v", err)
+	}
+	r.IsMTLS = true
+	r.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{
+			Certificates:       []tls.Certificate{c},
+			InsecureSkipVerify: true,
+		},
+	}
+	return nil
 }
 
 // CbResp is a wrapper around an HTTP response
@@ -279,6 +298,24 @@ func NewDeviceClient(systemkey, systemsecret, deviceName, activeKey string) *Dev
 		MqttAddr:     CB_MSG_ADDR,
 		MqttAuthAddr: CB_MSG_AUTH_ADDR,
 		MTLSPort:     MTLS_PORT,
+	}
+}
+
+func NewDeviceMTLSClient(systemkey, deviceName, cert, key string, detailsInCommonName bool) *DeviceClient {
+	return &DeviceClient{
+		DeviceName:   deviceName,
+		DeviceToken:  "",
+		RefreshToken: "",
+		MQTTClient:   nil,
+		SystemKey:    systemkey,
+		HttpAddr:     CB_ADDR,
+		MqttAddr:     CB_MSG_ADDR,
+		MqttAuthAddr: CB_MSG_AUTH_ADDR,
+		MTLSPort:     MTLS_PORT,
+		IsMTLS:       true,
+		Cert:         cert,
+		Key:          key,
+		DetailsInCN:  detailsInCommonName,
 	}
 }
 
@@ -1000,6 +1037,12 @@ func get(c cbClient, endpoint string, query map[string]string, creds [][]string,
 		QueryString: query_to_string(query),
 		Headers:     headers,
 	}
+	d, ok := c.(*DeviceClient)
+	if ok && d.IsMTLS {
+		if err := req.setupForMTLS(d); err != nil {
+			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
+		}
+	}
 	return do(c, req, creds)
 }
 
@@ -1010,6 +1053,12 @@ func post(c cbClient, endpoint string, body interface{}, creds [][]string, heade
 		Endpoint:    endpoint,
 		QueryString: "",
 		Headers:     headers,
+	}
+	d, ok := c.(*DeviceClient)
+	if ok && d.IsMTLS {
+		if err := req.setupForMTLS(d); err != nil {
+			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
+		}
 	}
 	return do(c, req, creds)
 }
@@ -1035,6 +1084,12 @@ func put(c cbClient, endpoint string, body interface{}, heads [][]string, header
 		QueryString: "",
 		Headers:     headers,
 	}
+	d, ok := c.(*DeviceClient)
+	if ok && d.IsMTLS {
+		if err := req.setupForMTLS(d); err != nil {
+			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
+		}
+	}
 	return do(c, req, heads)
 }
 
@@ -1046,6 +1101,12 @@ func delete(c cbClient, endpoint string, query map[string]string, heads [][]stri
 		Headers:     headers,
 		QueryString: query_to_string(query),
 	}
+	d, ok := c.(*DeviceClient)
+	if ok && d.IsMTLS {
+		if err := req.setupForMTLS(d); err != nil {
+			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
+		}
+	}
 	return do(c, req, heads)
 }
 
@@ -1056,6 +1117,12 @@ func deleteWithBody(c cbClient, endpoint string, body interface{}, heads [][]str
 		Endpoint:    endpoint,
 		Headers:     headers,
 		QueryString: "",
+	}
+	d, ok := c.(*DeviceClient)
+	if ok && d.IsMTLS {
+		if err := req.setupForMTLS(d); err != nil {
+			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
+		}
 	}
 	return do(c, req, heads)
 }
