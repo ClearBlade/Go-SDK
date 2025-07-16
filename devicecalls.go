@@ -30,10 +30,10 @@ const (
 	ES256_X509
 )
 
-func (d *DevClient) GenerateDeviceCertificate(systemKey, deviceName, systemCertificateName, keyType string, keySize int, expiryTimestamp int64) error {
+func (d *DevClient) GenerateDeviceCertificate(systemKey, deviceName, systemCertificateName, keyType string, keySize int, expiryTimestamp int64) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	payload := map[string]interface{}{
 		"system_certificate_name": systemCertificateName,
@@ -44,9 +44,9 @@ func (d *DevClient) GenerateDeviceCertificate(systemKey, deviceName, systemCerti
 	resp, err := post(d, _DEVICES_DEV_PREAMBLE+systemKey+"/"+deviceName+"/generate-certificate", payload, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return resp.Body.(map[string]interface{}), nil
 }
 
 func (d *DevClient) GetDevicePublicKeys(systemKey, deviceName string) ([]interface{}, error) {
