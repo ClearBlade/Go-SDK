@@ -124,6 +124,42 @@ func (d *DevClient) AddMTLSSystemCertificate(systemKey, name, systemCA, privateK
 	return nil
 }
 
+func (d *DevClient) GenerateRootCACertificate(keyType string, keySize int, expiryTimestamp int64) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	payload := map[string]interface{}{
+		"key_type":         keyType,
+		"key_size":         keySize,
+		"expiry_timestamp": expiryTimestamp,
+	}
+	resp, err := post(d, _SETTINGS_PREAMBLE+"mtls/generate-certificate", payload, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *DevClient) GenerateSystemCertificate(systemKey, name, keyType string, keySize int, expiryTimestamp int64) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	payload := map[string]interface{}{
+		"key_type":         keyType,
+		"key_size":         keySize,
+		"expiry_timestamp": expiryTimestamp,
+	}
+	resp, err := post(d, _SETTINGS_PREAMBLE+"mtls/"+systemKey+"/"+name+"/generate-certificate", payload, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (d *DevClient) UpdateMTLSSystemCertificate(systemKey, name, systemCA, privateKey string) error {
 	creds, err := d.credentials()
 	if err != nil {
