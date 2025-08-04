@@ -1,6 +1,6 @@
 module github.com/clearblade/Go-SDK
 
-go 1.22.2
+go 1.23.0
 
 require (
 	github.com/clearblade/go-utils v1.1.5-0.20240513160427-a20563b372a5
@@ -11,7 +11,7 @@ require (
 	github.com/pkg/errors v0.8.1
 )
 
-require golang.org/x/net v0.27.0
+require golang.org/x/net v0.38.0
 
 require (
 	github.com/gorilla/websocket v1.5.3 // indirect
