@@ -665,6 +665,87 @@ func addColumn(c cbClient, preamble, collection_id, column_name, column_type str
 	return nil
 }
 
+type CompressionOptions struct {
+	SegmentBy string    `json:"segment_by"`
+	Interval  TimeValue `json:"interval"`
+}
+
+type TimeValue struct {
+	IntervalStr string `json:"interval_string"`
+}
+
+func (d *DevClient) CompressHypertable(systemKey, collectionName string, options CompressionOptions) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+
+	resp, err := post(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/compression", options, creds, nil)
+	if err != nil {
+		return fmt.Errorf("could not compress hypertable %s in %s: %v", collectionName, systemKey, err)
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("could not compress hypertable %s in %s: %v", collectionName, systemKey, resp.Body)
+	}
+
+	return nil
+}
+
+type CompressionPolicy struct {
+	SegmentBy string    `json:"segment_by"`
+	Interval  TimeValue `json:"interval"`
+}
+
+type CompressionStats struct {
+	TotalChunks            int                `json:"total_chunks"`
+	CompressedChunks       int                `json:"compressed_chunks"`
+	UncompressedTableBytes int                `json:"uncompressed_table_bytes"`
+	CompressedTableBytes   int                `json:"compressed_table_bytes"`
+	Policy                 *CompressionPolicy `json:"compression_policy"`
+}
+
+func (d *DevClient) GetCompressionStats(systemKey, collectionName string) (*CompressionStats, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := get(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/compression", nil, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not get compression stats for hypertable %s in %s: %v", collectionName, systemKey, err)
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("could not get compression stats for hypertable %s in %s: %v", collectionName, systemKey, resp.Body)
+	}
+
+	stats := &CompressionStats{}
+	if err := decodeMapToStruct(resp.Body, &stats); err != nil {
+		return nil, fmt.Errorf("could not unmarshal compression stats for hypertable %s in %s: %v", collectionName, systemKey, err)
+	}
+
+	return stats, nil
+}
+
+func (d *DevClient) DeleteCompressionPolicy(systemKey, collectionName string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+
+	resp, err := delete(d, _DATA_V4_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/compression", nil, creds, nil)
+	if err != nil {
+		return fmt.Errorf("could not delete compression policy for hypertable %s in %s: %v", collectionName, systemKey, err)
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("could not delete compression policy for hypertable %s in %s: %v", collectionName, systemKey, resp.Body)
+	}
+
+	return nil
+}
+
 func (d *DevClient) ConvertCollectionToHypertable(systemKey, collectionName string, options map[string]interface{}) error {
 	creds, err := d.credentials()
 	if err != nil {
