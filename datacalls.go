@@ -680,7 +680,7 @@ func (d *DevClient) CompressHypertable(systemKey, collectionName string, options
 		return err
 	}
 
-	resp, err := post(d, _DATA_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/compression", options, creds, nil)
+	resp, err := post(d, _DATA_NAME_PREAMBLE+systemKey+"/"+collectionName+"/compression", options, creds, nil)
 	if err != nil {
 		return fmt.Errorf("could not compress hypertable %s in %s: %v", collectionName, systemKey, err)
 	}
@@ -711,7 +711,7 @@ func (d *DevClient) GetCompressionStats(systemKey, collectionName string) (*Comp
 		return nil, err
 	}
 
-	resp, err := get(d, _DATA_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/compression", nil, creds, nil)
+	resp, err := get(d, _DATA_NAME_PREAMBLE+systemKey+"/"+collectionName+"/compression", nil, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("could not get compression stats for hypertable %s in %s: %v", collectionName, systemKey, err)
 	}
@@ -734,7 +734,7 @@ func (d *DevClient) DeleteCompressionPolicy(systemKey, collectionName string) er
 		return err
 	}
 
-	resp, err := delete(d, _DATA_PREAMBLE+"/collection/"+systemKey+"/"+collectionName+"/compression", nil, creds, nil)
+	resp, err := delete(d, _DATA_V4_PREAMBLE+systemKey+"/"+collectionName+"/compression", nil, creds, nil)
 	if err != nil {
 		return fmt.Errorf("could not delete compression policy for hypertable %s in %s: %v", collectionName, systemKey, err)
 	}
