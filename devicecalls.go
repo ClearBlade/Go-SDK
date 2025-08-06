@@ -6,18 +6,21 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 type KeyFormat int
 
 const (
-	_DEVICE_HEADER_KEY       = "ClearBlade-DeviceToken"
-	_DEVICES_DEV_PREAMBLE    = "/admin/devices/"
-	_DEVICES_USER_PREAMBLE   = "/api/v/2/devices/"
-	_DEVICE_SESSION          = "/admin/v/4/session"
-	_DEVICE_V3_USER_PREAMBLE = "/api/v/3/devices/"
-	_DEVICE_V4_PREAMBLE      = "/api/v/4/devices/"
-	_DEVICE_PUBKEY_PREAMBLE  = "/admin/devices/public_keys/"
+	_DEVICE_HEADER_KEY            = "ClearBlade-DeviceToken"
+	_DEVICE_SYSKEY_HEADER_KEY     = "Clearblade-Systemkey"
+	_DEVICE_DEVICENAME_HEADER_KEY = "Clearblade-Devicename"
+	_DEVICES_DEV_PREAMBLE         = "/admin/devices/"
+	_DEVICES_USER_PREAMBLE        = "/api/v/2/devices/"
+	_DEVICE_SESSION               = "/admin/v/4/session"
+	_DEVICE_V3_USER_PREAMBLE      = "/api/v/3/devices/"
+	_DEVICE_V4_PREAMBLE           = "/api/v/4/devices/"
+	_DEVICE_PUBKEY_PREAMBLE       = "/admin/devices/public_keys/"
 )
 
 const (
@@ -26,6 +29,25 @@ const (
 	RS256_X509
 	ES256_X509
 )
+
+func (d *DevClient) GenerateDeviceCertificate(systemKey, deviceName, systemCertificateName, keyType string, keySize int, expiryTimestamp int64) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	payload := map[string]interface{}{
+		"system_certificate_name": systemCertificateName,
+		"key_type":                keyType,
+		"key_size":                keySize,
+		"expiry_timestamp":        expiryTimestamp,
+	}
+	resp, err := post(d, _DEVICES_DEV_PREAMBLE+systemKey+"/"+deviceName+"/generate-certificate", payload, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
 
 func (d *DevClient) GetDevicePublicKeys(systemKey, deviceName string) ([]interface{}, error) {
 	creds, err := d.credentials()
@@ -615,6 +637,19 @@ func (d *DevClient) DeleteDeviceSession(systemKey string, query *Query) error {
 
 func (dvc *DeviceClient) credentials() ([][]string, error) {
 	ret := make([][]string, 0)
+	if dvc.IsMTLS {
+		if !dvc.DetailsInCN {
+			ret = append(ret, []string{
+				_DEVICE_SYSKEY_HEADER_KEY,
+				dvc.SystemKey,
+			})
+			ret = append(ret, []string{
+				_DEVICE_DEVICENAME_HEADER_KEY,
+				dvc.DeviceName,
+			})
+		}
+		return ret, nil
+	}
 	if dvc.DeviceToken != "" {
 		ret = append(ret, []string{
 			_DEVICE_HEADER_KEY,
@@ -690,7 +725,7 @@ func (dvc *DeviceClient) getSystemInfo() (string, string) {
 }
 
 func (dvc *DeviceClient) getMessageId() uint16 {
-	return uint16(dvc.mrand.Int())
+	return uint16(time.Now().UnixNano())
 }
 
 func (dvc *DeviceClient) getHttpAddr() string {

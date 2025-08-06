@@ -1181,3 +1181,31 @@ func listIndexeswithid(c cbClient, collectionID string) (map[string]interface{},
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
+
+func (d *DevClient) RawExec(systemKey, query string, params []interface{}) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	url := _DATA_V4_PREAMBLE + "database/" + systemKey + "/exec"
+	data := map[string]interface{}{"query": query, "params": params}
+	_, err = post(d, url, data, creds, nil)
+	if err != nil {
+		return fmt.Errorf("Error executing %v with args %v: %v", query, params, err)
+	}
+	return nil
+}
+
+func (d *DevClient) RawQuery(systemKey, query string, params []interface{}) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	url := _DATA_V4_PREAMBLE + "database/" + systemKey + "/query"
+	data := map[string]interface{}{"query": query, "params": params}
+	resp, err := post(d, url, data, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error executing %v with args %v: %v", query, params, err)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}

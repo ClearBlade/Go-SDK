@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -135,7 +134,6 @@ type UserClient struct {
 	UserToken    string
 	RefreshToken string
 	ExpiresAt    float64
-	mrand        *rand.Rand
 	MQTTClient   MqttClient
 	SystemKey    string
 	SystemSecret string
@@ -155,7 +153,6 @@ type DeviceClient struct {
 	DeviceToken  string
 	RefreshToken string
 	ExpiresAt    float64
-	mrand        *rand.Rand
 	MQTTClient   MqttClient
 	SystemKey    string
 	SystemSecret string
@@ -164,6 +161,10 @@ type DeviceClient struct {
 	MqttAuthAddr string
 	MTLSPort     string
 	edgeProxy    *EdgeProxy
+	IsMTLS       bool
+	Cert         string
+	Key          string
+	DetailsInCN  bool
 }
 
 // DevClient is the type for developers
@@ -172,7 +173,6 @@ type DevClient struct {
 	DevToken     string
 	RefreshToken string
 	ExpiresAt    float64
-	mrand        *rand.Rand
 	MQTTClient   MqttClient
 	Email        string
 	Password     string
@@ -200,6 +200,21 @@ type CbReq struct {
 	MqttAddr    string
 	Transport   *http.Transport
 	IsMTLS      bool
+}
+
+func (r *CbReq) setupForMTLS(client *DeviceClient) error {
+	c, err := tls.X509KeyPair([]byte(client.Cert), []byte(client.Key))
+	if err != nil {
+		return fmt.Errorf("Error loading X509 Key Pair: %v", err)
+	}
+	r.IsMTLS = true
+	r.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{
+			Certificates:       []tls.Certificate{c},
+			InsecureSkipVerify: true,
+		},
+	}
+	return nil
 }
 
 // CbResp is a wrapper around an HTTP response
@@ -276,7 +291,6 @@ func NewDeviceClient(systemkey, systemsecret, deviceName, activeKey string) *Dev
 		DeviceToken:  "",
 		RefreshToken: "",
 		ActiveKey:    activeKey,
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemKey:    systemkey,
 		SystemSecret: systemsecret,
@@ -287,12 +301,29 @@ func NewDeviceClient(systemkey, systemsecret, deviceName, activeKey string) *Dev
 	}
 }
 
+func NewDeviceMTLSClient(systemkey, deviceName, cert, key string, detailsInCommonName bool) *DeviceClient {
+	return &DeviceClient{
+		DeviceName:   deviceName,
+		DeviceToken:  "",
+		RefreshToken: "",
+		MQTTClient:   nil,
+		SystemKey:    systemkey,
+		HttpAddr:     CB_ADDR,
+		MqttAddr:     CB_MSG_ADDR,
+		MqttAuthAddr: CB_MSG_AUTH_ADDR,
+		MTLSPort:     MTLS_PORT,
+		IsMTLS:       true,
+		Cert:         cert,
+		Key:          key,
+		DetailsInCN:  detailsInCommonName,
+	}
+}
+
 // NewUserClient allocates a new UserClient struct
 func NewUserClient(systemkey, systemsecret, email, password string) *UserClient {
 	return &UserClient{
 		UserToken:    "",
 		RefreshToken: "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemSecret: systemsecret,
 		SystemKey:    systemkey,
@@ -310,7 +341,6 @@ func NewDevClient(email, password string) *DevClient {
 	return &DevClient{
 		DevToken:     "",
 		RefreshToken: "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		Email:        email,
 		Password:     password,
@@ -325,7 +355,6 @@ func NewDevClientWithToken(token, email string) *DevClient {
 	return &DevClient{
 		DevToken:     token,
 		RefreshToken: "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		Email:        email,
 		Password:     "",
@@ -340,7 +369,6 @@ func NewRefreshUserClientWithAddrs(httpAddr, mqttAddr, systemKey, systemSecret, 
 	return &UserClient{
 		UserToken:    accessToken,
 		RefreshToken: refreshToken,
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemSecret: systemSecret,
 		SystemKey:    systemKey,
@@ -355,7 +383,6 @@ func NewUserClientWithAddrs(httpAddr, mqttAddr, systemKey, systemSecret, email, 
 	return &UserClient{
 		UserToken:    "",
 		RefreshToken: "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemSecret: systemSecret,
 		SystemKey:    systemKey,
@@ -372,7 +399,6 @@ func NewUserClientWithAddrs2(httpAddr, mqttAddr, mqttAuthAddr, systemKey, system
 	return &UserClient{
 		UserToken:    "",
 		RefreshToken: "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemSecret: systemSecret,
 		SystemKey:    systemKey,
@@ -389,7 +415,6 @@ func NewDevClientWithAddrs(httpAddr, mqttAddr, email, password string) *DevClien
 	return &DevClient{
 		DevToken:     "",
 		RefreshToken: "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		Email:        email,
 		Password:     password,
@@ -410,7 +435,6 @@ func NewDevClientWithTokenAndAddrs(httpAddr, mqttAddr, token, email string) *Dev
 	return &DevClient{
 		DevToken:     token,
 		RefreshToken: "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		Email:        email,
 		Password:     "",
@@ -427,7 +451,6 @@ func NewDeviceClientWithAddrs(httpAddr, mqttAddr, systemkey, systemsecret, devic
 		DeviceToken:  "",
 		RefreshToken: "",
 		ActiveKey:    activeKey,
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemKey:    systemkey,
 		SystemSecret: systemsecret,
@@ -443,7 +466,6 @@ func NewDeviceClientWithServiceAccountAndAddrs(httpAddr, mqttAddr, systemkey, sy
 		DeviceName:   deviceName,
 		DeviceToken:  token,
 		ActiveKey:    "",
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemKey:    systemkey,
 		SystemSecret: systemsecret,
@@ -456,7 +478,6 @@ func NewDeviceClientWithServiceAccountAndAddrs(httpAddr, mqttAddr, systemkey, sy
 func NewUserClientWithServiceAccountAndAddrs(httpAddr, mqttAddr, systemkey, systemsecret, email, token string) *UserClient {
 	return &UserClient{
 		UserToken:    token,
-		mrand:        rand.New(rand.NewSource(time.Now().UnixNano())),
 		MQTTClient:   nil,
 		SystemSecret: systemsecret,
 		SystemKey:    systemkey,
@@ -1016,6 +1037,12 @@ func get(c cbClient, endpoint string, query map[string]string, creds [][]string,
 		QueryString: query_to_string(query),
 		Headers:     headers,
 	}
+	d, ok := c.(*DeviceClient)
+	if ok && d.IsMTLS {
+		if err := req.setupForMTLS(d); err != nil {
+			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
+		}
+	}
 	return do(c, req, creds)
 }
 
@@ -1026,6 +1053,12 @@ func post(c cbClient, endpoint string, body interface{}, creds [][]string, heade
 		Endpoint:    endpoint,
 		QueryString: "",
 		Headers:     headers,
+	}
+	d, ok := c.(*DeviceClient)
+	if ok && d.IsMTLS {
+		if err := req.setupForMTLS(d); err != nil {
+			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
+		}
 	}
 	return do(c, req, creds)
 }
@@ -1051,6 +1084,12 @@ func put(c cbClient, endpoint string, body interface{}, heads [][]string, header
 		QueryString: "",
 		Headers:     headers,
 	}
+	d, ok := c.(*DeviceClient)
+	if ok && d.IsMTLS {
+		if err := req.setupForMTLS(d); err != nil {
+			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
+		}
+	}
 	return do(c, req, heads)
 }
 
@@ -1062,6 +1101,12 @@ func delete(c cbClient, endpoint string, query map[string]string, heads [][]stri
 		Headers:     headers,
 		QueryString: query_to_string(query),
 	}
+	d, ok := c.(*DeviceClient)
+	if ok && d.IsMTLS {
+		if err := req.setupForMTLS(d); err != nil {
+			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
+		}
+	}
 	return do(c, req, heads)
 }
 
@@ -1072,6 +1117,12 @@ func deleteWithBody(c cbClient, endpoint string, body interface{}, heads [][]str
 		Endpoint:    endpoint,
 		Headers:     headers,
 		QueryString: "",
+	}
+	d, ok := c.(*DeviceClient)
+	if ok && d.IsMTLS {
+		if err := req.setupForMTLS(d); err != nil {
+			return nil, fmt.Errorf("Error setting up MTLS: %v", err)
+		}
 	}
 	return do(c, req, heads)
 }

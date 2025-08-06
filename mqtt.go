@@ -48,7 +48,7 @@ func (b *client) NewClientID() string {
 
 // InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
 func (u *UserClient) InitializeMQTT(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
-	mqc, err := newMqttClient(u.UserToken, u.SystemKey, u.SystemSecret, clientid, timeout, u.MqttAddr, ssl, lastWill)
+	mqc, err := newMqttClient(u.UserToken, u.SystemKey, u.SystemSecret, clientid, timeout, u.MqttAddr, ssl, lastWill, true)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func (u *UserClient) AuthenticateMQTT(username, password, systemKey, systemSecre
 // topics are isolated across systems, so in order to communicate with a specific
 // system, you must supply the system key
 func (d *DevClient) InitializeMQTT(clientid, systemkey string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
-	mqc, err := newMqttClient(d.DevToken, systemkey, "", clientid, timeout, d.MqttAddr, ssl, lastWill)
+	mqc, err := newMqttClient(d.DevToken, systemkey, "", clientid, timeout, d.MqttAddr, ssl, lastWill, true)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,16 @@ func (d *DevClient) AuthenticateMQTT(username, password, systemKey, systemSecret
 
 // InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
 func (d *DeviceClient) InitializeMQTT(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
-	mqc, err := newMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill)
+	mqc, err := newMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill, true)
+	if err != nil {
+		return err
+	}
+	d.MQTTClient = mqc
+	return nil
+}
+
+func (d *DeviceClient) InitializeMQTTWithoutAutoReconnect(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
+	mqc, err := newMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill, false)
 	if err != nil {
 		return err
 	}
@@ -145,7 +154,7 @@ func (d *DeviceClient) InitializeMQTTWithMTLS(username, clientid string, ignore 
 		return fmt.Errorf("Invalid mqtt addr. Expected len 2 but got %+v", mqttAddrSplit)
 	}
 	mTLSMqttAddr := mqttAddrSplit[0] + ":" + d.MTLSPort
-	mqc, err := newMqttClient(username, d.SystemKey, d.SystemSecret, clientid, timeout, mTLSMqttAddr, ssl, lastWill)
+	mqc, err := newMqttClient(username, d.SystemKey, d.SystemSecret, clientid, timeout, mTLSMqttAddr, ssl, lastWill, true)
 	if err != nil {
 		return err
 	}
@@ -154,7 +163,16 @@ func (d *DeviceClient) InitializeMQTTWithMTLS(username, clientid string, ignore 
 }
 
 func (d *DeviceClient) InitializeJWTMQTT(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
-	mqc, err := newJwtMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill)
+	mqc, err := newJwtMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill, true)
+	if err != nil {
+		return err
+	}
+	d.MQTTClient = mqc
+	return nil
+}
+
+func (d *DeviceClient) InitializeJWTMQTTWithoutAutoReconnect(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
+	mqc, err := newJwtMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill, false)
 	if err != nil {
 		return err
 	}
@@ -341,9 +359,9 @@ type mqttBaseClient struct {
 	timeout                                  int
 }
 
-func newJwtMqttClient(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket) (MqttClient, error) {
+func newJwtMqttClient(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket, autoReconnect bool) (MqttClient, error) {
 	o := mqtt.NewClientOptions()
-	o.SetAutoReconnect(true)
+	o.SetAutoReconnect(autoReconnect)
 	if ssl != nil {
 		o.AddBroker("tls://" + address)
 		o.SetTLSConfig(ssl)
@@ -369,9 +387,9 @@ func newJwtMqttClient(token, systemkey, systemsecret, clientid string, timeout i
 // the values for initialization are drawn from the client struct
 // with the exception of the timeout and client id, which is mqtt specific.
 // timeout refers to broker connect timeout
-func newMqttClient(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket) (MqttClient, error) {
+func newMqttClient(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket, reconnect bool) (MqttClient, error) {
 	o := mqtt.NewClientOptions()
-	o.SetAutoReconnect(true)
+	o.SetAutoReconnect(reconnect)
 	if ssl != nil {
 		o.AddBroker("tls://" + address)
 		o.SetTLSConfig(ssl)

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 )
 
 const (
@@ -70,7 +71,7 @@ func (u *UserClient) getExpiresAt() float64 {
 }
 
 func (u *UserClient) getMessageId() uint16 {
-	return uint16(u.mrand.Int())
+	return uint16(time.Now().UnixNano())
 }
 
 func (u *UserClient) GetUserCount(systemKey string) (int, error) {
