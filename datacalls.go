@@ -734,7 +734,7 @@ func (d *DevClient) DeleteCompressionPolicy(systemKey, collectionName string) er
 		return err
 	}
 
-	resp, err := delete(d, _DATA_V4_PREAMBLE+systemKey+"/"+collectionName+"/compression", nil, creds, nil)
+	resp, err := delete(d, _DATA_NAME_PREAMBLE+systemKey+"/"+collectionName+"/compression", nil, creds, nil)
 	if err != nil {
 		return fmt.Errorf("could not delete compression policy for hypertable %s in %s: %v", collectionName, systemKey, err)
 	}
