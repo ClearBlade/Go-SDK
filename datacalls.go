@@ -682,7 +682,7 @@ func (d *DevClient) CompressHypertable(systemKey, collectionName string, options
 
 	resp, err := post(d, _DATA_NAME_PREAMBLE+systemKey+"/"+collectionName+"/compression", options, creds, nil)
 	if err != nil {
-		return fmt.Errorf("could not compress hypertable %s in %s: %v", collectionName, systemKey, err)
+		return fmt.Errorf("could not compress hypertable %s in %s: %w", collectionName, systemKey, err)
 	}
 
 	if resp.StatusCode != 200 {
@@ -713,7 +713,7 @@ func (d *DevClient) GetCompressionStats(systemKey, collectionName string) (*Comp
 
 	resp, err := get(d, _DATA_NAME_PREAMBLE+systemKey+"/"+collectionName+"/compression", nil, creds, nil)
 	if err != nil {
-		return nil, fmt.Errorf("could not get compression stats for hypertable %s in %s: %v", collectionName, systemKey, err)
+		return nil, fmt.Errorf("could not get compression stats for hypertable %s in %s: %w", collectionName, systemKey, err)
 	}
 
 	if resp.StatusCode != 200 {
@@ -722,7 +722,7 @@ func (d *DevClient) GetCompressionStats(systemKey, collectionName string) (*Comp
 
 	stats := &CompressionStats{}
 	if err := decodeMapToStruct(resp.Body, &stats); err != nil {
-		return nil, fmt.Errorf("could not unmarshal compression stats for hypertable %s in %s: %v", collectionName, systemKey, err)
+		return nil, fmt.Errorf("could not unmarshal compression stats for hypertable %s in %s: %w", collectionName, systemKey, err)
 	}
 
 	return stats, nil
@@ -736,7 +736,7 @@ func (d *DevClient) DeleteCompressionPolicy(systemKey, collectionName string) er
 
 	resp, err := delete(d, _DATA_NAME_PREAMBLE+systemKey+"/"+collectionName+"/compression", nil, creds, nil)
 	if err != nil {
-		return fmt.Errorf("could not delete compression policy for hypertable %s in %s: %v", collectionName, systemKey, err)
+		return fmt.Errorf("could not delete compression policy for hypertable %s in %s: %w", collectionName, systemKey, err)
 	}
 
 	if resp.StatusCode != 200 {
