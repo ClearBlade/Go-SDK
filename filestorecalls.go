@@ -118,7 +118,7 @@ func readFilestoreFile(c cbClient, systemKey, filestore, path string) ([]byte, e
 	if err != nil {
 		return nil, err
 	}
-	endpoint := fmt.Sprintf("%s%s/%s/%s", _FILESTORES_PREAMBLE, systemKey, filestore, path)
+	endpoint := fmt.Sprintf("%s%s/%s/file/%s", _FILESTORES_PREAMBLE, systemKey, filestore, path)
 	resp, err := get(c, endpoint, nil, creds, nil)
 	if err != nil {
 		return nil, err
@@ -151,7 +151,7 @@ func writeFilestoreFile(c cbClient, systemKey, filestore, path string, contents 
 	if err != nil {
 		return err
 	}
-	endpoint := fmt.Sprintf("%s%s/%s/%s", _FILESTORES_PREAMBLE, systemKey, filestore, path)
+	endpoint := fmt.Sprintf("%s%s/%s/file/%s", _FILESTORES_PREAMBLE, systemKey, filestore, path)
 	resp, err := put(c, endpoint, contents, creds, nil)
 	if err != nil {
 		return err
@@ -179,7 +179,7 @@ func deleteFilestoreFile(c cbClient, systemKey, filestore, path string) error {
 	if err != nil {
 		return err
 	}
-	endpoint := fmt.Sprintf("%s%s/%s/%s", _FILESTORES_PREAMBLE, systemKey, filestore, path)
+	endpoint := fmt.Sprintf("%s%s/%s/file/%s", _FILESTORES_PREAMBLE, systemKey, filestore, path)
 	resp, err := delete(c, endpoint, nil, creds, nil)
 	if err != nil {
 		return err
