@@ -1,6 +1,9 @@
 package GoSDK
 
-import "fmt"
+import (
+	"encoding/base64"
+	"fmt"
+)
 
 const (
 	_FILESTORES_PREAMBLE = "/api/v/1/filestore/"
@@ -133,7 +136,12 @@ func readFilestoreFile(c cbClient, systemKey, filestore, path string) ([]byte, e
 		return nil, fmt.Errorf("expected response body to be string, got: %T", resp.Body)
 	}
 
-	return []byte(bodyStr), nil
+	decoded, err := base64.StdEncoding.DecodeString(bodyStr)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode response: %w", err)
+	}
+
+	return []byte(decoded), nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
