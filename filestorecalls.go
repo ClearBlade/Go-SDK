@@ -1,7 +1,6 @@
 package GoSDK
 
 import (
-	"encoding/base64"
 	"fmt"
 )
 
@@ -136,12 +135,7 @@ func readFilestoreFile(c cbClient, systemKey, filestore, path string) ([]byte, e
 		return nil, fmt.Errorf("expected response body to be string, got: %T", resp.Body)
 	}
 
-	decoded, err := base64.StdEncoding.DecodeString(bodyStr)
-	if err != nil {
-		return nil, fmt.Errorf("could not decode response: %w", err)
-	}
-
-	return []byte(decoded), nil
+	return []byte(bodyStr), nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
