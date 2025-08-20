@@ -2,6 +2,7 @@ package GoSDK
 
 import (
 	"fmt"
+	"strconv"
 )
 
 const (
@@ -183,6 +184,55 @@ func deleteFilestoreFile(c cbClient, systemKey, filestore, path string) error {
 	}
 	endpoint := fmt.Sprintf("%s%s/%s/file/%s", _FILESTORES_PREAMBLE, systemKey, filestore, path)
 	resp, err := delete(c, endpoint, nil, creds, nil)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("failed with status code %d: %v", resp.StatusCode, resp.Body)
+	}
+
+	return nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+type ListOptions struct {
+	Depth             int    `json:"depth"`
+	Limit             int    `json:"limit"`
+	Prefix            string `json:"prefix"`
+	ContinuationToken string `json:"continuation_token"`
+}
+
+func (d *DevClient) ListFilestoreFiles(systemKey, filestore string, opts *ListOptions) error {
+	return listFilestoreFiles(d, systemKey, filestore, opts)
+}
+
+func (u *UserClient) ListFilestoreFiles(systemKey, filestore string, opts *ListOptions) error {
+	return listFilestoreFiles(u, systemKey, filestore, opts)
+}
+
+func listFilestoreFiles(c cbClient, systemKey, filestore string, opts *ListOptions) error {
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+
+	endpoint := fmt.Sprintf("%s%s/%s/list/%s", _FILESTORES_PREAMBLE, systemKey, filestore, opts.Prefix)
+	query := map[string]string{}
+	if opts.Depth != 0 {
+		query["depth"] = strconv.Itoa(opts.Depth)
+	}
+
+	if opts.Limit != 0 {
+		query["limit"] = strconv.Itoa(opts.Limit)
+	}
+
+	if opts.ContinuationToken != "" {
+		query["continuation_token"] = opts.ContinuationToken
+	}
+
+	resp, err := delete(c, endpoint, query, creds, nil)
 	if err != nil {
 		return err
 	}
