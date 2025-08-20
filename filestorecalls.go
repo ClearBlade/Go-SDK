@@ -67,8 +67,8 @@ func getFilestore(c cbClient, systemKey, filestoreName string) (*EncryptedFilest
 	if err != nil {
 		return nil, err
 	}
-	endpoint := _FILESTORES_PREAMBLE + systemKey
-	resp, err := get(c, endpoint, map[string]string{"name": filestoreName}, creds, nil)
+	endpoint := fmt.Sprintf("%s%s/%s", _FILESTORES_PREAMBLE, systemKey, filestoreName)
+	resp, err := get(c, endpoint, nil, creds, nil)
 	if err != nil {
 		return nil, err
 	}
