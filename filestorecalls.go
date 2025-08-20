@@ -245,7 +245,7 @@ func listFilestoreFiles(c cbClient, systemKey, filestore string, opts *ListOptio
 		query["continuation_token"] = opts.ContinuationToken
 	}
 
-	resp, err := delete(c, endpoint, query, creds, nil)
+	resp, err := get(c, endpoint, query, creds, nil)
 	if err != nil {
 		return nil, err
 	}
