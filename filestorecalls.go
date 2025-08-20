@@ -3,6 +3,7 @@ package GoSDK
 import (
 	"fmt"
 	"strconv"
+	"time"
 )
 
 const (
@@ -204,18 +205,30 @@ type ListOptions struct {
 	ContinuationToken string `json:"continuation_token"`
 }
 
-func (d *DevClient) ListFilestoreFiles(systemKey, filestore string, opts *ListOptions) error {
+type FileList struct {
+	Files             []FileMeta `json:"files"`
+	ContinuationToken string     `json:"continuation_token"`
+}
+type FileMeta struct {
+	FullPath    string    `json:"full_path"`
+	SizeBytes   int64     `json:"size_bytes"`
+	Permissions string    `json:"permissions"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	IsDir       bool      `json:"is_dir"`
+}
+
+func (d *DevClient) ListFilestoreFiles(systemKey, filestore string, opts *ListOptions) (*FileList, error) {
 	return listFilestoreFiles(d, systemKey, filestore, opts)
 }
 
-func (u *UserClient) ListFilestoreFiles(systemKey, filestore string, opts *ListOptions) error {
+func (u *UserClient) ListFilestoreFiles(systemKey, filestore string, opts *ListOptions) (*FileList, error) {
 	return listFilestoreFiles(u, systemKey, filestore, opts)
 }
 
-func listFilestoreFiles(c cbClient, systemKey, filestore string, opts *ListOptions) error {
+func listFilestoreFiles(c cbClient, systemKey, filestore string, opts *ListOptions) (*FileList, error) {
 	creds, err := c.credentials()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	endpoint := fmt.Sprintf("%s%s/%s/list/%s", _FILESTORES_PREAMBLE, systemKey, filestore, opts.Prefix)
@@ -234,12 +247,17 @@ func listFilestoreFiles(c cbClient, systemKey, filestore string, opts *ListOptio
 
 	resp, err := delete(c, endpoint, query, creds, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("failed with status code %d: %v", resp.StatusCode, resp.Body)
+		return nil, fmt.Errorf("failed with status code %d: %v", resp.StatusCode, resp.Body)
 	}
 
-	return nil
+	result := &FileList{}
+	if err := decodeMapToStruct(resp.Body, &result); err != nil {
+		return nil, fmt.Errorf("failed to decode file list: %w", err)
+	}
+
+	return result, nil
 }
