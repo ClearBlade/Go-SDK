@@ -3,7 +3,6 @@ package GoSDK
 import (
 	"fmt"
 	"strconv"
-	"time"
 )
 
 const (
@@ -210,11 +209,11 @@ type FileList struct {
 	ContinuationToken string     `json:"continuation_token"`
 }
 type FileMeta struct {
-	FullPath    string    `json:"full_path"`
-	SizeBytes   int64     `json:"size_bytes"`
-	Permissions string    `json:"permissions"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	IsDir       bool      `json:"is_dir"`
+	FullPath      string `json:"full_path"`
+	SizeBytes     int64  `json:"size_bytes"`
+	Permissions   string `json:"permissions"`
+	UpdatedAtUnix int64  `json:"updated_at"`
+	IsDir         bool   `json:"is_dir"`
 }
 
 func (d *DevClient) ListFilestoreFiles(systemKey, filestore string, opts *ListOptions) (*FileList, error) {
