@@ -12,6 +12,8 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/fatih/structs"
+
 	cbErr "github.com/clearblade/go-utils/errors"
 	mqttTypes "github.com/clearblade/mqtt_parsing"
 	mqtt "github.com/clearblade/paho.mqtt.golang"
@@ -944,15 +946,20 @@ func logout(c cbClient) error {
 func do(c cbClient, r *CbReq, creds [][]string) (*CbResp, error) {
 	checkForEdgeProxy(c, r)
 	var bodyToSend *bytes.Buffer
-	if r.Body != nil {
-		b, jsonErr := json.Marshal(r.Body)
+	switch body := r.Body.(type) {
+	case nil:
+		bodyToSend = nil
+	case []byte:
+		bodyToSend = bytes.NewBuffer(body)
+	default:
+		b, jsonErr := json.Marshal(body)
 		if jsonErr != nil {
-			return nil, fmt.Errorf("JSON Encoding Error: %v", jsonErr)
+			return nil, fmt.Errorf("JSON Encoding Error: %w", jsonErr)
 		}
 		bodyToSend = bytes.NewBuffer(b)
-	} else {
-		bodyToSend = nil
+
 	}
+
 	url := c.getHttpAddr() + r.Endpoint
 	if r.IsMTLS {
 		url = c.getHttpAddr() + ":" + c.getMTLSPort() + r.Endpoint
@@ -1263,4 +1270,10 @@ func decodeMapToStruct(incoming interface{}, outgoing interface{}) error {
 	}
 
 	return decoder.Decode(incoming)
+}
+
+func structToMap(incomingStruct interface{}) map[string]interface{} {
+	structObj := structs.New(incomingStruct)
+	structObj.TagName = "json"
+	return structObj.Map()
 }

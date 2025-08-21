@@ -632,6 +632,12 @@ func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]inter
 	if adapters, ok := permissions["adapters"]; ok {
 		changes["adapters"] = adapters
 	}
+	if filestores, ok := permissions["filestores"]; ok {
+		changes["filestores"] = filestores
+	}
+	if filestoreFiles, ok := permissions["filestorefiles"]; ok {
+		changes["filestorefiles"] = filestoreFiles
+	}
 	// Just to be safe, this is silly
 	data["changes"] = changes
 	creds, err := d.credentials()
