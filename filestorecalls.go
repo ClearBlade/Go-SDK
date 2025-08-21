@@ -276,7 +276,8 @@ func copyFilestoreFile(c cbClient, systemKey, filestore, src, dst string) error 
 	if err != nil {
 		return err
 	}
-	endpoint := fmt.Sprintf("%s%s/%s/copy/%s?destination=%s", _FILESTORES_PREAMBLE, systemKey, filestore, src, dst)
+	qryStr := query_to_string(map[string]string{"destination": dst})
+	endpoint := fmt.Sprintf("%s%s/%s/copy/%s?%s", _FILESTORES_PREAMBLE, systemKey, filestore, src, qryStr)
 	resp, err := put(c, endpoint, nil, creds, nil)
 	if err != nil {
 		return err
@@ -304,7 +305,8 @@ func moveFilestoreFile(c cbClient, systemKey, filestore, src, dst string) error 
 	if err != nil {
 		return err
 	}
-	endpoint := fmt.Sprintf("%s%s/%s/move/%s?destination=%s", _FILESTORES_PREAMBLE, systemKey, filestore, src, dst)
+	qryStr := query_to_string(map[string]string{"destination": dst})
+	endpoint := fmt.Sprintf("%s%s/%s/move/%s?%s", _FILESTORES_PREAMBLE, systemKey, filestore, src, qryStr)
 	resp, err := put(c, endpoint, nil, creds, nil)
 	if err != nil {
 		return err
