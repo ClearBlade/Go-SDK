@@ -85,6 +85,36 @@ func getFilestore(c cbClient, systemKey, filestoreName string) (*EncryptedFilest
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+func (d *DevClient) GetFilestores(systemKey string) ([]*EncryptedFilestore, error) {
+	return getFilestores(d, systemKey)
+}
+
+func (u *UserClient) GetFilestores(systemKey string) ([]*EncryptedFilestore, error) {
+	return getFilestores(u, systemKey)
+}
+
+func getFilestores(c cbClient, systemKey string) ([]*EncryptedFilestore, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+	endpoint := fmt.Sprintf("%s%s", _FILESTORES_PREAMBLE, systemKey)
+	resp, err := get(c, endpoint, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("failed with status code %d: %v", resp.StatusCode, resp.Body)
+	}
+
+	filestore := []*EncryptedFilestore{}
+	err = decodeMapToStruct(resp.Body, filestore)
+	return filestore, err
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 func (d *DevClient) DeleteFilestore(systemKey, name string) error {
 	return deleteFilestore(d, systemKey, name)
 }
