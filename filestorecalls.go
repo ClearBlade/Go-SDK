@@ -260,3 +260,61 @@ func listFilestoreFiles(c cbClient, systemKey, filestore string, opts *ListOptio
 
 	return result, nil
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (d *DevClient) CopyFilestoreFile(systemKey, filestore, src, dst string) error {
+	return copyFilestoreFile(d, systemKey, filestore, src, dst)
+}
+
+func (u *UserClient) CopyFilestoreFile(systemKey, filestore, src, dst string) error {
+	return copyFilestoreFile(u, systemKey, filestore, src, dst)
+}
+
+func copyFilestoreFile(c cbClient, systemKey, filestore, src, dst string) error {
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	qryStr := query_to_string(map[string]string{"destination": dst})
+	endpoint := fmt.Sprintf("%s%s/%s/copy/%s?%s", _FILESTORES_PREAMBLE, systemKey, filestore, src, qryStr)
+	resp, err := put(c, endpoint, nil, creds, nil)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("failed with status code %d: %v", resp.StatusCode, resp.Body)
+	}
+
+	return nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (d *DevClient) MoveFilestoreFile(systemKey, filestore, src, dst string) error {
+	return moveFilestoreFile(d, systemKey, filestore, src, dst)
+}
+
+func (u *UserClient) MoveFilestoreFile(systemKey, filestore, src, dst string) error {
+	return moveFilestoreFile(u, systemKey, filestore, src, dst)
+}
+
+func moveFilestoreFile(c cbClient, systemKey, filestore, src, dst string) error {
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	qryStr := query_to_string(map[string]string{"destination": dst})
+	endpoint := fmt.Sprintf("%s%s/%s/move/%s?%s", _FILESTORES_PREAMBLE, systemKey, filestore, src, qryStr)
+	resp, err := put(c, endpoint, nil, creds, nil)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("failed with status code %d: %v", resp.StatusCode, resp.Body)
+	}
+
+	return nil
+}
