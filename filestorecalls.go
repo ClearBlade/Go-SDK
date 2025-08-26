@@ -2,6 +2,7 @@ package GoSDK
 
 import (
 	"fmt"
+	"strconv"
 )
 
 const (
@@ -192,4 +193,70 @@ func deleteFilestoreFile(c cbClient, systemKey, filestore, path string) error {
 	}
 
 	return nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+type ListOptions struct {
+	Depth             int    `json:"depth"`
+	Limit             int    `json:"limit"`
+	Prefix            string `json:"prefix"`
+	ContinuationToken string `json:"continuation_token"`
+}
+
+type FileList struct {
+	Files             []FileMeta `json:"files"`
+	ContinuationToken string     `json:"continuation_token"`
+}
+type FileMeta struct {
+	FullPath      string `json:"full_path"`
+	SizeBytes     int64  `json:"size_bytes"`
+	Permissions   string `json:"permissions"`
+	UpdatedAtUnix int64  `json:"updated_at"`
+	IsDir         bool   `json:"is_dir"`
+}
+
+func (d *DevClient) ListFilestoreFiles(systemKey, filestore string, opts *ListOptions) (*FileList, error) {
+	return listFilestoreFiles(d, systemKey, filestore, opts)
+}
+
+func (u *UserClient) ListFilestoreFiles(systemKey, filestore string, opts *ListOptions) (*FileList, error) {
+	return listFilestoreFiles(u, systemKey, filestore, opts)
+}
+
+func listFilestoreFiles(c cbClient, systemKey, filestore string, opts *ListOptions) (*FileList, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	endpoint := fmt.Sprintf("%s%s/%s/list/%s", _FILESTORES_PREAMBLE, systemKey, filestore, opts.Prefix)
+	query := map[string]string{}
+	if opts.Depth != 0 {
+		query["depth"] = strconv.Itoa(opts.Depth)
+	}
+
+	if opts.Limit != 0 {
+		query["limit"] = strconv.Itoa(opts.Limit)
+	}
+
+	if opts.ContinuationToken != "" {
+		query["continuation_token"] = opts.ContinuationToken
+	}
+
+	resp, err := get(c, endpoint, query, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("failed with status code %d: %v", resp.StatusCode, resp.Body)
+	}
+
+	result := &FileList{}
+	if err := decodeMapToStruct(resp.Body, &result); err != nil {
+		return nil, fmt.Errorf("failed to decode file list: %w", err)
+	}
+
+	return result, nil
 }
