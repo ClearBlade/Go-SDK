@@ -47,6 +47,15 @@ func createFilestore(c cbClient, systemKey string, config *FilestoreConfig) erro
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+type Filestore struct {
+	Name            string         `json:"name"`
+	StorageType     string         `json:"storage_type"`
+	StorageConfig   map[string]any `json:"storage_config"`
+	ReadAuthMethod  string         `json:"read_auth_method"`
+	WriteAuthMethod string         `json:"write_auth_method"`
+	SystemKey       string         `json:"system_key"`
+}
+
 type EncryptedFilestore struct {
 	Name            string `json:"name"`
 	StorageType     string `json:"storage_type"`
@@ -64,11 +73,21 @@ func (u *UserClient) GetFilestore(systemKey, name string) (*EncryptedFilestore, 
 }
 
 func getFilestore(c cbClient, systemKey, filestoreName string) (*EncryptedFilestore, error) {
+	body, err := makeFilestoreRequest(c, systemKey, filestoreName, false)
+	if err != nil {
+		return nil, err
+	}
+	filestore := &EncryptedFilestore{}
+	err = decodeMapToStruct(body, filestore)
+	return filestore, err
+}
+
+func makeFilestoreRequest(c cbClient, systemKey, filestoreName string, decrypt bool) (any, error) {
 	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
-	endpoint := fmt.Sprintf("%s%s/%s", _FILESTORES_PREAMBLE, systemKey, filestoreName)
+	endpoint := fmt.Sprintf("%s%s/%s?decrypt=%t", _FILESTORES_PREAMBLE, systemKey, filestoreName, decrypt)
 	resp, err := get(c, endpoint, nil, creds, nil)
 	if err != nil {
 		return nil, err
@@ -78,8 +97,24 @@ func getFilestore(c cbClient, systemKey, filestoreName string) (*EncryptedFilest
 		return nil, fmt.Errorf("failed with status code %d: %v", resp.StatusCode, resp.Body)
 	}
 
-	filestore := &EncryptedFilestore{}
-	err = decodeMapToStruct(resp.Body, filestore)
+	return resp.Body, nil
+}
+
+func (d *DevClient) GetDecryptedFilestore(systemKey, name string) (*Filestore, error) {
+	return getDecryptedFilestore(d, systemKey, name)
+}
+
+func (u *UserClient) GetDecryptedFilestore(systemKey, name string) (*Filestore, error) {
+	return getDecryptedFilestore(u, systemKey, name)
+}
+
+func getDecryptedFilestore(c cbClient, systemKey, filestoreName string) (*Filestore, error) {
+	body, err := makeFilestoreRequest(c, systemKey, filestoreName, true)
+	if err != nil {
+		return nil, err
+	}
+	filestore := &Filestore{}
+	err = decodeMapToStruct(body, filestore)
 	return filestore, err
 }
 
@@ -94,11 +129,41 @@ func (u *UserClient) GetFilestores(systemKey string) ([]*EncryptedFilestore, err
 }
 
 func getFilestores(c cbClient, systemKey string) ([]*EncryptedFilestore, error) {
+	body, err := makeFilestoresRequest(c, systemKey, false)
+	if err != nil {
+		return nil, err
+	}
+
+	filestores := []*EncryptedFilestore{}
+	err = decodeMapToStruct(body, &filestores)
+	return filestores, err
+}
+
+func (d *DevClient) GetDecryptedFilestores(systemKey string) ([]*Filestore, error) {
+	return getDecryptedFilestores(d, systemKey)
+}
+
+func (u *UserClient) GetDecryptedFilestores(systemKey string) ([]*Filestore, error) {
+	return getDecryptedFilestores(u, systemKey)
+}
+
+func getDecryptedFilestores(c cbClient, systemKey string) ([]*Filestore, error) {
+	body, err := makeFilestoresRequest(c, systemKey, true)
+	if err != nil {
+		return nil, err
+	}
+
+	filestores := []*Filestore{}
+	err = decodeMapToStruct(body, &filestores)
+	return filestores, err
+}
+
+func makeFilestoresRequest(c cbClient, systemKey string, decrypt bool) (any, error) {
 	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
-	endpoint := fmt.Sprintf("%s%s", _FILESTORES_PREAMBLE, systemKey)
+	endpoint := fmt.Sprintf("%s%s?decrypt=%t", _FILESTORES_PREAMBLE, systemKey, decrypt)
 	resp, err := get(c, endpoint, nil, creds, nil)
 	if err != nil {
 		return nil, err
@@ -108,9 +173,7 @@ func getFilestores(c cbClient, systemKey string) ([]*EncryptedFilestore, error) 
 		return nil, fmt.Errorf("failed with status code %d: %v", resp.StatusCode, resp.Body)
 	}
 
-	filestore := []*EncryptedFilestore{}
-	err = decodeMapToStruct(resp.Body, &filestore)
-	return filestore, err
+	return resp.Body, nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
