@@ -109,7 +109,7 @@ func getFilestores(c cbClient, systemKey string) ([]*EncryptedFilestore, error) 
 	}
 
 	filestore := []*EncryptedFilestore{}
-	err = decodeMapToStruct(resp.Body, filestore)
+	err = decodeMapToStruct(resp.Body, &filestore)
 	return filestore, err
 }
 
