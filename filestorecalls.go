@@ -100,15 +100,7 @@ func makeFilestoreRequest(c cbClient, systemKey, filestoreName string, decrypt b
 }
 
 func (d *DevClient) GetDecryptedFilestore(systemKey, name string) (*Filestore, error) {
-	return getDecryptedFilestore(d, systemKey, name)
-}
-
-func (u *UserClient) GetDecryptedFilestore(systemKey, name string) (*Filestore, error) {
-	return getDecryptedFilestore(u, systemKey, name)
-}
-
-func getDecryptedFilestore(c cbClient, systemKey, filestoreName string) (*Filestore, error) {
-	body, err := makeFilestoreRequest(c, systemKey, filestoreName, true)
+	body, err := makeFilestoreRequest(d, systemKey, name, true)
 	if err != nil {
 		return nil, err
 	}
@@ -139,15 +131,7 @@ func getFilestores(c cbClient, systemKey string) ([]*EncryptedFilestore, error) 
 }
 
 func (d *DevClient) GetDecryptedFilestores(systemKey string) ([]*Filestore, error) {
-	return getDecryptedFilestores(d, systemKey)
-}
-
-func (u *UserClient) GetDecryptedFilestores(systemKey string) ([]*Filestore, error) {
-	return getDecryptedFilestores(u, systemKey)
-}
-
-func getDecryptedFilestores(c cbClient, systemKey string) ([]*Filestore, error) {
-	body, err := makeFilestoresRequest(c, systemKey, true)
+	body, err := makeFilestoresRequest(d, systemKey, true)
 	if err != nil {
 		return nil, err
 	}
