@@ -59,7 +59,6 @@ type Filestore struct {
 type EncryptedFilestore struct {
 	Name            string `json:"name"`
 	StorageType     string `json:"storage_type"`
-	StorageConfig   string `json:"storage_config"`
 	ReadAuthMethod  string `json:"read_auth_method"`
 	WriteAuthMethod string `json:"write_auth_method"`
 }
