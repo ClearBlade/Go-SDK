@@ -47,10 +47,18 @@ func createFilestore(c cbClient, systemKey string, config *FilestoreConfig) erro
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+type Filestore struct {
+	Name            string         `json:"name"`
+	StorageType     string         `json:"storage_type"`
+	StorageConfig   map[string]any `json:"storage_config"`
+	ReadAuthMethod  string         `json:"read_auth_method"`
+	WriteAuthMethod string         `json:"write_auth_method"`
+	SystemKey       string         `json:"system_key"`
+}
+
 type EncryptedFilestore struct {
 	Name            string `json:"name"`
 	StorageType     string `json:"storage_type"`
-	StorageConfig   string `json:"storage_config"`
 	ReadAuthMethod  string `json:"read_auth_method"`
 	WriteAuthMethod string `json:"write_auth_method"`
 }
@@ -64,11 +72,21 @@ func (u *UserClient) GetFilestore(systemKey, name string) (*EncryptedFilestore, 
 }
 
 func getFilestore(c cbClient, systemKey, filestoreName string) (*EncryptedFilestore, error) {
+	body, err := makeFilestoreRequest(c, systemKey, filestoreName, false)
+	if err != nil {
+		return nil, err
+	}
+	filestore := &EncryptedFilestore{}
+	err = decodeMapToStruct(body, filestore)
+	return filestore, err
+}
+
+func makeFilestoreRequest(c cbClient, systemKey, filestoreName string, decrypt bool) (any, error) {
 	creds, err := c.credentials()
 	if err != nil {
 		return nil, err
 	}
-	endpoint := fmt.Sprintf("%s%s/%s", _FILESTORES_PREAMBLE, systemKey, filestoreName)
+	endpoint := fmt.Sprintf("%s%s/%s?decrypt=%t", _FILESTORES_PREAMBLE, systemKey, filestoreName, decrypt)
 	resp, err := get(c, endpoint, nil, creds, nil)
 	if err != nil {
 		return nil, err
@@ -78,9 +96,67 @@ func getFilestore(c cbClient, systemKey, filestoreName string) (*EncryptedFilest
 		return nil, fmt.Errorf("failed with status code %d: %v", resp.StatusCode, resp.Body)
 	}
 
-	filestore := &EncryptedFilestore{}
-	err = decodeMapToStruct(resp.Body, filestore)
+	return resp.Body, nil
+}
+
+func (d *DevClient) GetDecryptedFilestore(systemKey, name string) (*Filestore, error) {
+	body, err := makeFilestoreRequest(d, systemKey, name, true)
+	if err != nil {
+		return nil, err
+	}
+	filestore := &Filestore{}
+	err = decodeMapToStruct(body, filestore)
 	return filestore, err
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (d *DevClient) GetFilestores(systemKey string) ([]*EncryptedFilestore, error) {
+	return getFilestores(d, systemKey)
+}
+
+func (u *UserClient) GetFilestores(systemKey string) ([]*EncryptedFilestore, error) {
+	return getFilestores(u, systemKey)
+}
+
+func getFilestores(c cbClient, systemKey string) ([]*EncryptedFilestore, error) {
+	body, err := makeFilestoresRequest(c, systemKey, false)
+	if err != nil {
+		return nil, err
+	}
+
+	filestores := []*EncryptedFilestore{}
+	err = decodeMapToStruct(body, &filestores)
+	return filestores, err
+}
+
+func (d *DevClient) GetDecryptedFilestores(systemKey string) ([]*Filestore, error) {
+	body, err := makeFilestoresRequest(d, systemKey, true)
+	if err != nil {
+		return nil, err
+	}
+
+	filestores := []*Filestore{}
+	err = decodeMapToStruct(body, &filestores)
+	return filestores, err
+}
+
+func makeFilestoresRequest(c cbClient, systemKey string, decrypt bool) (any, error) {
+	creds, err := c.credentials()
+	if err != nil {
+		return nil, err
+	}
+	endpoint := fmt.Sprintf("%s%s?decrypt=%t", _FILESTORES_PREAMBLE, systemKey, decrypt)
+	resp, err := get(c, endpoint, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("failed with status code %d: %v", resp.StatusCode, resp.Body)
+	}
+
+	return resp.Body, nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -259,4 +335,62 @@ func listFilestoreFiles(c cbClient, systemKey, filestore string, opts *ListOptio
 	}
 
 	return result, nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (d *DevClient) CopyFilestoreFile(systemKey, filestore, src, dst string) error {
+	return copyFilestoreFile(d, systemKey, filestore, src, dst)
+}
+
+func (u *UserClient) CopyFilestoreFile(systemKey, filestore, src, dst string) error {
+	return copyFilestoreFile(u, systemKey, filestore, src, dst)
+}
+
+func copyFilestoreFile(c cbClient, systemKey, filestore, src, dst string) error {
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	qryStr := query_to_string(map[string]string{"destination": dst})
+	endpoint := fmt.Sprintf("%s%s/%s/copy/%s?%s", _FILESTORES_PREAMBLE, systemKey, filestore, src, qryStr)
+	resp, err := put(c, endpoint, nil, creds, nil)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("failed with status code %d: %v", resp.StatusCode, resp.Body)
+	}
+
+	return nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (d *DevClient) MoveFilestoreFile(systemKey, filestore, src, dst string) error {
+	return moveFilestoreFile(d, systemKey, filestore, src, dst)
+}
+
+func (u *UserClient) MoveFilestoreFile(systemKey, filestore, src, dst string) error {
+	return moveFilestoreFile(u, systemKey, filestore, src, dst)
+}
+
+func moveFilestoreFile(c cbClient, systemKey, filestore, src, dst string) error {
+	creds, err := c.credentials()
+	if err != nil {
+		return err
+	}
+	qryStr := query_to_string(map[string]string{"destination": dst})
+	endpoint := fmt.Sprintf("%s%s/%s/move/%s?%s", _FILESTORES_PREAMBLE, systemKey, filestore, src, qryStr)
+	resp, err := put(c, endpoint, nil, creds, nil)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("failed with status code %d: %v", resp.StatusCode, resp.Body)
+	}
+
+	return nil
 }
