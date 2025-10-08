@@ -33,7 +33,7 @@ func (d *DevClient) StartProfiler(systemKey, serviceId, profileType string) (any
 		return nil, err
 	}
 	endpoint := fmt.Sprintf("%s/profiles/%s/%s?type=%s", _CODE_ADMIN_PREAMBLE_V4, systemKey, serviceId, profileType)
-	resp, err := get(d, endpoint, nil, creds, nil)
+	resp, err := put(d, endpoint, nil, creds, nil)
 	if err != nil {
 		return nil, err
 	}
