@@ -202,6 +202,7 @@ type CbReq struct {
 	MqttAddr    string
 	Transport   *http.Transport
 	IsMTLS      bool
+	NoDecode    bool
 }
 
 func (r *CbReq) setupForMTLS(client *DeviceClient) error {
@@ -1012,22 +1013,28 @@ func do(c cbClient, r *CbReq, creds [][]string) (*CbResp, error) {
 			StatusCode: resp.StatusCode,
 		}, nil
 	}
-	buf := bytes.NewBuffer(body)
-	dec := json.NewDecoder(buf)
-	decErr := dec.Decode(&d)
-	var bod interface{}
-	if decErr != nil {
-		//		return nil, fmt.Errorf("JSON Decoding Error: %v\n With Body: %v\n", decErr, string(body))
+
+	var bod any
+	if r.NoDecode {
 		bod = string(body)
+	} else {
+		buf := bytes.NewBuffer(body)
+		dec := json.NewDecoder(buf)
+		decErr := dec.Decode(&d)
+		if decErr != nil {
+			//		return nil, fmt.Errorf("JSON Decoding Error: %v\n With Body: %v\n", decErr, string(body))
+			bod = string(body)
+		}
+		switch d.(type) {
+		case []interface{}:
+			bod = d
+		case map[string]interface{}:
+			bod = d
+		default:
+			bod = string(body)
+		}
 	}
-	switch d.(type) {
-	case []interface{}:
-		bod = d
-	case map[string]interface{}:
-		bod = d
-	default:
-		bod = string(body)
-	}
+
 	return &CbResp{
 		Body:       bod,
 		StatusCode: resp.StatusCode,

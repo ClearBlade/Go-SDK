@@ -50,8 +50,14 @@ func (d *DevClient) StopProfiler(systemKey, serviceId, profileId string) (string
 	if err != nil {
 		return "", err
 	}
-	endpoint := fmt.Sprintf("%s/profiles/%s/%s/%s", _CODE_ADMIN_PREAMBLE_V4, systemKey, serviceId, profileId)
-	resp, err := delete(d, endpoint, nil, creds, nil)
+
+	req := &CbReq{
+		Method:   "DELETE",
+		Endpoint: fmt.Sprintf("%s/profiles/%s/%s/%s", _CODE_ADMIN_PREAMBLE_V4, systemKey, serviceId, profileId),
+		NoDecode: true,
+	}
+
+	resp, err := do(d, req, creds)
 	if err != nil {
 		return "", err
 	}
@@ -73,8 +79,14 @@ func (d *DevClient) TakeHeapSnapshot(systemKey, serviceId string) (string, error
 	if err != nil {
 		return "", err
 	}
-	endpoint := fmt.Sprintf("%s/heapsnapshot/%s/%s/", _CODE_ADMIN_PREAMBLE_V4, systemKey, serviceId)
-	resp, err := get(d, endpoint, nil, creds, nil)
+
+	req := &CbReq{
+		Method:   "GET",
+		Endpoint: fmt.Sprintf("%s/heapsnapshot/%s/%s/", _CODE_ADMIN_PREAMBLE_V4, systemKey, serviceId),
+		NoDecode: true,
+	}
+
+	resp, err := do(d, req, creds)
 	if err != nil {
 		return "", err
 	}
@@ -82,9 +94,6 @@ func (d *DevClient) TakeHeapSnapshot(systemKey, serviceId string) (string, error
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return "", fmt.Errorf("failed with status code %d: %v", resp.StatusCode, resp.Body)
 	}
-
-	fmt.Printf("RESP BODY TYPE IS: %T\n", resp.Body)
-	fmt.Printf("RESP BODY IS: %+v\n", resp.Body)
 
 	profile, ok := resp.Body.(string)
 	if !ok {
