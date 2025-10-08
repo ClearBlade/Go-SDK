@@ -9,6 +9,7 @@ const (
 	_CODE_ADMIN_PREAMBLE    = "/admin/code/v/1"
 	_CODE_ADMIN_PREAMBLE_V2 = "/codeadmin/v/2"
 	_CODE_ADMIN_PREAMBLE_V3 = "/codeadmin/v/3"
+	_CODE_ADMIN_PREAMBLE_V4 = "/codeadmin/v/4"
 )
 
 // Service is a helper struct for grouping facts about a code service
