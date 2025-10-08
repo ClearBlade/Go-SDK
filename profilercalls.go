@@ -83,6 +83,9 @@ func (d *DevClient) TakeHeapSnapshot(systemKey, serviceId string) (string, error
 		return "", fmt.Errorf("failed with status code %d: %v", resp.StatusCode, resp.Body)
 	}
 
+	fmt.Printf("RESP BODY TYPE IS: %T\n", resp.Body)
+	fmt.Printf("RESP BODY IS: %+v\n", resp.Body)
+
 	profile, ok := resp.Body.(string)
 	if !ok {
 		return "", fmt.Errorf("expected string, got %T", resp.Body)
