@@ -377,7 +377,6 @@ func newJwtMqttClient(token, systemkey, systemsecret, clientid string, timeout i
 	} else {
 		o.AddBroker("tcp://" + address)
 	}
-	fmt.Println("HELOOOOOOOOOO")
 	o.SetProtocolVersion(3)
 	o.SetClientID(clientid)
 	o.SetPassword(token)
