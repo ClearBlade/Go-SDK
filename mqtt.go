@@ -139,6 +139,15 @@ func (d *DeviceClient) InitializeMQTT(clientid string, ignore string, timeout in
 	return nil
 }
 
+func (d *DeviceClient) InitializeMQTTWithUsernamePassword(clientid, username, password string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
+	mqc, err := newMqttClient(username, password, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill, true)
+	if err != nil {
+		return err
+	}
+	d.MQTTClient = mqc
+	return nil
+}
+
 func (d *DeviceClient) InitializeMQTTWithoutAutoReconnect(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
 	mqc, err := newMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill, false)
 	if err != nil {
@@ -369,7 +378,6 @@ func newJwtMqttClient(token, systemkey, systemsecret, clientid string, timeout i
 		o.AddBroker("tcp://" + address)
 	}
 	o.SetProtocolVersion(3)
-	o.SetUsername("unused")
 	o.SetClientID(clientid)
 	o.SetPassword(token)
 	o.SetConnectTimeout(time.Duration(timeout) * time.Second)
