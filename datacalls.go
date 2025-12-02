@@ -1210,7 +1210,7 @@ func (d *DevClient) RawQuery(systemKey, query string, params []interface{}) (map
 	return resp.Body.(map[string]interface{}), nil
 }
 
-func (d *DevClient) RawRemoteEdgeDBExec(systemKey, edgeName, query string, params []interface{}) (int, error) {
+func (d *DevClient) RemoteEdgeDBRawExec(systemKey, edgeName, query string, params []interface{}) (int, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return -1, err
@@ -1225,7 +1225,7 @@ func (d *DevClient) RawRemoteEdgeDBExec(systemKey, edgeName, query string, param
 	return body["count"].(int), nil
 }
 
-func (d *DevClient) RawRemoteEdgeDBQuery(systemKey, edgeName, query string, params []interface{}) (map[string]interface{}, error) {
+func (d *DevClient) RemoteEdgeDBRawQuery(systemKey, edgeName, query string, params []interface{}) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
