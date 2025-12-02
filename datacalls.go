@@ -1209,3 +1209,32 @@ func (d *DevClient) RawQuery(systemKey, query string, params []interface{}) (map
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
+
+func (d *DevClient) RawRemoteEdgeDBExec(systemKey, edgeName, query string, params []interface{}) (int, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return -1, err
+	}
+	url := _DATA_V4_PREAMBLE + "database/" + systemKey + "/" + edgeName + "/exec"
+	data := map[string]interface{}{"query": query, "params": params}
+	resp, err := post(d, url, data, creds, nil)
+	if err != nil {
+		return -1, fmt.Errorf("Error executing %v with args %v: %v", query, params, err)
+	}
+	body := resp.Body.(map[string]interface{})
+	return body["count"].(int), nil
+}
+
+func (d *DevClient) RawRemoteEdgeDBQuery(systemKey, edgeName, query string, params []interface{}) (map[string]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	url := _DATA_V4_PREAMBLE + "database/" + systemKey + "/" + edgeName + "/query"
+	data := map[string]interface{}{"query": query, "params": params}
+	resp, err := post(d, url, data, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error executing %v with args %v: %v", query, params, err)
+	}
+	return resp.Body.(map[string]interface{}), nil
+}
