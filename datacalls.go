@@ -1222,7 +1222,11 @@ func (d *DevClient) RemoteEdgeDBRawExec(systemKey, edgeName, query string, param
 		return -1, fmt.Errorf("Error executing %v with args %v: %v", query, params, err)
 	}
 	body := resp.Body.(map[string]interface{})
-	return body["count"].(int), nil
+	count, err := iWantAnInt(body["count"])
+	if err != nil {
+		return -1, fmt.Errorf("Error getting count: %v", err)
+	}
+	return count, nil
 }
 
 func (d *DevClient) RemoteEdgeDBRawQuery(systemKey, edgeName, query string, params []interface{}) ([]interface{}, error) {
