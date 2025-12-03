@@ -1297,6 +1297,6 @@ func iWantAnInt(in interface{}) (int, error) {
 	case float32:
 		return int(in.(float32)), nil
 	default:
-		return -1, fmt.Errorf("expected int, got %T", in)
+		return -1, fmt.Errorf("invalid input, got %T", in)
 	}
 }
