@@ -1221,6 +1221,9 @@ func (d *DevClient) RemoteEdgeDBRawExec(systemKey, edgeName, query string, param
 	if err != nil {
 		return -1, fmt.Errorf("Error executing %v with args %v: %v", query, params, err)
 	}
+	if resp.StatusCode != 200 {
+		return -1, fmt.Errorf("Error executing remote edge db query: %v with args %v: %v", query, params, resp.Body)
+	}
 	body := resp.Body.(map[string]interface{})
 	count, err := iWantAnInt(body["count"])
 	if err != nil {
@@ -1239,6 +1242,9 @@ func (d *DevClient) RemoteEdgeDBRawQuery(systemKey, edgeName, query string, para
 	resp, err := post(d, url, data, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error executing %v with args %v: %v", query, params, err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error executing remote edge db query: %v with args %v: %v", query, params, resp.Body)
 	}
 	return resp.Body.([]interface{}), nil
 }
