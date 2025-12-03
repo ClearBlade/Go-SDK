@@ -1216,7 +1216,7 @@ func (d *DevClient) RemoteEdgeDBRawExec(systemKey, edgeName, query string, param
 		return -1, err
 	}
 	url := _DATA_V4_PREAMBLE + "database/" + systemKey + "/" + edgeName + "/exec"
-	data := map[string]interface{}{"query": query, "params": params}
+	data := map[string]interface{}{"query": query, "parameters": params}
 	resp, err := post(d, url, data, creds, nil)
 	if err != nil {
 		return -1, fmt.Errorf("Error executing %v with args %v: %v", query, params, err)
@@ -1238,7 +1238,7 @@ func (d *DevClient) RemoteEdgeDBRawQuery(systemKey, edgeName, query string, para
 		return nil, err
 	}
 	url := _DATA_V4_PREAMBLE + "database/" + systemKey + "/" + edgeName + "/query"
-	data := map[string]interface{}{"query": query, "params": params}
+	data := map[string]interface{}{"query": query, "parameters": params}
 	resp, err := post(d, url, data, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error executing %v with args %v: %v", query, params, err)
