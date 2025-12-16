@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"strconv"
 	"time"
 
 	"github.com/fatih/structs"
@@ -1283,4 +1284,19 @@ func structToMap(incomingStruct interface{}) map[string]interface{} {
 	structObj := structs.New(incomingStruct)
 	structObj.TagName = "json"
 	return structObj.Map()
+}
+
+func iWantAnInt(in interface{}) (int, error) {
+	switch in.(type) {
+	case int:
+		return in.(int), nil
+	case string:
+		return strconv.Atoi(in.(string))
+	case float64:
+		return int(in.(float64)), nil
+	case float32:
+		return int(in.(float32)), nil
+	default:
+		return -1, fmt.Errorf("invalid input, got %T", in)
+	}
 }

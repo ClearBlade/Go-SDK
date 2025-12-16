@@ -1209,3 +1209,42 @@ func (d *DevClient) RawQuery(systemKey, query string, params []interface{}) (map
 	}
 	return resp.Body.(map[string]interface{}), nil
 }
+
+func (d *DevClient) RemoteEdgeDBRawExec(systemKey, edgeName, query string, params []interface{}) (int, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return -1, err
+	}
+	url := _DATA_V4_PREAMBLE + "database/" + systemKey + "/" + edgeName + "/exec"
+	data := map[string]interface{}{"query": query, "parameters": params}
+	resp, err := post(d, url, data, creds, nil)
+	if err != nil {
+		return -1, fmt.Errorf("Error executing %v with args %v: %v", query, params, err)
+	}
+	if resp.StatusCode != 200 {
+		return -1, fmt.Errorf("Error executing remote edge db query: %v with args %v: %v", query, params, resp.Body)
+	}
+	body := resp.Body.(map[string]interface{})
+	count, err := iWantAnInt(body["count"])
+	if err != nil {
+		return -1, fmt.Errorf("Error getting count: %v", err)
+	}
+	return count, nil
+}
+
+func (d *DevClient) RemoteEdgeDBRawQuery(systemKey, edgeName, query string, params []interface{}) ([]interface{}, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	url := _DATA_V4_PREAMBLE + "database/" + systemKey + "/" + edgeName + "/query"
+	data := map[string]interface{}{"query": query, "parameters": params}
+	resp, err := post(d, url, data, creds, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error executing %v with args %v: %v", query, params, err)
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Error executing remote edge db query: %v with args %v: %v", query, params, resp.Body)
+	}
+	return resp.Body.([]interface{}), nil
+}
