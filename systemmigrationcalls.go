@@ -168,6 +168,7 @@ type SystemUploadChanges struct {
 	MessageHistoryStorageTopics []string              `json:"message_history_storage_topics"`
 	MessageTypeTriggers         []*TriggeredMsgType   `json:"message_type_triggers"`
 	Errors                      []string              `json:"errors"`
+	Warnings                    []string              `json:"warnings"`
 }
 
 func (r *SystemUploadChanges) Error() error {
