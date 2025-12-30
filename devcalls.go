@@ -562,10 +562,11 @@ func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]inter
 	} else {
 		return fmt.Errorf("The role id key (ID) must be present to update the role")
 	}
-	permissions, ok := role["Permissions"].(map[string]interface{})
+	permsMap, ok := role["Permissions"].(map[string]interface{})
 	if !ok {
-		permissions = map[string]interface{}{}
+		permsMap = map[string]interface{}{}
 	}
+	permissions := keysToLower(permsMap)
 	if collections, ok := permissions["collections"]; ok {
 		changes["collections"] = collections
 	}
