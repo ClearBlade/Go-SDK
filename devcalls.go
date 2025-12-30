@@ -588,6 +588,9 @@ func (d *DevClient) UpdateRole(systemKey, roleName string, role map[string]inter
 	if deviceList, ok := permissions["devices"]; ok {
 		changes["devices"] = deviceList
 	}
+	if edgeRemoteAdmin, ok := permissions["edgeremoteadmin"]; ok {
+		changes["edgeremoteadmin"] = edgeRemoteAdmin
+	}
 	if userList, ok := permissions["users"]; ok {
 		changes["users"] = userList
 	}
