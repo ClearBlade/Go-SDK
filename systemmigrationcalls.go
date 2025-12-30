@@ -62,6 +62,7 @@ type SystemUploadDryRun struct {
 	AdaptorFilesToUpdate        []AdaptorFileUpdate   `json:"adaptor_files_to_update"`
 	MessageHistoryStorageTopics []string              `json:"message_history_topics_to_store"`
 	MessageTypeTriggers         []*TriggeredMsgType   `json:"message_type_triggers"`
+	Warnings                    []string              `json:"warnings"`
 	Errors                      []string              `json:"errors"`
 }
 
@@ -77,12 +78,13 @@ type FileStoreFileUpdate struct {
 }
 
 type CollectionUpdate struct {
-	Name           string   `json:"name"`
-	AddedColumns   []string `json:"added_columns"`
-	RemovedColumns []string `json:"removed_columns"`
-	AddedIndexes   []string `json:"added_indexes"`
-	RemovedIndexes []string `json:"removed_indexes"`
-	NumUpserts     int      `json:"num_upserts"`
+	Name                        string   `json:"name"`
+	AddedColumns                []string `json:"added_columns"`
+	RemovedColumns              []string `json:"removed_columns"`
+	AddedIndexes                []string `json:"added_indexes"`
+	RemovedIndexes              []string `json:"removed_indexes"`
+	NumUpserts                  int      `json:"num_upserts"`
+	UpdatedHypertableProperties []string `json:"updated_hypertable_properties"`
 }
 
 type AdaptorFileUpdate struct {
@@ -166,6 +168,7 @@ type SystemUploadChanges struct {
 	MessageHistoryStorageTopics []string              `json:"message_history_storage_topics"`
 	MessageTypeTriggers         []*TriggeredMsgType   `json:"message_type_triggers"`
 	Errors                      []string              `json:"errors"`
+	Warnings                    []string              `json:"warnings"`
 }
 
 func (r *SystemUploadChanges) Error() error {
