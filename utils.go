@@ -11,7 +11,6 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/fatih/structs"
@@ -1300,12 +1299,4 @@ func iWantAnInt(in interface{}) (int, error) {
 	default:
 		return -1, fmt.Errorf("invalid input, got %T", in)
 	}
-}
-
-func keysToLower(m map[string]any) map[string]any {
-	lowerMap := make(map[string]any)
-	for k, v := range m {
-		lowerMap[strings.ToLower(k)] = v
-	}
-	return lowerMap
 }
