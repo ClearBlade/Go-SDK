@@ -1,6 +1,7 @@
 package GoSDK
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -245,7 +246,7 @@ func (d *DevClient) GetLogsForService(systemKey, name string) ([]CodeLog, error)
 	}
 	switch resp.Body.(type) {
 	case string:
-		return nil, fmt.Errorf("%s", resp.Body.(string))
+		return nil, errors.New(resp.Body.(string))
 	case []interface{}:
 		r := resp.Body.([]map[string]interface{})
 		outgoing := make([]CodeLog, len(r))
