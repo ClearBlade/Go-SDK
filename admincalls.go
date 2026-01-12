@@ -247,6 +247,28 @@ func (d *DevClient) DeleteDeveloper(email string) error {
 	return nil
 }
 
+type DeveloperUpdate struct {
+	Disabled    bool   `json:"disabled"`
+	Admin       bool   `json:"admin"`
+	Email       string `json:"email"`
+	OidcEnabled bool   `json:"oidc_enabled"`
+}
+
+func (d *DevClient) UpdatePlatformDeveloper(update DeveloperUpdate) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	resp, err := post(d, "/admin/platform/developer", update, creds, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("%+v", resp.Body)
+	}
+	return nil
+}
+
 func (d *DevClient) DeleteSelf() error {
 	creds, err := d.credentials()
 	if err != nil {
