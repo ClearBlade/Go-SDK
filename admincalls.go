@@ -259,7 +259,8 @@ func (d *DevClient) UpdatePlatformDeveloper(update DeveloperUpdate) error {
 	if err != nil {
 		return err
 	}
-	resp, err := post(d, "/admin/platform/developer", update, creds, nil)
+	bodyMap := structToMap(update)
+	resp, err := post(d, "/admin/platform/developer", bodyMap, creds, nil)
 	if err != nil {
 		return err
 	}
