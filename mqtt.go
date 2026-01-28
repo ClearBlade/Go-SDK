@@ -49,21 +49,21 @@ type logger struct {
 }
 
 func (l *logger) Println(v ...any) {
-	levelPrefix := fmt.Sprintf("%s: ", l.level)
+	levelPrefix := fmt.Sprintf("[%s]:", l.level)
 	args := append([]any{levelPrefix}, v...)
 	fmt.Println(args)
 }
 
 func (l *logger) Printf(format string, v ...any) {
-	newFormat := fmt.Sprintf("%s: "+format, l.level)
+	newFormat := fmt.Sprintf("[%s]: "+format, l.level)
 	fmt.Printf(newFormat, v...)
 }
 
 func init() {
-	mqtt.DEBUG = &logger{}
-	mqtt.ERROR = &logger{}
-	mqtt.WARN = &logger{}
-	mqtt.CRITICAL = &logger{}
+	mqtt.DEBUG = &logger{level: "DEBUG"}
+	mqtt.ERROR = &logger{level: "ERROR"}
+	mqtt.WARN = &logger{level: "WARN"}
+	mqtt.CRITICAL = &logger{level: "CRITICAL"}
 }
 
 //herein we use the same trick we used for http clients
