@@ -536,7 +536,7 @@ func disconnect(c MqttClient) error {
 	if c == nil {
 		return errors.New("MQTTClient is uninitialized")
 	}
-	c.Disconnect(250)
+	c.Disconnect(120 * 1000)
 	return nil
 }
 
