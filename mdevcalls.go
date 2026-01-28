@@ -1,9 +1,7 @@
 package GoSDK
 
-import (
 //"errors"
 //"fmt"
-)
 
 const (
 	_MDEV_DEVS_PREAMBLE = "/admin/developers/"
