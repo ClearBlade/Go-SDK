@@ -44,6 +44,28 @@ func (b *client) NewClientID() string {
 	return fmt.Sprintf("%X", buf)
 }
 
+type logger struct {
+	level string
+}
+
+func (l *logger) Println(v ...any) {
+	levelPrefix := fmt.Sprintf("%s: ", l.level)
+	args := append([]any{levelPrefix}, v...)
+	fmt.Println(args)
+}
+
+func (l *logger) Printf(format string, v ...any) {
+	newFormat := fmt.Sprintf("%s: "+format, l.level)
+	fmt.Printf(newFormat, v...)
+}
+
+func init() {
+	mqtt.DEBUG = &logger{}
+	mqtt.ERROR = &logger{}
+	mqtt.WARN = &logger{}
+	mqtt.CRITICAL = &logger{}
+}
+
 //herein we use the same trick we used for http clients
 
 // InitializeMQTT allocates the mqtt client for the user. an empty string can be passed as the second argument for the user client
