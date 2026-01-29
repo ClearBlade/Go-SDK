@@ -60,10 +60,10 @@ func (l *logger) Printf(format string, v ...any) {
 }
 
 func init() {
-	mqtt.DEBUG = &logger{level: "DEBUG"}
-	mqtt.ERROR = &logger{level: "ERROR"}
-	mqtt.WARN = &logger{level: "WARN"}
-	mqtt.CRITICAL = &logger{level: "CRITICAL"}
+	// mqtt.DEBUG = &logger{level: "DEBUG"}
+	// mqtt.ERROR = &logger{level: "ERROR"}
+	// mqtt.WARN = &logger{level: "WARN"}
+	// mqtt.CRITICAL = &logger{level: "CRITICAL"}
 }
 
 //herein we use the same trick we used for http clients
