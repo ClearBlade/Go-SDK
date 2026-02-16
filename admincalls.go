@@ -284,3 +284,87 @@ func (d *DevClient) DeleteSelf() error {
 	}
 	return nil
 }
+
+type SystemAlias struct {
+	Alias          string `json:"alias"`
+	SystemKey      string `json:"system_key"`
+	IsPrimaryAlias bool   `json:"is_primary_alias"`
+	Disabled       bool   `json:"disabled"`
+}
+
+func (d *DevClient) GetSystemAliases(systemKey string) ([]SystemAlias, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	uri := fmt.Sprintf("/admin/aliases/%s", systemKey)
+	resp, err := get(d, uri, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("%+v", resp.Body)
+	}
+
+	var aliases []SystemAlias
+	if err := decodeMapToStruct(resp.Body, &aliases); err != nil {
+		return nil, fmt.Errorf("could not decode aliases: %w", err)
+	}
+
+	return aliases, nil
+}
+
+func (d *DevClient) CreateSystemAlias(alias SystemAlias) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	uri := fmt.Sprintf("/admin/aliases/%s", alias.SystemKey)
+	resp, err := post(d, uri, alias, creds, nil)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("%+v", resp.Body)
+	}
+
+	return nil
+}
+
+func (d *DevClient) UpdateSystemAlias(systemKey, alias string, changes map[string]any) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	uri := fmt.Sprintf("/admin/aliases/%s/%s", systemKey, alias)
+	resp, err := put(d, uri, changes, creds, nil)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("%+v", resp.Body)
+	}
+
+	return nil
+}
+
+func (d *DevClient) DeleteSystemAlias(systemKey, alias string) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+	uri := fmt.Sprintf("/admin/aliases/%s/%s", systemKey, alias)
+	resp, err := delete(d, uri, nil, creds, nil)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("%+v", resp.Body)
+	}
+
+	return nil
+}
