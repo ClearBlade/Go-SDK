@@ -385,12 +385,12 @@ func (d *DevClient) ListPlatformProfiles() ([]map[string]any, error) {
 		return nil, fmt.Errorf("%+v", resp.Body)
 	}
 
-	respBody, ok := resp.Body.([]map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("expected []map[string]any, got %T", resp.Body)
+	var profiles []map[string]any
+	if err := decodeMapToStruct(resp.Body, &profiles); err != nil {
+		return nil, fmt.Errorf("could not decode profiles: %w", err)
 	}
 
-	return respBody, nil
+	return profiles, nil
 }
 
 func (d *DevClient) GetPlatformProfile(nodeId, profileType, name string) ([]byte, error) {
