@@ -384,7 +384,7 @@ func (d *DevClient) ListPlatformProfiles() ([]ProfileFile, error) {
 		return nil, err
 	}
 
-	uri := "/admin/platform/profiles"
+	uri := "/admin/profiles"
 	resp, err := get(d, uri, nil, creds, nil)
 	if err != nil {
 		return nil, err
@@ -408,7 +408,7 @@ func (d *DevClient) GetPlatformProfile(nodeId, profileType, name string) ([]byte
 		return nil, err
 	}
 
-	uri := fmt.Sprintf("/admin/platform/profiles/%s/%s", profileType, name)
+	uri := fmt.Sprintf("/admin/profiles/%s/%s", profileType, name)
 	queryParams := map[string]string{
 		"node": nodeId,
 	}
