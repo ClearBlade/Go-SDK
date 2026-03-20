@@ -369,15 +369,7 @@ func (d *DevClient) DeleteSystemAlias(systemKey, alias string) error {
 	return nil
 }
 
-type ProfileFile struct {
-	Name         string `json:"name"`
-	Size         int64  `json:"size"`
-	LastModified string `json:"last_modified"`
-	ProfileType  string `json:"profile_type"`
-	NodeId       string `json:"node_id"`
-}
-
-func (d *DevClient) ListPlatformProfiles() ([]ProfileFile, error) {
+func (d *DevClient) ListPlatformProfiles() ([]map[string]any, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
@@ -393,7 +385,7 @@ func (d *DevClient) ListPlatformProfiles() ([]ProfileFile, error) {
 		return nil, fmt.Errorf("%+v", resp.Body)
 	}
 
-	var profiles []ProfileFile
+	var profiles []map[string]any
 	if err := decodeMapToStruct(resp.Body, &profiles); err != nil {
 		return nil, fmt.Errorf("could not decode profiles: %w", err)
 	}
