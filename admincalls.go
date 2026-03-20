@@ -2,7 +2,6 @@ package GoSDK
 
 import (
 	"fmt"
-	"time"
 )
 
 //
@@ -371,11 +370,11 @@ func (d *DevClient) DeleteSystemAlias(systemKey, alias string) error {
 }
 
 type ProfileFile struct {
-	Name         string    `json:"name"`
-	Size         int64     `json:"size"`
-	LastModified time.Time `json:"last_modified"`
-	ProfileType  string    `json:"profile_type"`
-	NodeId       string    `json:"node_id"`
+	Name         string `json:"name"`
+	Size         int64  `json:"size"`
+	LastModified string `json:"last_modified"`
+	ProfileType  string `json:"profile_type"`
+	NodeId       string `json:"node_id"`
 }
 
 func (d *DevClient) ListPlatformProfiles() ([]ProfileFile, error) {
