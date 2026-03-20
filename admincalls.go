@@ -2,6 +2,7 @@ package GoSDK
 
 import (
 	"fmt"
+	"time"
 )
 
 //
@@ -367,4 +368,71 @@ func (d *DevClient) DeleteSystemAlias(systemKey, alias string) error {
 	}
 
 	return nil
+}
+
+type ProfileFile struct {
+	Name         string    `json:"name"`
+	Size         int64     `json:"size"`
+	LastModified time.Time `json:"last_modified"`
+	ProfileType  string    `json:"profile_type"`
+	NodeId       string    `json:"node_id"`
+}
+
+func (d *DevClient) ListPlatformProfiles() ([]ProfileFile, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	uri := "/admin/platform/profiles"
+	resp, err := get(d, uri, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("%+v", resp.Body)
+	}
+
+	var profiles []ProfileFile
+	if err := decodeMapToStruct(resp.Body, &profiles); err != nil {
+		return nil, fmt.Errorf("could not decode profiles: %w", err)
+	}
+
+	return profiles, nil
+}
+
+func (d *DevClient) GetPlatformProfile(nodeId, profileType, name string) ([]byte, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	uri := fmt.Sprintf("/admin/platform/profiles/%s/%s", profileType, name)
+	queryParams := map[string]string{
+		"node": nodeId,
+	}
+
+	req := &CbReq{
+		Method:      "GET",
+		Endpoint:    uri,
+		QueryString: query_to_string(queryParams),
+		NoDecode:    true,
+	}
+
+	resp, err := do(d, req, creds)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("%+v", resp.Body)
+	}
+
+	respStr, ok := resp.Body.(string)
+	if !ok {
+		return nil, fmt.Errorf("expected string, got %T", resp.Body)
+	}
+
+	return []byte(respStr), nil
 }
