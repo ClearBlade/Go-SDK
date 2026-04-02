@@ -30,17 +30,20 @@ const (
 	ES256_X509
 )
 
-func (d *DevClient) GenerateDeviceCertificate(systemKey, deviceName, systemCertificateName, keyType string, keySize int, expiryTimestamp int64) (map[string]interface{}, error) {
+type DeviceCertificateOptions struct {
+	SystemCertificateName string `json:"system_certificate_name"`
+	RootCertificateName   string `json:"root_certificate_name"`
+	KeyType               string `json:"key_type"`
+	KeySize               int    `json:"key_size"`
+	ExpiryTimestamp       int64  `json:"expiry_timestamp"`
+}
+
+func (d *DevClient) GenerateDeviceCertificate(systemKey, deviceName string, options *DeviceCertificateOptions) (map[string]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
 		return nil, err
 	}
-	payload := map[string]interface{}{
-		"system_certificate_name": systemCertificateName,
-		"key_type":                keyType,
-		"key_size":                keySize,
-		"expiry_timestamp":        expiryTimestamp,
-	}
+	payload := structToMap(options)
 	resp, err := post(d, _DEVICES_DEV_PREAMBLE+systemKey+"/"+deviceName+"/generate-certificate", payload, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
