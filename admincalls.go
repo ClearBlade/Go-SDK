@@ -368,3 +368,62 @@ func (d *DevClient) DeleteSystemAlias(systemKey, alias string) error {
 
 	return nil
 }
+
+func (d *DevClient) ListPlatformProfiles() ([]map[string]any, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	uri := "/admin/profiles"
+	resp, err := get(d, uri, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("%+v", resp.Body)
+	}
+
+	var profiles []map[string]any
+	if err := decodeMapToStruct(resp.Body, &profiles); err != nil {
+		return nil, fmt.Errorf("could not decode profiles: %w", err)
+	}
+
+	return profiles, nil
+}
+
+func (d *DevClient) GetPlatformProfile(nodeId, profileType, name string) ([]byte, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+
+	uri := fmt.Sprintf("/admin/profiles/%s/%s", profileType, name)
+	queryParams := map[string]string{
+		"node": nodeId,
+	}
+
+	req := &CbReq{
+		Method:      "GET",
+		Endpoint:    uri,
+		QueryString: query_to_string(queryParams),
+		NoDecode:    true,
+	}
+
+	resp, err := do(d, req, creds)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("%+v", resp.Body)
+	}
+
+	respStr, ok := resp.Body.(string)
+	if !ok {
+		return nil, fmt.Errorf("expected string, got %T", resp.Body)
+	}
+
+	return []byte(respStr), nil
+}
