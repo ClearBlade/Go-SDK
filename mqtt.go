@@ -498,17 +498,22 @@ func publishGetToken(c MqttClient, topic string, data []byte, qos int, mid uint1
 	return ret, ret.Error()
 }
 
-func subscribe(c MqttClient, topic string, qos int) (<-chan *mqttTypes.Publish, error) {
+func subscribeWithChan(c MqttClient, topic string, qos int, responseChan chan *mqttTypes.Publish) error {
 	if c == nil {
-		return nil, errors.New("MQTTClient is uninitialized")
+		return errors.New("MQTTClient is uninitialized")
 	}
-	pubs := make(chan *mqttTypes.Publish, 50)
 	ret := c.Subscribe(topic, uint8(qos), func(client mqtt.Client, msg mqtt.Message) {
 		path, _ := mqttTypes.NewTopicPath(msg.Topic())
-		pubs <- &mqttTypes.Publish{Topic: path, Payload: msg.Payload()}
+		responseChan <- &mqttTypes.Publish{Topic: path, Payload: msg.Payload()}
 	})
-	ret.WaitTimeout(1 * time.Second)
-	return pubs, ret.Error()
+	ret.WaitTimeout(10 * time.Second)
+	return ret.Error()
+}
+
+func subscribe(c MqttClient, topic string, qos int) (chan *mqttTypes.Publish, error) {
+	pubs := make(chan *mqttTypes.Publish, 50)
+	err := subscribeWithChan(c, topic, qos, pubs)
+	return pubs, err
 }
 
 func unsubscribe(c MqttClient, topic string) error {
