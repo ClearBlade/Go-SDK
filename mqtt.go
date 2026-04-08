@@ -305,7 +305,7 @@ func (u *UserClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publish
 }
 
 // Subscribe subscribes a device to a topic. Incoming messages will be sent over the channel.
-func (d *DeviceClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publish, error) {
+func (d *DeviceClient) Subscribe(topic string, qos int) (chan *mqttTypes.Publish, error) {
 	return subscribe(d.MQTTClient, topic, qos)
 }
 
