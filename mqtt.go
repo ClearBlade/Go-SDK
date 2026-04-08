@@ -171,6 +171,15 @@ func (d *DeviceClient) InitializeMQTTWithMTLS(username, clientid string, ignore 
 	return nil
 }
 
+func (d *DeviceClient) InitializeMQTTWithOptions(clientid string, timeout int, options *mqtt.ClientOptions) error {
+	mqc, err := newMqttClientWithOptions(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, options)
+	if err != nil {
+		return err
+	}
+	d.MQTTClient = mqc
+	return nil
+}
+
 func (d *DeviceClient) InitializeJWTMQTT(clientid string, ignore string, timeout int, ssl *tls.Config, lastWill *LastWillPacket) error {
 	mqc, err := newJwtMqttClient(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, ssl, lastWill, true)
 	if err != nil {
@@ -391,6 +400,14 @@ func newJwtMqttClient(token, systemkey, systemsecret, clientid string, timeout i
 	return mqc, ret.Error()
 }
 
+func newMqttClientWithOptions(token, systemkey, systemsecret, clientid string, timeout int, address string, options *mqtt.ClientOptions) (MqttClient, error) {
+	cli := mqtt.NewClient(options)
+	mqc := &mqttBaseClient{cli, address, token, systemkey, systemsecret, clientid, timeout}
+	ret := mqc.Connect()
+	ret.Wait()
+	return mqc, ret.Error()
+}
+
 // InitializeMqttClient allocates a mqtt client.
 // the values for initialization are drawn from the client struct
 // with the exception of the timeout and client id, which is mqtt specific.
@@ -398,9 +415,6 @@ func newJwtMqttClient(token, systemkey, systemsecret, clientid string, timeout i
 func newMqttClient(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket, reconnect bool) (MqttClient, error) {
 	o := mqtt.NewClientOptions()
 	o.SetAutoReconnect(reconnect)
-	o.SetConnectRetry(reconnect)
-	o.SetCleanSession(true)
-	o.SetResumeSubs(true)
 	if ssl != nil {
 		o.AddBroker("tls://" + address)
 		o.SetTLSConfig(ssl)
@@ -414,11 +428,7 @@ func newMqttClient(token, systemkey, systemsecret, clientid string, timeout int,
 	if lastWill != nil {
 		o.SetWill(lastWill.Topic, lastWill.Body, uint8(lastWill.Qos), lastWill.Retain)
 	}
-	cli := mqtt.NewClient(o)
-	mqc := &mqttBaseClient{cli, address, token, systemkey, systemsecret, clientid, timeout}
-	ret := mqc.Connect()
-	ret.Wait()
-	return mqc, ret.Error()
+	return newMqttClientWithOptions(token, systemkey, systemsecret, clientid, timeout, address, o)
 }
 
 func newMqttClientWithCallbacks(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket, callbacks *Callbacks) (MqttClient, error) {
