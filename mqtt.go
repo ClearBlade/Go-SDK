@@ -300,7 +300,7 @@ func (d *DevClient) GetDataUsage(systemKey string, start, end int64) (map[string
 }
 
 // Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
-func (u *UserClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publish, error) {
+func (u *UserClient) Subscribe(topic string, qos int) (chan *mqttTypes.Publish, error) {
 	return subscribe(u.MQTTClient, topic, qos)
 }
 
@@ -315,7 +315,7 @@ func (d *DeviceClient) SubscribeWithChan(topic string, qos int, responseChan cha
 }
 
 // Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
-func (d *DevClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publish, error) {
+func (d *DevClient) Subscribe(topic string, qos int) (chan *mqttTypes.Publish, error) {
 	return subscribe(d.MQTTClient, topic, qos)
 }
 
