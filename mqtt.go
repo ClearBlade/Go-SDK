@@ -309,6 +309,11 @@ func (d *DeviceClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publi
 	return subscribe(d.MQTTClient, topic, qos)
 }
 
+// Subscribe subscribes a device to a topic. Incoming messages will be sent over the channel.
+func (d *DeviceClient) SubscribeWithChan(topic string, qos int, responseChan chan *mqttTypes.Publish) error {
+	return subscribeWithChan(d.MQTTClient, topic, qos, responseChan)
+}
+
 // Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
 func (d *DevClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publish, error) {
 	return subscribe(d.MQTTClient, topic, qos)
