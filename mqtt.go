@@ -399,6 +399,8 @@ func newMqttClient(token, systemkey, systemsecret, clientid string, timeout int,
 	o := mqtt.NewClientOptions()
 	o.SetAutoReconnect(reconnect)
 	o.SetConnectRetry(reconnect)
+	o.SetCleanSession(true)
+	o.SetResumeSubs(true)
 	if ssl != nil {
 		o.AddBroker("tls://" + address)
 		o.SetTLSConfig(ssl)
