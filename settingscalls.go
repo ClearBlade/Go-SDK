@@ -84,8 +84,35 @@ func deleteGoogleStorageSettings(c cbClient, endpoint string) error {
 	return err
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+type MtlsCertificate struct {
+	Certificate string `json:"certificate"`
 
+	// Optional when uploading a certificate
+	PrivateKey string `json:"private_key"`
+}
+
+type PlatformMtlsConfig struct {
+	Roots          map[string]*MtlsCertificate `json:"roots"`
+	RevocationList string                      `json:"crl"`
+}
+
+func (d *DevClient) SetPlatformMtlsConfig(config *PlatformMtlsConfig) error {
+	creds, err := d.credentials()
+	if err != nil {
+		return err
+	}
+
+	settings := structToMap(config)
+	resp, err := put(d, _SETTINGS_PREAMBLE+"mtls", settings, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Deprecated: Use SetPlatformMtlsConfig instead
 func (d *DevClient) AddMTLSSettings(rootCA, crl string) error {
 	creds, err := d.credentials()
 	if err != nil {
