@@ -108,6 +108,15 @@ func (d *DevClient) InitializeMQTTWithCallback(clientid, systemkey string, timeo
 	return nil
 }
 
+func (d *DevClient) InitializeMQTTWithOptions(clientid string, systemKey string, timeout int, options *mqtt.ClientOptions) error {
+	mqc, err := newMqttClientWithOptions(d.DevToken, systemKey, "", clientid, timeout, d.MqttAddr, options)
+	if err != nil {
+		return err
+	}
+	d.MQTTClient = mqc
+	return nil
+}
+
 func (d *DevClient) AuthenticateMQTT(username, password, systemKey, systemSecret, subTopic string, timeout int, ssl *tls.Config) error {
 	mqc, err := newMqttAuthClient(username, password, systemKey, systemSecret, timeout, d.MqttAuthAddr, ssl)
 	if err != nil {
