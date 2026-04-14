@@ -17,7 +17,7 @@ import (
 
 	cbErr "github.com/clearblade/go-utils/errors"
 	mqttTypes "github.com/clearblade/mqtt_parsing"
-	mqtt "github.com/clearblade/paho.mqtt.golang"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/mitchellh/mapstructure"
 )
 
