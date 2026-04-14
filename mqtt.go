@@ -25,6 +25,10 @@ const (
 	_NEW_MH_PREAMBLE      = "/api/v/4/message/"
 )
 
+var (
+	ErrConnectTimeout = errors.New("timeout waiting for MQTT connection")
+)
+
 // LastWillPacket is a type to represent the Last Will and Testament packet
 type LastWillPacket struct {
 	Topic  string
@@ -418,7 +422,9 @@ func newMqttClientWithOptions(token, systemkey, systemsecret, clientid string, t
 	cli := mqtt.NewClient(options)
 	mqc := &mqttBaseClient{cli, address, token, systemkey, systemsecret, clientid, timeout}
 	ret := mqc.Connect()
-	ret.Wait()
+	if ok := ret.WaitTimeout(time.Duration(timeout) * time.Second); !ok {
+		return nil, ErrConnectTimeout
+	}
 	return mqc, ret.Error()
 }
 
