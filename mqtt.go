@@ -423,6 +423,7 @@ func newMqttClientWithOptions(token, systemkey, systemsecret, clientid string, t
 	mqc := &mqttBaseClient{cli, address, token, systemkey, systemsecret, clientid, timeout}
 	ret := mqc.Connect()
 	if ok := ret.WaitTimeout(time.Duration(timeout) * time.Second); !ok {
+		cli.Disconnect(1000)
 		return nil, ErrConnectTimeout
 	}
 	return mqc, ret.Error()
