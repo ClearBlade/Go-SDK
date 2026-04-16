@@ -10,12 +10,14 @@ require (
 	github.com/pkg/errors v0.8.1
 )
 
+replace github.com/eclipse/paho.mqtt.golang => github.com/mattwalo32/paho.mqtt.golang v1.5.1-jitter
+
 require (
 	github.com/fatih/structs v1.1.0
-	golang.org/x/net v0.44.0
+	golang.org/x/net v0.48.0
 )
 
 require (
 	github.com/gorilla/websocket v1.5.3 // indirect
-	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
 )
