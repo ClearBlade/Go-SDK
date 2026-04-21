@@ -2,6 +2,8 @@ github.com/clearblade/go-utils v1.1.5-0.20240513160427-a20563b372a5 h1:bZ0WWsMfc
 github.com/clearblade/go-utils v1.1.5-0.20240513160427-a20563b372a5/go.mod h1:oCpgejfd+56P7nlPGDQ3mpYnQWHjoBjStBXAokqWKV4=
 github.com/clearblade/mqtt_parsing v0.0.0-20160301165118-6ae49eac0961 h1:/T6Cq3XSwmuFoN6GDoPWgGpNW5X0Idx49DbfQazRUOQ=
 github.com/clearblade/mqtt_parsing v0.0.0-20160301165118-6ae49eac0961/go.mod h1:xDP8quKbKO12G1Z5hbQFhAb9DekEe/sSKVOJdl9eRgA=
+github.com/clearblade/paho.mqtt.golang v1.1.1-0.20260421160730-b6329df0f71f h1:3rJRV9MfFNlaMKxFxbGBmvmJfbs3/xPqiZzFRzLWQ4M=
+github.com/clearblade/paho.mqtt.golang v1.1.1-0.20260421160730-b6329df0f71f/go.mod h1:1mWELoMR5h18thP6m4cUHMTloPCZ9dekUJF6Gabrt6Q=
 github.com/fatih/structs v1.1.0 h1:Q7juDM0QtcnhCpeyLGQKyg4TOIghuNXrkL32pHAUMxo=
 github.com/fatih/structs v1.1.0/go.mod h1:9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga6PJ7M=
 github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=

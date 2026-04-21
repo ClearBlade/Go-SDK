@@ -18,6 +18,7 @@ require (
 )
 
 require (
+	github.com/clearblade/paho.mqtt.golang v1.1.1-0.20260421160730-b6329df0f71f // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 )
