@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
+	mqtt "github.com/clearblade/paho.mqtt.golang"
 )
 
 type MQTTLogger struct {

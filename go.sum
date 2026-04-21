@@ -4,12 +4,12 @@ github.com/clearblade/mqtt_parsing v0.0.0-20160301165118-6ae49eac0961 h1:/T6Cq3X
 github.com/clearblade/mqtt_parsing v0.0.0-20160301165118-6ae49eac0961/go.mod h1:xDP8quKbKO12G1Z5hbQFhAb9DekEe/sSKVOJdl9eRgA=
 github.com/clearblade/paho.mqtt.golang v1.1.1-0.20260421160730-b6329df0f71f h1:3rJRV9MfFNlaMKxFxbGBmvmJfbs3/xPqiZzFRzLWQ4M=
 github.com/clearblade/paho.mqtt.golang v1.1.1-0.20260421160730-b6329df0f71f/go.mod h1:1mWELoMR5h18thP6m4cUHMTloPCZ9dekUJF6Gabrt6Q=
+github.com/eclipse/paho.mqtt.golang v1.5.1 h1:/VSOv3oDLlpqR2Epjn1Q7b2bSTplJIeV2ISgCl2W7nE=
+github.com/eclipse/paho.mqtt.golang v1.5.1/go.mod h1:1/yJCneuyOoCOzKSsOTUc0AJfpsItBGWvYpBLimhArU=
 github.com/fatih/structs v1.1.0 h1:Q7juDM0QtcnhCpeyLGQKyg4TOIghuNXrkL32pHAUMxo=
 github.com/fatih/structs v1.1.0/go.mod h1:9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga6PJ7M=
 github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
-github.com/mattwalo32/paho.mqtt.golang v1.5.1-jitter h1:9ZzNFHNCzrCozX5gM2AjoE5yarJtvxeF8aRxopTw9kI=
-github.com/mattwalo32/paho.mqtt.golang v1.5.1-jitter/go.mod h1:SJXXYYYXoTrdAl//yo9JZfG2bRrQEv7sFlFOrblTc2E=
 github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
 github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
