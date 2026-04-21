@@ -25,10 +25,6 @@ const (
 	_NEW_MH_PREAMBLE      = "/api/v/4/message/"
 )
 
-var (
-	ErrConnectTimeout = errors.New("timeout waiting for MQTT connection")
-)
-
 // LastWillPacket is a type to represent the Last Will and Testament packet
 type LastWillPacket struct {
 	Topic  string
