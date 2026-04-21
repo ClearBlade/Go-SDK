@@ -68,7 +68,7 @@ type Client interface {
 	SetMqttClient(MqttClient)
 	InitializeMQTT(string, string, int, *tls.Config, *LastWillPacket) error
 	Publish(string, []byte, int) error
-	Subscribe(string, int) (chan *mqttTypes.Publish, error)
+	Subscribe(string, int) (<-chan *mqttTypes.Publish, error)
 	Unsubscribe(string) error
 	Disconnect() error
 

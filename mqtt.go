@@ -313,12 +313,12 @@ func (d *DevClient) GetDataUsage(systemKey string, start, end int64) (map[string
 }
 
 // Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
-func (u *UserClient) Subscribe(topic string, qos int) (chan *mqttTypes.Publish, error) {
+func (u *UserClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publish, error) {
 	return subscribe(u.MQTTClient, topic, qos)
 }
 
 // Subscribe subscribes a device to a topic. Incoming messages will be sent over the channel.
-func (d *DeviceClient) Subscribe(topic string, qos int) (chan *mqttTypes.Publish, error) {
+func (d *DeviceClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publish, error) {
 	return subscribe(d.MQTTClient, topic, qos)
 }
 
@@ -328,7 +328,7 @@ func (d *DeviceClient) SubscribeWithChan(topic string, qos int, responseChan cha
 }
 
 // Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
-func (d *DevClient) Subscribe(topic string, qos int) (chan *mqttTypes.Publish, error) {
+func (d *DevClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publish, error) {
 	return subscribe(d.MQTTClient, topic, qos)
 }
 
@@ -422,12 +422,7 @@ func newMqttClientWithOptions(token, systemkey, systemsecret, clientid string, t
 	cli := mqtt.NewClient(options)
 	mqc := &mqttBaseClient{cli, address, token, systemkey, systemsecret, clientid, timeout}
 	ret := mqc.Connect()
-	// if ok := ret.WaitTimeout(time.Duration(timeout) * time.Second); !ok {
-	// 	cli.Disconnect(1000)
-	// 	return nil, ErrConnectTimeout
-	// }
 	ret.Wait()
-
 	return mqc, ret.Error()
 }
 
