@@ -108,6 +108,15 @@ func (d *DevClient) InitializeMQTTWithCallback(clientid, systemkey string, timeo
 	return nil
 }
 
+func (d *DevClient) InitializeMQTTWithOptions(clientid string, systemKey string, timeout int, options *mqtt.ClientOptions) error {
+	mqc, err := newMqttClientWithOptions(d.DevToken, systemKey, "", clientid, timeout, d.MqttAddr, options)
+	if err != nil {
+		return err
+	}
+	d.MQTTClient = mqc
+	return nil
+}
+
 func (d *DevClient) AuthenticateMQTT(username, password, systemKey, systemSecret, subTopic string, timeout int, ssl *tls.Config) error {
 	mqc, err := newMqttAuthClient(username, password, systemKey, systemSecret, timeout, d.MqttAuthAddr, ssl)
 	if err != nil {
@@ -164,6 +173,15 @@ func (d *DeviceClient) InitializeMQTTWithMTLS(username, clientid string, ignore 
 	}
 	mTLSMqttAddr := mqttAddrSplit[0] + ":" + d.MTLSPort
 	mqc, err := newMqttClient(username, d.SystemKey, d.SystemSecret, clientid, timeout, mTLSMqttAddr, ssl, lastWill, true)
+	if err != nil {
+		return err
+	}
+	d.MQTTClient = mqc
+	return nil
+}
+
+func (d *DeviceClient) InitializeMQTTWithOptions(clientid string, timeout int, options *mqtt.ClientOptions) error {
+	mqc, err := newMqttClientWithOptions(d.DeviceToken, d.SystemKey, d.SystemSecret, clientid, timeout, d.MqttAddr, options)
 	if err != nil {
 		return err
 	}
@@ -300,6 +318,11 @@ func (d *DeviceClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publi
 	return subscribe(d.MQTTClient, topic, qos)
 }
 
+// Subscribe subscribes a device to a topic. Incoming messages will be sent over the channel.
+func (d *DeviceClient) SubscribeWithChan(topic string, qos int, responseChan chan *mqttTypes.Publish) error {
+	return subscribeWithChan(d.MQTTClient, topic, qos, responseChan)
+}
+
 // Subscribe subscribes a user to a topic. Incoming messages will be sent over the channel.
 func (d *DevClient) Subscribe(topic string, qos int) (<-chan *mqttTypes.Publish, error) {
 	return subscribe(d.MQTTClient, topic, qos)
@@ -391,6 +414,14 @@ func newJwtMqttClient(token, systemkey, systemsecret, clientid string, timeout i
 	return mqc, ret.Error()
 }
 
+func newMqttClientWithOptions(token, systemkey, systemsecret, clientid string, timeout int, address string, options *mqtt.ClientOptions) (MqttClient, error) {
+	cli := mqtt.NewClient(options)
+	mqc := &mqttBaseClient{cli, address, token, systemkey, systemsecret, clientid, timeout}
+	ret := mqc.Connect()
+	ret.Wait()
+	return mqc, ret.Error()
+}
+
 // InitializeMqttClient allocates a mqtt client.
 // the values for initialization are drawn from the client struct
 // with the exception of the timeout and client id, which is mqtt specific.
@@ -411,11 +442,7 @@ func newMqttClient(token, systemkey, systemsecret, clientid string, timeout int,
 	if lastWill != nil {
 		o.SetWill(lastWill.Topic, lastWill.Body, uint8(lastWill.Qos), lastWill.Retain)
 	}
-	cli := mqtt.NewClient(o)
-	mqc := &mqttBaseClient{cli, address, token, systemkey, systemsecret, clientid, timeout}
-	ret := mqc.Connect()
-	ret.Wait()
-	return mqc, ret.Error()
+	return newMqttClientWithOptions(token, systemkey, systemsecret, clientid, timeout, address, o)
 }
 
 func newMqttClientWithCallbacks(token, systemkey, systemsecret, clientid string, timeout int, address string, ssl *tls.Config, lastWill *LastWillPacket, callbacks *Callbacks) (MqttClient, error) {
@@ -485,17 +512,22 @@ func publishGetToken(c MqttClient, topic string, data []byte, qos int, mid uint1
 	return ret, ret.Error()
 }
 
-func subscribe(c MqttClient, topic string, qos int) (<-chan *mqttTypes.Publish, error) {
+func subscribeWithChan(c MqttClient, topic string, qos int, responseChan chan *mqttTypes.Publish) error {
 	if c == nil {
-		return nil, errors.New("MQTTClient is uninitialized")
+		return errors.New("MQTTClient is uninitialized")
 	}
-	pubs := make(chan *mqttTypes.Publish, 50)
 	ret := c.Subscribe(topic, uint8(qos), func(client mqtt.Client, msg mqtt.Message) {
 		path, _ := mqttTypes.NewTopicPath(msg.Topic())
-		pubs <- &mqttTypes.Publish{Topic: path, Payload: msg.Payload()}
+		responseChan <- &mqttTypes.Publish{Topic: path, Payload: msg.Payload()}
 	})
-	ret.WaitTimeout(1 * time.Second)
-	return pubs, ret.Error()
+	ret.WaitTimeout(10 * time.Second)
+	return ret.Error()
+}
+
+func subscribe(c MqttClient, topic string, qos int) (chan *mqttTypes.Publish, error) {
+	pubs := make(chan *mqttTypes.Publish, 50)
+	err := subscribeWithChan(c, topic, qos, pubs)
+	return pubs, err
 }
 
 func unsubscribe(c MqttClient, topic string) error {

@@ -2,8 +2,9 @@ package GoSDK
 
 import (
 	"fmt"
-	mqtt "github.com/clearblade/paho.mqtt.golang"
 	"strings"
+
+	mqtt "github.com/clearblade/paho.mqtt.golang"
 )
 
 type MQTTLogger struct {
