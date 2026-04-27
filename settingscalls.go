@@ -143,7 +143,8 @@ func (d *DevClient) AddMTLSSystemCertificate(systemKey, name, systemCA, privateK
 	if privateKey != "" {
 		settings["private_key"] = privateKey
 	}
-	resp, err := post(d, _SETTINGS_PREAMBLE+"mtls/"+systemKey+"/"+name, settings, creds, nil)
+	endpoint := fmt.Sprintf("/admin/mtls-certs/systems/%s/%s", systemKey, name)
+	resp, err := post(d, endpoint, settings, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return err
@@ -161,7 +162,7 @@ func (d *DevClient) GenerateRootCACertificate(keyType string, keySize int, expir
 		"key_size":         keySize,
 		"expiry_timestamp": expiryTimestamp,
 	}
-	resp, err := post(d, _SETTINGS_PREAMBLE+"mtls/generate-certificate", payload, creds, nil)
+	resp, err := post(d, "/admin/mtls-certs/roots", payload, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return err
@@ -175,11 +176,13 @@ func (d *DevClient) GenerateSystemCertificate(systemKey, name, keyType string, k
 		return err
 	}
 	payload := map[string]interface{}{
+		"name":             name,
 		"key_type":         keyType,
 		"key_size":         keySize,
 		"expiry_timestamp": expiryTimestamp,
 	}
-	resp, err := post(d, _SETTINGS_PREAMBLE+"mtls/"+systemKey+"/"+name+"/generate-certificate", payload, creds, nil)
+	endpoint := fmt.Sprintf("/admin/mtls-certs/systems/%s", systemKey)
+	resp, err := post(d, endpoint, payload, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return err
@@ -200,7 +203,8 @@ func (d *DevClient) UpdateMTLSSystemCertificate(systemKey, name, systemCA, priva
 	if privateKey != "" {
 		settings["private_key"] = privateKey
 	}
-	resp, err := put(d, _SETTINGS_PREAMBLE+"mtls/"+systemKey+"/"+name, settings, creds, nil)
+	endpoint := fmt.Sprintf("/admin/mtls-certs/systems/%s/%s", systemKey, name)
+	resp, err := put(d, endpoint, settings, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return err
@@ -213,7 +217,8 @@ func (d *DevClient) GetMTLSSystemCertificate(systemKey, name string) (map[string
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(d, _SETTINGS_PREAMBLE+"mtls/"+systemKey+"/"+name, nil, creds, nil)
+	endpoint := fmt.Sprintf("/admin/mtls-certs/systems/%s/%s", systemKey, name)
+	resp, err := get(d, endpoint, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -226,7 +231,8 @@ func (d *DevClient) GetAllMTLSSystemCertificates(systemKey string) ([]interface{
 	if err != nil {
 		return nil, err
 	}
-	resp, err := get(d, _SETTINGS_PREAMBLE+"mtls/"+systemKey, nil, creds, nil)
+	endpoint := fmt.Sprintf("/admin/mtls-certs/systems/%s", systemKey)
+	resp, err := get(d, endpoint, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
@@ -239,7 +245,8 @@ func (d *DevClient) DeleteMTLSSystemCertificate(systemKey, name string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := delete(d, _SETTINGS_PREAMBLE+"mtls/"+systemKey+"/"+name, nil, creds, nil)
+	endpoint := fmt.Sprintf("/admin/mtls-certs/systems/%s/%s", systemKey, name)
+	resp, err := delete(d, endpoint, nil, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return err
@@ -281,7 +288,7 @@ func (d *DevClient) DeleteRevokedCertificate(certificateHash string) error {
 	payload := map[string]string{
 		"certificate_hash": certificateHash,
 	}
-	resp, err := delete(d, "/admin/revoked_certs", payload, creds, nil)
+	resp, err := delete(d, "/admin/mtls-certs/revoked", payload, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return err
@@ -297,7 +304,7 @@ func (d *DevClient) RevokeCertificate(certificateHash string) error {
 	payload := map[string]interface{}{
 		"certificate_hash": certificateHash,
 	}
-	resp, err := post(d, "/admin/revoked_certs", payload, creds, nil)
+	resp, err := post(d, "/admin/mtls-certs/revoked", payload, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return err
@@ -323,7 +330,7 @@ func (d *DevClient) GetRevokedCertificates(query *Query) ([]map[string]interface
 	} else {
 		qry = nil
 	}
-	resp, err := get(d, "/admin/revoked_certs", qry, creds, nil)
+	resp, err := get(d, "/admin/mtls-certs/revoked", qry, creds, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting data: %v", err)
 	}
@@ -352,7 +359,7 @@ func (d *DevClient) DeleteRevokedCertificates(query *Query) error {
 	} else {
 		qry = nil
 	}
-	resp, err := delete(d, "/admin/revoked_certs", qry, creds, nil)
+	resp, err := delete(d, "/admin/mtls-certs/revoked", qry, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return err
