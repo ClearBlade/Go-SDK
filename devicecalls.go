@@ -44,7 +44,8 @@ func (d *DevClient) GenerateDeviceCertificate(systemKey, deviceName string, opti
 		return nil, err
 	}
 	payload := structToMap(options)
-	resp, err := post(d, _DEVICES_DEV_PREAMBLE+systemKey+"/"+deviceName+"/generate-certificate", payload, creds, nil)
+	endpoint := fmt.Sprintf("/admin/mtls-certs/devices/%s/%s", systemKey, deviceName)
+	resp, err := post(d, endpoint, payload, creds, nil)
 	resp, err = mapResponse(resp, err)
 	if err != nil {
 		return nil, err
