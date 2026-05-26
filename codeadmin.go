@@ -443,7 +443,7 @@ func (d *DevClient) GetParameterMetrics(systemKey, serviceName string) (map[stri
 	if err != nil {
 		return nil, err
 	}
-	endpoint := fmt.Sprintf("%s/%s/%s/metrics", _CODE_ADMIN_PREAMBLE, systemKey, serviceName)
+	endpoint := fmt.Sprintf("%s/%s/%s/metrics", _CODE_ADMIN_PREAMBLE_V4, systemKey, serviceName)
 	resp, err := get(d, endpoint, nil, creds, nil)
 	if err != nil {
 		return nil, err
