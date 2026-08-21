@@ -438,6 +438,20 @@ func (d *DevClient) StopAllServiceInstances(systemKey, name string) error {
 	return nil
 }
 
+func (d *DevClient) GetParameterMetrics(systemKey, serviceName string) (map[string]any, error) {
+	creds, err := d.credentials()
+	if err != nil {
+		return nil, err
+	}
+	endpoint := fmt.Sprintf("%s/%s/%s/metrics", _CODE_ADMIN_PREAMBLE_V4, systemKey, serviceName)
+	resp, err := get(d, endpoint, nil, creds, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Body.(map[string]any), nil
+}
+
 func genCodeLog(m map[string]interface{}) CodeLog {
 	cl := CodeLog{}
 	if tim, ext := m["service_execution_time"]; ext {
