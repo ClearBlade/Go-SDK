@@ -30,29 +30,6 @@ const (
 	ES256_X509
 )
 
-type DeviceCertificateOptions struct {
-	SystemCertificateName string `json:"system_certificate_name"`
-	RootCertificateName   string `json:"root_certificate_name"`
-	KeyType               string `json:"key_type"`
-	KeySize               int    `json:"key_size"`
-	ExpiryTimestamp       int64  `json:"expiry_timestamp"`
-}
-
-func (d *DevClient) GenerateDeviceCertificate(systemKey, deviceName string, options *DeviceCertificateOptions) (map[string]interface{}, error) {
-	creds, err := d.credentials()
-	if err != nil {
-		return nil, err
-	}
-	payload := structToMap(options)
-	endpoint := fmt.Sprintf("/admin/mtls-certs/devices/%s/%s", systemKey, deviceName)
-	resp, err := post(d, endpoint, payload, creds, nil)
-	resp, err = mapResponse(resp, err)
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.(map[string]interface{}), nil
-}
-
 func (d *DevClient) GetDevicePublicKeys(systemKey, deviceName string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
