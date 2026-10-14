@@ -665,6 +665,32 @@ func (dvc *DeviceClient) Authenticate() (*AuthResponse, error) {
 	return nil, err
 }
 
+// AuthenticateMTLSClient authenticates a client made with NewDeviceMTLSClient. If the client's details are in its
+// certificate's CN, the platform takes the system from the certificate.
+func (dvc *DeviceClient) AuthenticateMTLSClient() (map[string]interface{}, error) {
+	creds, err := dvc.credentials()
+	if err != nil {
+		return nil, err
+	}
+	body := map[string]interface{}{"name": dvc.DeviceName}
+	if !dvc.DetailsInCN {
+		body["system_key"] = dvc.SystemKey
+	}
+	resp, err := post(dvc, _DEVICE_V4_PREAMBLE+"mtls/auth", body, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	respBody, ok := resp.Body.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Got unexpected return value from AuthenticateMTLSClient: %+v", resp.Body)
+	}
+	if token, ok := respBody["deviceToken"].(string); ok {
+		dvc.DeviceToken = token
+	}
+	return respBody, nil
+}
+
 func (dvc *DeviceClient) AuthenticateWithMTLS(certFile, privKeyFile string) (*AuthResponse, error) {
 	_, err := dvc.AuthenticateDeviceWithMTLS(dvc.SystemKey, dvc.DeviceName, certFile, privKeyFile)
 	return nil, err
