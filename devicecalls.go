@@ -30,29 +30,6 @@ const (
 	ES256_X509
 )
 
-type DeviceCertificateOptions struct {
-	SystemCertificateName string `json:"system_certificate_name"`
-	RootCertificateName   string `json:"root_certificate_name"`
-	KeyType               string `json:"key_type"`
-	KeySize               int    `json:"key_size"`
-	ExpiryTimestamp       int64  `json:"expiry_timestamp"`
-}
-
-func (d *DevClient) GenerateDeviceCertificate(systemKey, deviceName string, options *DeviceCertificateOptions) (map[string]interface{}, error) {
-	creds, err := d.credentials()
-	if err != nil {
-		return nil, err
-	}
-	payload := structToMap(options)
-	endpoint := fmt.Sprintf("/admin/mtls-certs/devices/%s/%s", systemKey, deviceName)
-	resp, err := post(d, endpoint, payload, creds, nil)
-	resp, err = mapResponse(resp, err)
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body.(map[string]interface{}), nil
-}
-
 func (d *DevClient) GetDevicePublicKeys(systemKey, deviceName string) ([]interface{}, error) {
 	creds, err := d.credentials()
 	if err != nil {
@@ -686,6 +663,32 @@ func (dvc *DeviceClient) credentials() ([][]string, error) {
 func (dvc *DeviceClient) Authenticate() (*AuthResponse, error) {
 	_, err := dvc.AuthenticateDeviceWithKey(dvc.SystemKey, dvc.DeviceName, dvc.ActiveKey)
 	return nil, err
+}
+
+// AuthenticateMTLSClient authenticates a client made with NewDeviceMTLSClient. If the client's details are in its
+// certificate's CN, the platform takes the system from the certificate.
+func (dvc *DeviceClient) AuthenticateMTLSClient() (map[string]interface{}, error) {
+	creds, err := dvc.credentials()
+	if err != nil {
+		return nil, err
+	}
+	body := map[string]interface{}{"name": dvc.DeviceName}
+	if !dvc.DetailsInCN {
+		body["system_key"] = dvc.SystemKey
+	}
+	resp, err := post(dvc, _DEVICE_V4_PREAMBLE+"mtls/auth", body, creds, nil)
+	resp, err = mapResponse(resp, err)
+	if err != nil {
+		return nil, err
+	}
+	respBody, ok := resp.Body.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Got unexpected return value from AuthenticateMTLSClient: %+v", resp.Body)
+	}
+	if token, ok := respBody["deviceToken"].(string); ok {
+		dvc.DeviceToken = token
+	}
+	return respBody, nil
 }
 
 func (dvc *DeviceClient) AuthenticateWithMTLS(certFile, privKeyFile string) (*AuthResponse, error) {
